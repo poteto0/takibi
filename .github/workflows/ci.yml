@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: ["master", "main"]
+  pull_request:
+
+env:
+  GO_VERSION: "1.25.1"
+  JUST_VERSION: "1.45.0"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use golang
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Setup just
+        uses: extractions/setup-just@v3
+        with:
+          just-version: ${{ env.JUST_VERSION }}
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: --timeout=5m
+
+      - name: run lint with just
+        run: just lint
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use golang
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Setup just
+        uses: extractions/setup-just@v3
+        with:
+          just-version: ${{ env.JUST_VERSION }}
+
+      - name: Run tests
+        run: just test
+
+      - name: Upload Unit Test Coverage
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.out
+          retention-days: 1
+
+  coverage-report:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Unit Test Coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage
+
+      - name: Coverage Report
+        uses: k1LoW/octocov-action@v1

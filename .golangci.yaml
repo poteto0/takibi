@@ -1,0 +1,55 @@
+version: "2"
+run:
+  issues-exit-code: 1
+
+linters:
+  default: none
+  enable:
+    - bodyclose
+    - dogsled
+    - errcheck
+    - gochecknoinits
+    - gocritic
+    - gosec
+    - govet
+    - ineffassign
+    - misspell
+    - nakedret
+    - prealloc
+    - staticcheck
+    - unconvert
+    - unparam
+    - unused
+  settings:
+    goconst:
+      min-len: 5
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples
+      - .*_test\.go
+
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples
+
+linters-settings:
+  errcheck:
+    ignore: "[rR]ead|[w|W]rite|[c|C]lose|[c|C]ommit|[r|R]ollback|[p|P]rintln"
+
+  goconst:
+    min-len: 5
+
+  golint:
+    min-confidence: 1.0
