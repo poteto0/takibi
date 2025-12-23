@@ -2,8 +2,11 @@ name: CI
 
 on:
   push:
-    branches: ["master", "main"]
+    branches:
+      - main
   pull_request:
+    branches:
+      - main
 
 env:
   GO_VERSION: "1.25.1"
@@ -27,11 +30,8 @@ jobs:
         with:
           just-version: ${{ env.JUST_VERSION }}
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v7
-        with:
-          version: latest
-          args: --timeout=5m
+      - name: Install golangci
+        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.5.0
 
       - name: run lint with just
         run: just lint
@@ -66,6 +66,10 @@ jobs:
 
   coverage-report:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read # to checkout
+      pull-requests: write # for octocov to post comments
+      actions: read # for octocov to parse test execution time
     needs: test
     if: github.event_name == 'pull_request'
     steps:
@@ -79,3 +83,5 @@ jobs:
 
       - name: Coverage Report
         uses: k1LoW/octocov-action@v1
+        with:
+          github-token: ${{ github.token }}
