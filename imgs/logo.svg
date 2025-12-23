@@ -1,0 +1,18 @@
+<svg viewBox="0 0 300 120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Wood logs (brown crossed) - shorter -->
+  <!-- First log (diagonal left to right) -->
+  <rect x="30" y="67" width="80" height="18" rx="9" fill="#8B4513" transform="rotate(-15 70 76)"/>
+  
+  <!-- Second log (diagonal right to left) -->
+  <rect x="30" y="67" width="80" height="18" rx="9" fill="#A0522D" transform="rotate(15 70 76)"/>
+  
+  <!-- Fire (sky blue - Golang color) - single flame, fatter -->
+  <!-- Main flame body -->
+  <path d="M 70 30 Q 45 50 48 70 Q 52 82 70 88 Q 88 82 92 70 Q 95 50 70 30 Z" fill="#00ADD8" opacity="0.9"/>
+  
+  <!-- Inner lighter flame for depth -->
+  <path d="M 70 40 Q 56 54 58 68 Q 61 78 70 82 Q 79 78 82 68 Q 84 54 70 40 Z" fill="#5DC9E2" opacity="0.9"/>
+  
+  <!-- Framework name (horizontal) -->
+  <text x="130" y="85" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#2c3e50" text-anchor="start">takibi</text>
+</svg>

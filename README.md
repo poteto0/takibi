@@ -1,4 +1,4 @@
-LOGO
+<img src="./imgs/logo.svg" alt="takibi" width=500>
 
 ## Hono Inspired Type-Safe Context Web Framework
 
