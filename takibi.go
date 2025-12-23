@@ -134,7 +134,6 @@ func (
 		if err := t.errorHandler(ctx, err); err != nil {
 			// fallback
 			ctx.Response().WriteHeader(http.StatusInternalServerError)
-			ctx.Response().Write([]byte(err.Error()))
 		}
 		return
 	}
