@@ -1,1 +1,3 @@
 coverage.out
+.gemini/
+gha-creds-*.json
