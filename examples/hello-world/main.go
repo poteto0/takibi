@@ -3,6 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
+
+	"github.com/poteto0/takibi"
+	"github.com/poteto0/takibi/interfaces"
 )
 
 type Bindings struct {
@@ -26,7 +29,11 @@ func main() {
 
 	app.OnError(func(ctx interfaces.IContext[Bindings], err error) error {
 		if errors.Is(err, BadRequest) {
-			return ctx.Status(400).Text("bad-request")
+			return ctx.Status(400).Json(
+				map[string]string{
+					"message": "error",
+				},
+			)
 		}
 
 		return ctx.Status(500).Text("internal-server-error")
@@ -35,7 +42,9 @@ func main() {
 	app.Get("/hello", func(ctx MyContext) error {
 		fmt.Println(ctx.Env().Foo)
 		ctx.Env().Greet()
-		return nil
+		return ctx.Json(map[string]string{
+			"message": "hello world",
+		})
 	})
 
 	app.Get("/error", func(ctx MyContext) error {
