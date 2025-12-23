@@ -2,6 +2,8 @@ name: CI
 
 on:
   push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
@@ -9,13 +11,6 @@ on:
 env:
   GO_VERSION: "1.25.1"
   JUST_VERSION: "1.45.0"
-
-# for octocov
-permissions:
-  contents: "read"
-  id-token: "write"
-  actions: "read"
-  pull-requests: "read"
 
 jobs:
   lint:
@@ -71,6 +66,10 @@ jobs:
 
   coverage-report:
     runs-on: ubuntu-latest
+    permissions:
+    contents: read # to checkout
+    pull-requests: write # for octocov to post comments
+    actions: read # for octocov to parse test execution time
     needs: test
     if: github.event_name == 'pull_request'
     steps:

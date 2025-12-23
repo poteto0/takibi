@@ -2,7 +2,8 @@ coverage:
   paths:
     - coverage.out
   badge:
-    path: fixtures/coverage.svg
+    path: docs/coverage.svg
+  push:
   acceptable: 95%
 
 codeToTestRatio:
@@ -17,7 +18,7 @@ testExecutionTime:
 
 comment:
   if: is_pull_request
-  hideFooterLink: true
+  hideFooterLink: false
 
 diff:
   datastores:
