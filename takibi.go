@@ -133,7 +133,7 @@ func (
 	if err := composedHandler(ctx); err != nil {
 		if err := t.errorHandler(ctx, err); err != nil {
 			// fallback
-			ctx.Status(http.StatusInternalServerError).Text(err.Error())
+			ctx.Status(http.StatusInternalServerError).Response().Write([]byte(err.Error()))
 		}
 		return
 	}
