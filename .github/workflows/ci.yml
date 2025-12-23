@@ -67,9 +67,9 @@ jobs:
   coverage-report:
     runs-on: ubuntu-latest
     permissions:
-    contents: read # to checkout
-    pull-requests: write # for octocov to post comments
-    actions: read # for octocov to parse test execution time
+      contents: read # to checkout
+      pull-requests: write # for octocov to post comments
+      actions: read # for octocov to parse test execution time
     needs: test
     if: github.event_name == 'pull_request'
     steps:
