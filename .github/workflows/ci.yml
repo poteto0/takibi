@@ -27,11 +27,8 @@ jobs:
         with:
           just-version: ${{ env.JUST_VERSION }}
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v7
-        with:
-          version: v2.5.0
-          args: --timeout=5m
+      - name: Install golangci
+        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.5.0
 
       - name: run lint with just
         run: just lint
