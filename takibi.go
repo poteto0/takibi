@@ -16,19 +16,19 @@ import (
 )
 
 type takibi[Bindings any] struct {
-	env          *Bindings
-	cache        sync.Pool
-		router           interfaces.IRouter[Bindings]
-		errorHandler     interfaces.ErrorHandlerFunc[Bindings]
-		blowErrorHandler interfaces.BlowErrorHandlerFunc[Bindings]
-		tasks            []interfaces.BlowTask[Bindings]
-		cron             *cron.Cron
-	
-	ctx          stdContext.Context
-	cancel       stdContext.CancelFunc
-	fireMutex    sync.RWMutex
-	Server       http.Server
-	Listener     net.Listener
+	env              *Bindings
+	cache            sync.Pool
+	router           interfaces.IRouter[Bindings]
+	errorHandler     interfaces.ErrorHandlerFunc[Bindings]
+	blowErrorHandler interfaces.BlowErrorHandlerFunc[Bindings]
+	tasks            []interfaces.BlowTask[Bindings]
+	cron             *cron.Cron
+
+	ctx       stdContext.Context
+	cancel    stdContext.CancelFunc
+	fireMutex sync.RWMutex
+	Server    http.Server
+	Listener  net.Listener
 }
 
 func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {

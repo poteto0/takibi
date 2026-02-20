@@ -54,11 +54,11 @@ jobs:
           just-version: ${{ env.JUST_VERSION }}
 
       - name: Run tests
-        run: just test
+        run: just ut
 
       - name: Upload Unit Test Coverage
         if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage
           path: coverage.out
