@@ -33,7 +33,8 @@ linters:
     paths:
       - third_party$
       - builtin$
-      - examples
+      - examples$
+      - playground/*
       - .*_test\.go
 
 formatters:
@@ -42,7 +43,7 @@ formatters:
     paths:
       - third_party$
       - builtin$
-      - examples
+      - examples$
 
 linters-settings:
   errcheck:
