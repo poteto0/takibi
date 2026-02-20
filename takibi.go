@@ -3,6 +3,7 @@ package takibi
 import (
 	stdContext "context"
 	"crypto/tls"
+	"fmt"
 	"net"
 	"net/http"
 	"strings"
@@ -11,16 +12,23 @@ import (
 	"github.com/poteto0/takibi/constants"
 	"github.com/poteto0/takibi/interfaces"
 	"github.com/poteto0/takibi/router"
+	"github.com/robfig/cron/v3"
 )
 
 type takibi[Bindings any] struct {
-	env          *Bindings
-	cache        sync.Pool
-	router       interfaces.IRouter[Bindings]
-	errorHandler interfaces.ErrorHandlerFunc[Bindings]
-	fireMutex    sync.RWMutex
-	Server       http.Server
-	Listener     net.Listener
+	env              *Bindings
+	cache            sync.Pool
+	router           interfaces.IRouter[Bindings]
+	errorHandler     interfaces.ErrorHandlerFunc[Bindings]
+	blowErrorHandler interfaces.BlowErrorHandlerFunc[Bindings]
+	tasks            []interfaces.BlowTask[Bindings]
+	cron             *cron.Cron
+
+	ctx       stdContext.Context
+	cancel    stdContext.CancelFunc
+	fireMutex sync.RWMutex
+	Server    http.Server
+	Listener  net.Listener
 }
 
 func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
@@ -28,12 +36,19 @@ func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
 		bindings = new(Bindings)
 	}
 
+	ctx, cancel := stdContext.WithCancel(stdContext.Background())
+
 	return &takibi[Bindings]{
 		env:    bindings,
 		router: router.New[Bindings](),
 		errorHandler: func(ctx interfaces.IContext[Bindings], err error) error {
 			return ctx.Status(http.StatusInternalServerError).Text(err.Error())
 		},
+		blowErrorHandler: func(c interfaces.IContext[Bindings], err error) {
+			fmt.Println(err.Error())
+		},
+		ctx:    ctx,
+		cancel: cancel,
 	}
 }
 
@@ -55,7 +70,43 @@ func (
 	}
 
 	t.fireMutex.Unlock()
+
+	t.startTasks()
+
 	return t.Server.Serve(t.Listener)
+}
+
+func (
+	t *takibi[Bindings],
+) startTasks() {
+	for _, task := range t.tasks {
+		if task.BlowActionTag == "trigger" && task.BlowActionTrigger == "start" {
+			r, _ := http.NewRequestWithContext(t.ctx, "GET", "/", nil)
+			c := NewContext(nil, r, t.env)
+			go func(task interfaces.BlowTask[Bindings]) {
+				if err := task.BlowAction(c); err != nil {
+					t.blowErrorHandler(c, err)
+				}
+			}(task)
+		}
+
+		if task.BlowActionTag == "schedule" && task.BlowActionSchedule != "" {
+			if t.cron == nil {
+				t.cron = cron.New(cron.WithSeconds())
+			}
+			_, _ = t.cron.AddFunc(task.BlowActionSchedule, func() {
+				r, _ := http.NewRequestWithContext(t.ctx, "GET", "/", nil)
+				c := NewContext(nil, r, t.env)
+				if err := task.BlowAction(c); err != nil {
+					t.blowErrorHandler(c, err)
+				}
+			})
+		}
+	}
+
+	if t.cron != nil {
+		t.cron.Start()
+	}
 }
 
 func (
@@ -70,8 +121,37 @@ func (
 		return err
 	}
 
+	t.stopTasks(ctx)
+
+	t.cancel()
+
 	t.fireMutex.Unlock()
 	return nil
+}
+
+func (
+	t *takibi[Bindings],
+) stopTasks(ctx stdContext.Context) {
+	if t.cron != nil {
+		t.cron.Stop()
+	}
+
+	// execute stop tasks
+	var wg sync.WaitGroup
+	for _, task := range t.tasks {
+		if task.BlowActionTag == "trigger" && task.BlowActionTrigger == "stop" {
+			wg.Add(1)
+			go func(task interfaces.BlowTask[Bindings]) {
+				defer wg.Done()
+				r, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
+				c := NewContext(nil, r, t.env)
+				if err := task.BlowAction(c); err != nil {
+					t.blowErrorHandler(c, err)
+				}
+			}(task)
+		}
+	}
+	wg.Wait()
 }
 
 func (
@@ -183,6 +263,14 @@ func (
 
 func (
 	t *takibi[Bindings],
+) OnBlowError(
+	handler interfaces.BlowErrorHandlerFunc[Bindings],
+) {
+	t.blowErrorHandler = handler
+}
+
+func (
+	t *takibi[Bindings],
 ) Use(
 	path string,
 	middleware ...interfaces.MiddlewareFunc[Bindings],
@@ -269,4 +357,12 @@ func (
 	handler interfaces.HandlerFunc[Bindings],
 ) error {
 	return t.router.Connect(path, handler)
+}
+
+func (
+	t *takibi[Bindings],
+) Blow(
+	task interfaces.BlowTask[Bindings],
+) {
+	t.tasks = append(t.tasks, task)
 }

@@ -20,6 +20,8 @@ type ITakibi[Bindings any] interface {
 
 	OnError(handler ErrorHandlerFunc[Bindings])
 
+	OnBlowError(handler BlowErrorHandlerFunc[Bindings])
+
 	Use(path string, middleware ...MiddlewareFunc[Bindings]) error
 
 	/* add node */
@@ -94,4 +96,7 @@ type ITakibi[Bindings any] interface {
 		EX: "/users/" -> "/users"
 	*/
 	Connect(path string, handler HandlerFunc[Bindings]) error
+
+	// Blow registers a task
+	Blow(task BlowTask[Bindings])
 }

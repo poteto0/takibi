@@ -1,0 +1,128 @@
+package takibi_test
+
+import (
+	"context"
+	"testing"
+	"time"
+
+	"github.com/poteto0/takibi"
+	"github.com/poteto0/takibi/interfaces"
+	"github.com/stretchr/testify/assert"
+)
+
+func TestBlow_TriggerStart(t *testing.T) {
+	app := takibi.New(&struct{ Name string }{Name: "takibi"})
+	executed := false
+	app.Blow(interfaces.BlowTask[struct{ Name string }]{
+		BlowActionTag:     "trigger",
+		BlowActionTrigger: "start",
+		BlowAction: func(c interfaces.IContext[struct{ Name string }]) error {
+			if c.Env().Name == "takibi" {
+				executed = true
+			}
+			return nil
+		},
+	})
+
+	// Start server in background
+	go func() {
+		_ = app.Fire(":0")
+	}()
+
+	// Wait for execution
+	assert.Eventually(t, func() bool {
+		return executed
+	}, 1*time.Second, 10*time.Millisecond)
+
+	_ = app.Finish(context.Background())
+}
+
+func TestBlow_TriggerStop(t *testing.T) {
+	app := takibi.New(&struct{ Name string }{Name: "takibi"})
+	executed := false
+	app.Blow(interfaces.BlowTask[struct{ Name string }]{
+		BlowActionTag:     "trigger",
+		BlowActionTrigger: "stop",
+		BlowAction: func(c interfaces.IContext[struct{ Name string }]) error {
+			if c.Env().Name == "takibi" {
+				executed = true
+			}
+			return nil
+		},
+	})
+
+	// Start server in background
+	go func() {
+		_ = app.Fire(":0")
+	}()
+
+	// Wait a bit for server to start
+	time.Sleep(100 * time.Millisecond)
+
+	// Stop server
+	_ = app.Finish(context.Background())
+
+	// Wait for execution
+	assert.Eventually(t, func() bool {
+		return executed
+	}, 1*time.Second, 10*time.Millisecond)
+}
+
+func TestBlow_Schedule(t *testing.T) {
+	app := takibi.New(&struct{ Name string }{Name: "takibi"})
+	executed := false
+	app.Blow(interfaces.BlowTask[struct{ Name string }]{
+		BlowActionTag:      "schedule",
+		BlowActionSchedule: "@every 1s",
+		BlowAction: func(c interfaces.IContext[struct{ Name string }]) error {
+			if c.Env().Name == "takibi" {
+				executed = true
+			}
+			return nil
+		},
+	})
+
+	// Start server in background
+	go func() {
+		_ = app.Fire(":0")
+	}()
+
+	// Wait for execution (cron @every 1s takes 1s to first run usually)
+	assert.Eventually(t, func() bool {
+		return executed
+	}, 2*time.Second, 100*time.Millisecond)
+
+	_ = app.Finish(context.Background())
+}
+
+func TestBlow_ErrorHandler(t *testing.T) {
+	app := takibi.New(&struct{}{})
+	errCh := make(chan error, 1)
+
+	app.OnBlowError(func(c interfaces.IContext[struct{}], err error) {
+		errCh <- err
+	})
+
+	expectedErr := assert.AnError
+	app.Blow(interfaces.BlowTask[struct{}]{
+		BlowActionTag:     "trigger",
+		BlowActionTrigger: "start",
+		BlowAction: func(c interfaces.IContext[struct{}]) error {
+			return expectedErr
+		},
+	})
+
+	// Start server in background
+	go func() {
+		_ = app.Fire(":0")
+	}()
+
+	select {
+	case err := <-errCh:
+		assert.Equal(t, expectedErr, err)
+	case <-time.After(1 * time.Second):
+		t.Fatal("Error handler was not called")
+	}
+
+	_ = app.Finish(context.Background())
+}

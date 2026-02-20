@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -21,6 +22,12 @@ type mockContext[Bindings any] struct {
 func (m *mockContext[Bindings]) Env() *Bindings                { return m.env }
 func (m *mockContext[Bindings]) Request() *http.Request        { return m.req }
 func (m *mockContext[Bindings]) Response() http.ResponseWriter { return m.res }
+func (m *mockContext[Bindings]) Context() context.Context {
+	if m.req != nil {
+		return m.req.Context()
+	}
+	return context.Background()
+}
 func (m *mockContext[Bindings]) Reset(w http.ResponseWriter, r *http.Request) {
 	m.res = w
 	m.req = r
