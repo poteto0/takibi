@@ -94,3 +94,35 @@ func TestBlow_Schedule(t *testing.T) {
 
 	_ = app.Finish(context.Background())
 }
+
+func TestBlow_ErrorHandler(t *testing.T) {
+	app := takibi.New(&struct{}{})
+	errCh := make(chan error, 1)
+
+	app.OnBlowError(func(c interfaces.IContext[struct{}], err error) {
+		errCh <- err
+	})
+
+	expectedErr := assert.AnError
+	app.Blow(interfaces.BlowTask[struct{}]{
+		BlowActionTag:     "trigger",
+		BlowActionTrigger: "start",
+		BlowAction: func(c interfaces.IContext[struct{}]) error {
+			return expectedErr
+		},
+	})
+
+	// Start server in background
+	go func() {
+		_ = app.Fire(":0")
+	}()
+
+	select {
+	case err := <-errCh:
+		assert.Equal(t, expectedErr, err)
+	case <-time.After(1 * time.Second):
+		t.Fatal("Error handler was not called")
+	}
+
+	_ = app.Finish(context.Background())
+}

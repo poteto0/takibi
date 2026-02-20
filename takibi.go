@@ -3,6 +3,7 @@ package takibi
 import (
 	stdContext "context"
 	"crypto/tls"
+	"fmt"
 	"net"
 	"net/http"
 	"strings"
@@ -17,10 +18,12 @@ import (
 type takibi[Bindings any] struct {
 	env          *Bindings
 	cache        sync.Pool
-	router       interfaces.IRouter[Bindings]
-	errorHandler interfaces.ErrorHandlerFunc[Bindings]
-	tasks        []interfaces.BlowTask[Bindings]
-	cron         *cron.Cron
+		router           interfaces.IRouter[Bindings]
+		errorHandler     interfaces.ErrorHandlerFunc[Bindings]
+		blowErrorHandler interfaces.BlowErrorHandlerFunc[Bindings]
+		tasks            []interfaces.BlowTask[Bindings]
+		cron             *cron.Cron
+	
 	ctx          stdContext.Context
 	cancel       stdContext.CancelFunc
 	fireMutex    sync.RWMutex
@@ -40,6 +43,9 @@ func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
 		router: router.New[Bindings](),
 		errorHandler: func(ctx interfaces.IContext[Bindings], err error) error {
 			return ctx.Status(http.StatusInternalServerError).Text(err.Error())
+		},
+		blowErrorHandler: func(c interfaces.IContext[Bindings], err error) {
+			fmt.Println(err.Error())
 		},
 		ctx:    ctx,
 		cancel: cancel,
@@ -78,7 +84,9 @@ func (
 			r, _ := http.NewRequestWithContext(t.ctx, "GET", "/", nil)
 			c := NewContext(nil, r, t.env)
 			go func(task interfaces.BlowTask[Bindings]) {
-				_ = task.BlowAction(c)
+				if err := task.BlowAction(c); err != nil {
+					t.blowErrorHandler(c, err)
+				}
 			}(task)
 		}
 
@@ -89,7 +97,9 @@ func (
 			_, _ = t.cron.AddFunc(task.BlowActionSchedule, func() {
 				r, _ := http.NewRequestWithContext(t.ctx, "GET", "/", nil)
 				c := NewContext(nil, r, t.env)
-				_ = task.BlowAction(c)
+				if err := task.BlowAction(c); err != nil {
+					t.blowErrorHandler(c, err)
+				}
 			})
 		}
 	}
@@ -135,7 +145,9 @@ func (
 				defer wg.Done()
 				r, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
 				c := NewContext(nil, r, t.env)
-				_ = task.BlowAction(c)
+				if err := task.BlowAction(c); err != nil {
+					t.blowErrorHandler(c, err)
+				}
 			}(task)
 		}
 	}
@@ -247,6 +259,14 @@ func (
 	handler interfaces.ErrorHandlerFunc[Bindings],
 ) {
 	t.errorHandler = handler
+}
+
+func (
+	t *takibi[Bindings],
+) OnBlowError(
+	handler interfaces.BlowErrorHandlerFunc[Bindings],
+) {
+	t.blowErrorHandler = handler
 }
 
 func (

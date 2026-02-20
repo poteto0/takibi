@@ -20,6 +20,8 @@ type ITakibi[Bindings any] interface {
 
 	OnError(handler ErrorHandlerFunc[Bindings])
 
+	OnBlowError(handler BlowErrorHandlerFunc[Bindings])
+
 	Use(path string, middleware ...MiddlewareFunc[Bindings]) error
 
 	/* add node */

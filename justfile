@@ -5,3 +5,8 @@ ut:
 
 lint:
   golangci-lint run -c .golangci.yaml
+
+fmt:
+  go fmt ./...
+
+ci: ut lint fmt
