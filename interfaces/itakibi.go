@@ -94,4 +94,7 @@ type ITakibi[Bindings any] interface {
 		EX: "/users/" -> "/users"
 	*/
 	Connect(path string, handler HandlerFunc[Bindings]) error
+
+	// Blow registers a task
+	Blow(task BlowTask[Bindings])
 }

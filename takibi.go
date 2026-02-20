@@ -11,6 +11,7 @@ import (
 	"github.com/poteto0/takibi/constants"
 	"github.com/poteto0/takibi/interfaces"
 	"github.com/poteto0/takibi/router"
+	"github.com/robfig/cron/v3"
 )
 
 type takibi[Bindings any] struct {
@@ -18,6 +19,10 @@ type takibi[Bindings any] struct {
 	cache        sync.Pool
 	router       interfaces.IRouter[Bindings]
 	errorHandler interfaces.ErrorHandlerFunc[Bindings]
+	tasks        []interfaces.BlowTask[Bindings]
+	cron         *cron.Cron
+	ctx          stdContext.Context
+	cancel       stdContext.CancelFunc
 	fireMutex    sync.RWMutex
 	Server       http.Server
 	Listener     net.Listener
@@ -28,12 +33,16 @@ func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
 		bindings = new(Bindings)
 	}
 
+	ctx, cancel := stdContext.WithCancel(stdContext.Background())
+
 	return &takibi[Bindings]{
 		env:    bindings,
 		router: router.New[Bindings](),
 		errorHandler: func(ctx interfaces.IContext[Bindings], err error) error {
 			return ctx.Status(http.StatusInternalServerError).Text(err.Error())
 		},
+		ctx:    ctx,
+		cancel: cancel,
 	}
 }
 
@@ -55,7 +64,33 @@ func (
 	}
 
 	t.fireMutex.Unlock()
+
+	t.startTasks()
+
 	return t.Server.Serve(t.Listener)
+}
+
+func (
+	t *takibi[Bindings],
+) startTasks() {
+	for _, task := range t.tasks {
+		if task.BlowActionTag == "trigger" && task.BlowActionTrigger == "start" {
+			go task.BlowAction(t.ctx, t.env)
+		}
+
+		if task.BlowActionTag == "schedule" && task.BlowActionSchedule != "" {
+			if t.cron == nil {
+				t.cron = cron.New(cron.WithSeconds())
+			}
+			_, _ = t.cron.AddFunc(task.BlowActionSchedule, func() {
+				_ = task.BlowAction(t.ctx, t.env)
+			})
+		}
+	}
+
+	if t.cron != nil {
+		t.cron.Start()
+	}
 }
 
 func (
@@ -70,8 +105,33 @@ func (
 		return err
 	}
 
+	t.stopTasks(ctx)
+
+	t.cancel()
+
 	t.fireMutex.Unlock()
 	return nil
+}
+
+func (
+	t *takibi[Bindings],
+) stopTasks(ctx stdContext.Context) {
+	if t.cron != nil {
+		t.cron.Stop()
+	}
+
+	// execute stop tasks
+	var wg sync.WaitGroup
+	for _, task := range t.tasks {
+		if task.BlowActionTag == "trigger" && task.BlowActionTrigger == "stop" {
+			wg.Add(1)
+			go func(task interfaces.BlowTask[Bindings]) {
+				defer wg.Done()
+				_ = task.BlowAction(ctx, t.env)
+			}(task)
+		}
+	}
+	wg.Wait()
 }
 
 func (
@@ -269,4 +329,12 @@ func (
 	handler interfaces.HandlerFunc[Bindings],
 ) error {
 	return t.router.Connect(path, handler)
+}
+
+func (
+	t *takibi[Bindings],
+) Blow(
+	task interfaces.BlowTask[Bindings],
+) {
+	t.tasks = append(t.tasks, task)
 }
