@@ -75,7 +75,11 @@ func (
 ) startTasks() {
 	for _, task := range t.tasks {
 		if task.BlowActionTag == "trigger" && task.BlowActionTrigger == "start" {
-			go task.BlowAction(t.ctx, t.env)
+			r, _ := http.NewRequestWithContext(t.ctx, "GET", "/", nil)
+			c := NewContext(nil, r, t.env)
+			go func(task interfaces.BlowTask[Bindings]) {
+				_ = task.BlowAction(c)
+			}(task)
 		}
 
 		if task.BlowActionTag == "schedule" && task.BlowActionSchedule != "" {
@@ -83,7 +87,9 @@ func (
 				t.cron = cron.New(cron.WithSeconds())
 			}
 			_, _ = t.cron.AddFunc(task.BlowActionSchedule, func() {
-				_ = task.BlowAction(t.ctx, t.env)
+				r, _ := http.NewRequestWithContext(t.ctx, "GET", "/", nil)
+				c := NewContext(nil, r, t.env)
+				_ = task.BlowAction(c)
 			})
 		}
 	}
@@ -127,7 +133,9 @@ func (
 			wg.Add(1)
 			go func(task interfaces.BlowTask[Bindings]) {
 				defer wg.Done()
-				_ = task.BlowAction(ctx, t.env)
+				r, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
+				c := NewContext(nil, r, t.env)
+				_ = task.BlowAction(c)
 			}(task)
 		}
 	}

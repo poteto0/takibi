@@ -11,13 +11,15 @@ import (
 )
 
 func TestBlow_TriggerStart(t *testing.T) {
-	app := takibi.New(&struct{}{})
+	app := takibi.New(&struct{ Name string }{Name: "takibi"})
 	executed := false
-	app.Blow(interfaces.BlowTask[struct{}]{
+	app.Blow(interfaces.BlowTask[struct{ Name string }]{
 		BlowActionTag:     "trigger",
 		BlowActionTrigger: "start",
-		BlowAction: func(ctx context.Context, env *struct{}) error {
-			executed = true
+		BlowAction: func(c interfaces.IContext[struct{ Name string }]) error {
+			if c.Env().Name == "takibi" {
+				executed = true
+			}
 			return nil
 		},
 	})
@@ -36,13 +38,15 @@ func TestBlow_TriggerStart(t *testing.T) {
 }
 
 func TestBlow_TriggerStop(t *testing.T) {
-	app := takibi.New(&struct{}{})
+	app := takibi.New(&struct{ Name string }{Name: "takibi"})
 	executed := false
-	app.Blow(interfaces.BlowTask[struct{}]{
+	app.Blow(interfaces.BlowTask[struct{ Name string }]{
 		BlowActionTag:     "trigger",
 		BlowActionTrigger: "stop",
-		BlowAction: func(ctx context.Context, env *struct{}) error {
-			executed = true
+		BlowAction: func(c interfaces.IContext[struct{ Name string }]) error {
+			if c.Env().Name == "takibi" {
+				executed = true
+			}
 			return nil
 		},
 	})
@@ -65,13 +69,15 @@ func TestBlow_TriggerStop(t *testing.T) {
 }
 
 func TestBlow_Schedule(t *testing.T) {
-	app := takibi.New(&struct{}{})
+	app := takibi.New(&struct{ Name string }{Name: "takibi"})
 	executed := false
-	app.Blow(interfaces.BlowTask[struct{}]{
+	app.Blow(interfaces.BlowTask[struct{ Name string }]{
 		BlowActionTag:      "schedule",
 		BlowActionSchedule: "@every 1s",
-		BlowAction: func(ctx context.Context, env *struct{}) error {
-			executed = true
+		BlowAction: func(c interfaces.IContext[struct{ Name string }]) error {
+			if c.Env().Name == "takibi" {
+				executed = true
+			}
 			return nil
 		},
 	})

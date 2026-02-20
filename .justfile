@@ -1,6 +1,6 @@
 testIgnorePattern := "/interfaces|/constants|/fixtures"
 
-test:
+ut:
   go test $(go list ./... | grep -v -E '{{testIgnorePattern}}') -cover -gcflags=all=-l -coverprofile=coverage.out -tags=exclude_fixture
 
 lint:

@@ -1,11 +1,15 @@
 package interfaces
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+)
 
 type IContext[Bindings any] interface {
 	Env() *Bindings
 	Request() *http.Request
 	Response() http.ResponseWriter
+	Context() context.Context
 	Reset(w http.ResponseWriter, r *http.Request)
 
 	Status(code int) IContext[Bindings]
