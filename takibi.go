@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"sync"
 
@@ -365,4 +366,21 @@ func (
 	task interfaces.BlowTask[Bindings],
 ) {
 	t.tasks = append(t.tasks, task)
+}
+
+func (
+	t *takibi[Bindings],
+) Camp(
+	method, path string,
+	opts ...interfaces.CampOption,
+) *http.Response {
+	r, _ := http.NewRequest(method, path, nil)
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	w := httptest.NewRecorder()
+	t.ServeHTTP(w, r)
+
+	return w.Result()
 }
