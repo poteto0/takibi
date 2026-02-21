@@ -4,39 +4,45 @@ import (
 	"net/http"
 
 	"github.com/gorilla/securecookie"
+	"github.com/poteto0/takibi/constants"
 	"github.com/poteto0/takibi/interfaces"
 )
 
-func SetCookie[T any](ctx interfaces.IContext[T], name, value string, options *CookieOptions) bool {
+var DefaultCookieOptions = &CookieOptions{
+	Path:     "/",
+	HttpOnly: true,
+	Secure:   true,
+	SameSite: http.SameSiteStrictMode,
+}
+
+func SetCookie[T any](ctx interfaces.IContext[T], name, value string, opts *CookieOptions) bool {
 	cookie := &http.Cookie{
 		Name:  name,
 		Value: value,
 	}
 
+	options := opts
 	if options == nil {
-		cookie.Path = "/"
-		cookie.HttpOnly = true
-		cookie.Secure = true
-		cookie.SameSite = http.SameSiteStrictMode
-	} else {
-		cookie.Path = options.Path
-		cookie.Domain = options.Domain
-		cookie.Expires = options.Expires
-		cookie.Secure = options.Secure
-		cookie.HttpOnly = options.HttpOnly
-		cookie.SameSite = options.SameSite
-		cookie.MaxAge = options.MaxAge
+		options = DefaultCookieOptions
+	}
 
-		if options.Prefix == "secure" {
-			cookie.Name = "__Secure-" + name
-			cookie.Secure = true
-		}
-		if options.Prefix == "host" {
-			cookie.Name = "__Host-" + name
-			cookie.Secure = true
-			cookie.Path = "/"
-			cookie.Domain = ""
-		}
+	cookie.Path = options.Path
+	cookie.Domain = options.Domain
+	cookie.Expires = options.Expires
+	cookie.Secure = options.Secure
+	cookie.HttpOnly = options.HttpOnly
+	cookie.SameSite = options.SameSite
+	cookie.MaxAge = options.MaxAge
+
+	if options.Prefix == constants.CookiePrefixSecure {
+		cookie.Name = constants.CookieSecurePrefix + name
+		cookie.Secure = true
+	}
+	if options.Prefix == constants.CookiePrefixHost {
+		cookie.Name = constants.CookieHostPrefix + name
+		cookie.Secure = true
+		cookie.Path = "/"
+		cookie.Domain = ""
 	}
 
 	http.SetCookie(ctx.Response(), cookie)
@@ -51,13 +57,13 @@ func GetCookie[T any](ctx interfaces.IContext[T], name string) (*http.Cookie, bo
 	return c, true
 }
 
-func SetSignedCookie[T any](ctx interfaces.IContext[T], name, value, secret string, options *CookieOptions) bool {
+func SetSignedCookie[T any](ctx interfaces.IContext[T], name, value, secret string, opts *CookieOptions) bool {
 	s := securecookie.New([]byte(secret), nil)
 	encoded, err := s.Encode(name, value)
 	if err != nil {
 		return false
 	}
-	return SetCookie(ctx, name, encoded, options)
+	return SetCookie(ctx, name, encoded, opts)
 }
 
 func GetSignedCookie[T any](ctx interfaces.IContext[T], name, secret string) (*http.Cookie, bool) {
@@ -82,7 +88,7 @@ func GetCookies[T any](ctx interfaces.IContext[T]) []*http.Cookie {
 	return ctx.Request().Cookies()
 }
 
-func DeleteCookie[T any](ctx interfaces.IContext[T], name string, options *CookieOptions) bool {
+func DeleteCookie[T any](ctx interfaces.IContext[T], name string, opts *CookieOptions) bool {
 	cookie := &http.Cookie{
 		Name:   name,
 		Value:  "",
@@ -90,6 +96,7 @@ func DeleteCookie[T any](ctx interfaces.IContext[T], name string, options *Cooki
 		MaxAge: -1,
 	}
 	
+	options := opts
 	if options != nil {
 		if options.Path != "" {
 			cookie.Path = options.Path
@@ -99,6 +106,13 @@ func DeleteCookie[T any](ctx interfaces.IContext[T], name string, options *Cooki
 		}
 		if options.Secure {
 			cookie.Secure = true
+		}
+		
+		if options.Prefix == constants.CookiePrefixSecure {
+			cookie.Name = constants.CookieSecurePrefix + name
+		}
+		if options.Prefix == constants.CookiePrefixHost {
+			cookie.Name = constants.CookieHostPrefix + name
 		}
 	}
 
