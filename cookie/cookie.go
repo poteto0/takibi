@@ -34,22 +34,25 @@ func SetCookie[T any](ctx interfaces.IContext[T], name, value string, opts *Cook
 	cookie.SameSite = options.SameSite
 	cookie.MaxAge = options.MaxAge
 
-	if options.Prefix == constants.CookiePrefixSecure {
-		cookie.Name = constants.CookieSecurePrefix + name
-		cookie.Secure = true
+	if options.Prefix == constants.CookieSecurePrefixMode {
+		makeCookieSecure(cookie)
 	}
-	if options.Prefix == constants.CookiePrefixHost {
-		cookie.Name = constants.CookieHostPrefix + name
-		cookie.Secure = true
-		cookie.Path = "/"
-		cookie.Domain = ""
+	if options.Prefix == constants.CookieHostPrefixMode {
+		makeCookieHost(cookie)
 	}
 
 	http.SetCookie(ctx.Response(), cookie)
 	return true
 }
 
-func GetCookie[T any](ctx interfaces.IContext[T], name string) (*http.Cookie, bool) {
+func GetCookie[T any](ctx interfaces.IContext[T], name string, opts *CookieOptions) (*http.Cookie, bool) {
+	if opts != nil && opts.Prefix == constants.CookieSecurePrefixMode {
+		name = constants.CookieSecurePrefix + name
+	}
+	if opts != nil && opts.Prefix == constants.CookieHostPrefixMode {
+		name = constants.CookieHostPrefix + name
+	}
+
 	c, err := ctx.Request().Cookie(name)
 	if err != nil {
 		return nil, false
@@ -66,9 +69,9 @@ func SetSignedCookie[T any](ctx interfaces.IContext[T], name, value, secret stri
 	return SetCookie(ctx, name, encoded, opts)
 }
 
-func GetSignedCookie[T any](ctx interfaces.IContext[T], name, secret string) (*http.Cookie, bool) {
-	c, err := ctx.Request().Cookie(name)
-	if err != nil {
+func GetSignedCookie[T any](ctx interfaces.IContext[T], name, secret string, opts *CookieOptions) (*http.Cookie, bool) {
+	c, ok := GetCookie(ctx, name, opts)
+	if !ok {
 		return nil, false
 	}
 
@@ -77,7 +80,7 @@ func GetSignedCookie[T any](ctx interfaces.IContext[T], name, secret string) (*h
 	if err := s.Decode(name, c.Value, &value); err != nil {
 		return nil, false
 	}
-	
+
 	// Return a copy with decoded value
 	decodedCookie := *c
 	decodedCookie.Value = value
@@ -88,34 +91,14 @@ func GetCookies[T any](ctx interfaces.IContext[T]) []*http.Cookie {
 	return ctx.Request().Cookies()
 }
 
-func DeleteCookie[T any](ctx interfaces.IContext[T], name string, opts *CookieOptions) bool {
-	cookie := &http.Cookie{
-		Name:   name,
-		Value:  "",
-		Path:   "/",
-		MaxAge: -1,
-	}
-	
-	options := opts
-	if options != nil {
-		if options.Path != "" {
-			cookie.Path = options.Path
-		}
-		if options.Domain != "" {
-			cookie.Domain = options.Domain
-		}
-		if options.Secure {
-			cookie.Secure = true
-		}
-		
-		if options.Prefix == constants.CookiePrefixSecure {
-			cookie.Name = constants.CookieSecurePrefix + name
-		}
-		if options.Prefix == constants.CookiePrefixHost {
-			cookie.Name = constants.CookieHostPrefix + name
-		}
-	}
+func makeCookieSecure(c *http.Cookie) {
+	c.Name = constants.CookieSecurePrefix + c.Name
+	c.Secure = true
+}
 
-	http.SetCookie(ctx.Response(), cookie)
-	return true
+func makeCookieHost(c *http.Cookie) {
+	c.Name = constants.CookieHostPrefix + c.Name
+	c.Secure = true
+	c.Path = "/"
+	c.Domain = ""
 }

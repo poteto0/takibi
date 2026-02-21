@@ -1,8 +1,8 @@
 package constants
 
 const (
-	CookieSecurePrefix = "__Secure-"
-	CookieHostPrefix   = "__Host-"
-	CookiePrefixSecure = "secure"
-	CookiePrefixHost   = "host"
+	CookieSecurePrefix     = "__Secure-"
+	CookieHostPrefix       = "__Host-"
+	CookieSecurePrefixMode = "secure"
+	CookieHostPrefixMode   = "host"
 )
