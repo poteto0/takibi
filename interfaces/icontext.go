@@ -15,6 +15,7 @@ type IContext[Bindings any] interface {
 	// Response
 	Status(code int) IContext[Bindings]
 	Text(text string) error
+	Bytes(data []byte) error
 	Json(data any) error
 	Redirect(url string) error
 }

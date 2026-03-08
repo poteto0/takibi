@@ -1,23 +1,24 @@
-package middlewares
+package middlewares_test
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/poteto0/takibi"
 	"github.com/poteto0/takibi/interfaces"
-	"github.com/poteto0/takibi/thttp"
+	"github.com/poteto0/takibi/middlewares"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCors(t *testing.T) {
 	t.Run("default config sets origin", func(t *testing.T) {
-		mw := Cors[any]()
+		mw := middlewares.Cors[any]()
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Set("Origin", "http://example.com")
 		rec := httptest.NewRecorder()
-		ctx := &mockContext[any]{req: thttp.NewRequest(req), res: rec}
+		ctx := takibi.NewContext[any](rec, req, nil)
 
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
 			return nil
@@ -28,14 +29,14 @@ func TestCors(t *testing.T) {
 	})
 
 	t.Run("specific origin allowed", func(t *testing.T) {
-		mw := Cors[any](CorsConfig{
+		mw := middlewares.Cors[any](middlewares.CorsConfig{
 			AllowOrigins: []string{"http://example.com"},
 		})
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Set("Origin", "http://example.com")
 		rec := httptest.NewRecorder()
-		ctx := &mockContext[any]{req: thttp.NewRequest(req), res: rec}
+		ctx := takibi.NewContext[any](rec, req, nil)
 
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
 			return nil
@@ -46,12 +47,12 @@ func TestCors(t *testing.T) {
 	})
 
 	t.Run("preflight request", func(t *testing.T) {
-		mw := Cors[any]()
+		mw := middlewares.Cors[any]()
 
 		req := httptest.NewRequest(http.MethodOptions, "/", nil)
 		req.Header.Set("Origin", "http://example.com")
 		rec := httptest.NewRecorder()
-		ctx := &mockContext[any]{req: thttp.NewRequest(req), res: rec}
+		ctx := takibi.NewContext[any](rec, req, nil)
 
 		var nextCalled bool
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
@@ -67,7 +68,7 @@ func TestCors(t *testing.T) {
 	})
 
 	t.Run("allow credentials", func(t *testing.T) {
-		mw := Cors[any](CorsConfig{
+		mw := middlewares.Cors[any](middlewares.CorsConfig{
 			AllowOrigins:     []string{"http://example.com"},
 			AllowCredentials: true,
 		})
@@ -75,7 +76,7 @@ func TestCors(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Set("Origin", "http://example.com")
 		rec := httptest.NewRecorder()
-		ctx := &mockContext[any]{req: thttp.NewRequest(req), res: rec}
+		ctx := takibi.NewContext[any](rec, req, nil)
 
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
 			return nil
@@ -86,7 +87,7 @@ func TestCors(t *testing.T) {
 	})
 
 	t.Run("expose headers", func(t *testing.T) {
-		mw := Cors[any](CorsConfig{
+		mw := middlewares.Cors[any](middlewares.CorsConfig{
 			AllowOrigins:  []string{"*"},
 			ExposeHeaders: []string{"X-Custom-Header", "X-Another-Header"},
 		})
@@ -94,7 +95,7 @@ func TestCors(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Set("Origin", "http://example.com")
 		rec := httptest.NewRecorder()
-		ctx := &mockContext[any]{req: thttp.NewRequest(req), res: rec}
+		ctx := takibi.NewContext[any](rec, req, nil)
 
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
 			return nil

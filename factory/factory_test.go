@@ -1,27 +1,12 @@
 package factory
 
 import (
-	"context"
-	"net/http"
 	"testing"
 
+	"github.com/poteto0/takibi"
 	"github.com/poteto0/takibi/interfaces"
 	"github.com/stretchr/testify/assert"
 )
-
-type mockContext[Bindings any] struct {
-	env *Bindings
-}
-
-func (m *mockContext[Bindings]) Env() *Bindings                                { return m.env }
-func (m *mockContext[Bindings]) Req() interfaces.IRequest                      { return nil }
-func (m *mockContext[Bindings]) Response() http.ResponseWriter                 { return nil }
-func (m *mockContext[Bindings]) Context() context.Context                      { return context.Background() }
-func (m *mockContext[Bindings]) Reset(w http.ResponseWriter, r *http.Request)  {}
-func (m *mockContext[Bindings]) Status(code int) interfaces.IContext[Bindings] { return m }
-func (m *mockContext[Bindings]) Text(text string) error                        { return nil }
-func (m *mockContext[Bindings]) Json(data any) error                           { return nil }
-func (m *mockContext[Bindings]) Redirect(url string) error                     { return nil }
 
 func TestCreateMiddleware(t *testing.T) {
 	t.Run("creates middleware that executes logic", func(t *testing.T) {
@@ -39,7 +24,7 @@ func TestCreateMiddleware(t *testing.T) {
 			}
 		})
 
-		ctx := &mockContext[Bindings]{env: &Bindings{Val: "initial"}}
+		ctx := takibi.NewContext[Bindings](nil, nil, &Bindings{Val: "initial"})
 		next := func(c interfaces.IContext[Bindings]) error {
 			return nil
 		}
