@@ -21,7 +21,7 @@ func TestContext_Getter(t *testing.T) {
 		ctx := NewContext(w, req, bindings)
 
 		assert.Equal(t, bindings, ctx.Env())
-		assert.Equal(t, req, ctx.Request())
+		assert.Equal(t, req, ctx.Req().Raw())
 		assert.Equal(t, w, ctx.Response())
 	})
 }
@@ -44,7 +44,7 @@ func TestContext_Reset(t *testing.T) {
 		ctx.Reset(newW, newReq)
 
 		assert.Equal(t, bindings, ctx.Env())
-		assert.Equal(t, newReq, ctx.Request())
+		assert.Equal(t, newReq, ctx.Req().Raw())
 		assert.Equal(t, newW, ctx.Response())
 	})
 }
@@ -107,4 +107,12 @@ func TestContext_Response(t *testing.T) {
 		assert.Equal(t, http.StatusFound, w.Code)
 		assert.Equal(t, "/redirect", w.Header().Get("Location"))
 	})
+}
+
+func TestContext_Rq(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	w := httptest.NewRecorder()
+	ctx := NewContext[any](w, req, nil)
+
+	assert.Equal(t, req, ctx.Req().Raw())
 }

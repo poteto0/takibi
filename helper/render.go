@@ -12,5 +12,5 @@ func Render[TemplateArg any, Bindings any](
 ) error {
 	ctx.Response().Header().Set("Content-Type", "text/html")
 	component := componentFunc(args)
-	return component.Render(ctx.Request().Context(), ctx.Response())
+	return component.Render(ctx.Req().Raw().Context(), ctx.Response())
 }

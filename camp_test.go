@@ -30,7 +30,7 @@ func TestCamp_PostWithBody(t *testing.T) {
 	app := takibi.New(&TestBindings{})
 	app.Post("/echo", func(c interfaces.IContext[TestBindings]) error {
 		var reqBody map[string]string
-		json.NewDecoder(c.Request().Body).Decode(&reqBody)
+		json.NewDecoder(c.Req().Raw().Body).Decode(&reqBody)
 		return c.Json(reqBody)
 	})
 
