@@ -61,6 +61,18 @@ func TestContext_Response(t *testing.T) {
 		assert.Equal(t, "hello world", w.Body.String())
 	})
 
+	t.Run("check bytes method", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		w := httptest.NewRecorder()
+		ctx := NewContext[any](w, req, nil)
+
+		err := ctx.Bytes([]byte("hello world"))
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, "application/octet-stream", w.Header().Get("Content-Type"))
+		assert.Equal(t, "hello world", w.Body.String())
+	})
+
 	t.Run("check json method", func(t *testing.T) {
 		t.Run("success", func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/", nil)

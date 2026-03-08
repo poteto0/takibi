@@ -74,6 +74,16 @@ func (c *context[Bindings]) Text(text string) error {
 	return err
 }
 
+func (c *context[Bindings]) Bytes(data []byte) error {
+	if c.response == nil {
+		return fmt.Errorf("response is nil")
+	}
+	c.response.Header().Set("Content-Type", "application/octet-stream")
+	c.response.WriteHeader(c.statusCode)
+	_, err := c.response.Write(data)
+	return err
+}
+
 func (c *context[Bindings]) Json(data any) error {
 	if c.request.Raw() == nil || c.response == nil {
 		return fmt.Errorf("request or response is nil")
