@@ -371,9 +371,10 @@ func (
 func (
 	t *takibi[Bindings],
 ) Camp(
-	method, path string,
+	method,
+	path string,
 	opts ...interfaces.CampOption,
-) *http.Response {
+) interfaces.ICampResponse {
 	r, _ := http.NewRequest(method, path, nil)
 	for _, opt := range opts {
 		opt(r)
@@ -382,5 +383,5 @@ func (
 	w := httptest.NewRecorder()
 	t.ServeHTTP(w, r)
 
-	return w.Result()
+	return newCampResponse(w.Result())
 }

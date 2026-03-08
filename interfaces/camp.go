@@ -7,6 +7,13 @@ import (
 	"net/http"
 )
 
+type ICampResponse interface {
+	StatusCode() int
+	Raw() *http.Response
+	Unmarshall(v any) error
+	Json() (map[string]any, error)
+}
+
 type CampOption func(*http.Request)
 
 func Header(key, value string) CampOption {
