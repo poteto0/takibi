@@ -101,5 +101,5 @@ type ITakibi[Bindings any] interface {
 	Blow(task BlowTask[Bindings])
 
 	// Camp simulates a request without starting the server
-	Camp(method, path string, opts ...CampOption) *http.Response
+	Camp(method, path string, opts ...CampOption) ICampResponse
 }

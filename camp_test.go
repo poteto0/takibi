@@ -20,9 +20,9 @@ func TestCamp_Get(t *testing.T) {
 	})
 
 	resp := app.Camp("GET", "/hello")
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, http.StatusOK, resp.StatusCode())
 
-	body, _ := io.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Raw().Body)
 	assert.Equal(t, "Hello, World!", string(body))
 }
 
@@ -39,9 +39,25 @@ func TestCamp_PostWithBody(t *testing.T) {
 		interfaces.Body(map[string]string{"msg": "echo"}),
 	)
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, http.StatusOK, resp.StatusCode())
 
 	var respBody map[string]string
-	json.NewDecoder(resp.Body).Decode(&respBody)
+	resp.Unmarshall(&respBody)
 	assert.Equal(t, "echo", respBody["msg"])
+}
+
+func TestCamp_Json(t *testing.T) {
+	app := takibi.New(&TestBindings{})
+	app.Get("/hello", func(c interfaces.IContext[TestBindings]) error {
+		return c.Json(map[string]string{"message": "Hello, JSON!"})
+	})
+
+	resp := app.Camp("GET", "/hello",
+		interfaces.Header("Content-Type", "application/json"),
+	)
+	assert.Equal(t, http.StatusOK, resp.StatusCode())
+
+	jsonData, err := resp.Json()
+	assert.Nil(t, err)
+	assert.Equal(t, "Hello, JSON!", jsonData["message"])
 }
