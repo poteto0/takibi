@@ -33,7 +33,7 @@ func Cors[Bindings any](config ...CorsConfig) interfaces.MiddlewareFunc[Bindings
 	}
 
 	return func(c interfaces.IContext[Bindings], next interfaces.HandlerFunc[Bindings]) error {
-		req := c.Request()
+		req := c.Req().Raw()
 		res := c.Response()
 		origin := req.Header.Get("Origin")
 

@@ -36,7 +36,7 @@ func TestNewTakibi(t *testing.T) {
 		req1 := httptest.NewRequest(http.MethodGet, "/1", nil)
 		w1 := httptest.NewRecorder()
 		ctx1 := app.initializeContext(w1, req1)
-		assert.Equal(t, req1, ctx1.Request())
+		assert.Equal(t, req1, ctx1.Req().Raw())
 
 		// Put back to cache
 		app.cache.Put(ctx1)
@@ -46,7 +46,7 @@ func TestNewTakibi(t *testing.T) {
 		ctx2 := app.initializeContext(w2, req2)
 
 		assert.Equal(t, ctx1, ctx2) // Should be same instance
-		assert.Equal(t, req2, ctx2.Request())
+		assert.Equal(t, req2, ctx2.Req().Raw())
 		assert.Equal(t, w2, ctx2.Response())
 	})
 

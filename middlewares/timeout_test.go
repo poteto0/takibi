@@ -9,28 +9,29 @@ import (
 
 	"github.com/poteto0/takibi/constants"
 	"github.com/poteto0/takibi/interfaces"
+	"github.com/poteto0/takibi/thttp"
 	"github.com/stretchr/testify/assert"
 )
 
 type mockContext[Bindings any] struct {
-	req  *http.Request
+	req  interfaces.IRequest
 	res  http.ResponseWriter
 	env  *Bindings
 	done bool
 }
 
 func (m *mockContext[Bindings]) Env() *Bindings                { return m.env }
-func (m *mockContext[Bindings]) Request() *http.Request        { return m.req }
+func (m *mockContext[Bindings]) Req() interfaces.IRequest      { return m.req }
 func (m *mockContext[Bindings]) Response() http.ResponseWriter { return m.res }
 func (m *mockContext[Bindings]) Context() context.Context {
 	if m.req != nil {
-		return m.req.Context()
+		return m.req.Raw().Context()
 	}
 	return context.Background()
 }
 func (m *mockContext[Bindings]) Reset(w http.ResponseWriter, r *http.Request) {
 	m.res = w
-	m.req = r
+	m.req = thttp.NewRequest(r)
 }
 func (m *mockContext[Bindings]) Status(code int) interfaces.IContext[Bindings] { return m }
 func (m *mockContext[Bindings]) Text(text string) error                        { return nil }
@@ -44,7 +45,7 @@ func TestTimeout(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		rec := httptest.NewRecorder()
-		ctx := &mockContext[any]{req: req, res: rec}
+		ctx := &mockContext[any]{req: thttp.NewRequest(req), res: rec}
 
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
 			return nil
@@ -59,7 +60,7 @@ func TestTimeout(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		rec := httptest.NewRecorder()
-		ctx := &mockContext[any]{req: req, res: rec}
+		ctx := &mockContext[any]{req: thttp.NewRequest(req), res: rec}
 
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
 			time.Sleep(20 * time.Millisecond)
@@ -75,7 +76,7 @@ func TestTimeout(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		rec := httptest.NewRecorder()
-		ctx := &mockContext[any]{req: req, res: rec}
+		ctx := &mockContext[any]{req: thttp.NewRequest(req), res: rec}
 
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
 			panic("error")

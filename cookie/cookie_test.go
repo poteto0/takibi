@@ -10,19 +10,20 @@ import (
 	"github.com/poteto0/takibi/constants"
 	"github.com/poteto0/takibi/cookie"
 	"github.com/poteto0/takibi/interfaces"
+	"github.com/poteto0/takibi/thttp"
 	"github.com/stretchr/testify/assert"
 )
 
 type mockContext[Bindings any] struct {
 	env      *Bindings
-	request  *http.Request
+	request  interfaces.IRequest
 	response http.ResponseWriter
 }
 
 func (m *mockContext[Bindings]) Env() *Bindings { return m.env }
-func (m *mockContext[Bindings]) Request() *http.Request {
-	if m.request == nil {
-		return httptest.NewRequest("GET", "/", nil)
+func (m *mockContext[Bindings]) Req() interfaces.IRequest {
+	if m.request.Raw() == nil {
+		return thttp.NewRequest(httptest.NewRequest("GET", "/", nil))
 	}
 	return m.request
 }
@@ -35,7 +36,7 @@ func (m *mockContext[Bindings]) Response() http.ResponseWriter {
 func (m *mockContext[Bindings]) Context() context.Context { return context.Background() }
 func (m *mockContext[Bindings]) Reset(w http.ResponseWriter, r *http.Request) {
 	m.response = w
-	m.request = r
+	m.request = thttp.NewRequest(r)
 }
 func (m *mockContext[Bindings]) Status(code int) interfaces.IContext[Bindings] { return m }
 func (m *mockContext[Bindings]) Text(text string) error                        { return nil }
@@ -54,7 +55,7 @@ func TestSetCookie(t *testing.T) {
 		// Arrange
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := &mockContext[any]{response: w, request: r}
+		ctx := &mockContext[any]{response: w, request: thttp.NewRequest(r)}
 
 		// Act
 		ok := cookie.SetCookie[any](ctx, "name", "takibi", nil)
@@ -73,7 +74,7 @@ func TestSetCookie(t *testing.T) {
 		// Arrange
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := &mockContext[any]{response: w, request: r}
+		ctx := &mockContext[any]{response: w, request: thttp.NewRequest(r)}
 		expires := time.Now().Add(24 * time.Hour)
 
 		// Act
@@ -104,7 +105,7 @@ func TestSetCookie(t *testing.T) {
 		// Arrange
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := &mockContext[any]{response: w, request: r}
+		ctx := &mockContext[any]{response: w, request: thttp.NewRequest(r)}
 
 		// Act
 		ok := cookie.SetCookie[any](ctx, "name", "value", &cookie.CookieOptions{
@@ -122,7 +123,7 @@ func TestSetCookie(t *testing.T) {
 		// Arrange
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := &mockContext[any]{response: w, request: r}
+		ctx := &mockContext[any]{response: w, request: thttp.NewRequest(r)}
 
 		// Act
 		ok := cookie.SetCookie[any](ctx, "name", "value", &cookie.CookieOptions{
@@ -144,7 +145,7 @@ func TestGetCookie(t *testing.T) {
 		// Arrange
 		r := httptest.NewRequest("GET", "/", nil)
 		r.AddCookie(&http.Cookie{Name: "name", Value: "takibi"})
-		ctx := &mockContext[any]{request: r}
+		ctx := &mockContext[any]{request: thttp.NewRequest(r)}
 
 		// Act
 		c, ok := cookie.GetCookie[any](ctx, "name", nil)
@@ -160,7 +161,7 @@ func TestGetCookie(t *testing.T) {
 		// Arrange
 		r := httptest.NewRequest("GET", "/", nil)
 		r.AddCookie(&http.Cookie{Name: constants.CookieSecurePrefix + "name", Value: "takibi"})
-		ctx := &mockContext[any]{request: r}
+		ctx := &mockContext[any]{request: thttp.NewRequest(r)}
 
 		// Act
 		c, ok := cookie.GetCookie[any](ctx, "name", &cookie.CookieOptions{
@@ -176,7 +177,7 @@ func TestGetCookie(t *testing.T) {
 		// Arrange
 		r := httptest.NewRequest("GET", "/", nil)
 		r.AddCookie(&http.Cookie{Name: constants.CookieHostPrefix + "name", Value: "takibi"})
-		ctx := &mockContext[any]{request: r}
+		ctx := &mockContext[any]{request: thttp.NewRequest(r)}
 
 		// Act
 		c, ok := cookie.GetCookie[any](ctx, "name", &cookie.CookieOptions{
@@ -190,7 +191,7 @@ func TestGetCookie(t *testing.T) {
 
 	t.Run("fail when cookie does not exist", func(t *testing.T) {
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := &mockContext[any]{request: r}
+		ctx := &mockContext[any]{request: thttp.NewRequest(r)}
 
 		c, ok := cookie.GetCookie[any](ctx, "name", nil)
 		assert.False(t, ok)
@@ -203,7 +204,7 @@ func TestGetCookies(t *testing.T) {
 		r := httptest.NewRequest("GET", "/", nil)
 		r.AddCookie(&http.Cookie{Name: "name1", Value: "value1"})
 		r.AddCookie(&http.Cookie{Name: "name2", Value: "value2"})
-		ctx := &mockContext[any]{request: r}
+		ctx := &mockContext[any]{request: thttp.NewRequest(r)}
 
 		cookies := cookie.GetCookies[any](ctx)
 		assert.Len(t, cookies, 2)
@@ -217,7 +218,7 @@ func TestSignedCookie(t *testing.T) {
 		// Arrange Set
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := &mockContext[any]{response: w, request: r}
+		ctx := &mockContext[any]{response: w, request: thttp.NewRequest(r)}
 		secret := "secret-key-must-be-32-bytes-long!!"
 
 		// Act Set
@@ -233,7 +234,7 @@ func TestSignedCookie(t *testing.T) {
 		// Arrange Get
 		reqWithCookie := httptest.NewRequest("GET", "/", nil)
 		reqWithCookie.AddCookie(cookies[0])
-		ctxWithCookie := &mockContext[any]{response: w, request: reqWithCookie}
+		ctxWithCookie := &mockContext[any]{response: w, request: thttp.NewRequest(reqWithCookie)}
 
 		// Act Get
 		c, ok := cookie.GetSignedCookie[any](ctxWithCookie, "name", secret, nil)
@@ -248,7 +249,7 @@ func TestSignedCookie(t *testing.T) {
 		// Arrange
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := &mockContext[any]{response: w, request: r}
+		ctx := &mockContext[any]{response: w, request: thttp.NewRequest(r)}
 		secret := ""
 
 		// Act
@@ -262,7 +263,7 @@ func TestSignedCookie(t *testing.T) {
 		// Arrange
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := &mockContext[any]{response: w, request: r}
+		ctx := &mockContext[any]{response: w, request: thttp.NewRequest(r)}
 		secret := "secret-key-must-be-32-bytes-long!!"
 		wrongSecret := "wrong-key-must-be-32-bytes-long!!"
 
@@ -271,7 +272,7 @@ func TestSignedCookie(t *testing.T) {
 
 		reqWithCookie := httptest.NewRequest("GET", "/", nil)
 		reqWithCookie.AddCookie(cookies[0])
-		ctxWithCookie := &mockContext[any]{response: w, request: reqWithCookie}
+		ctxWithCookie := &mockContext[any]{response: w, request: thttp.NewRequest(reqWithCookie)}
 
 		// Act
 		c, ok := cookie.GetSignedCookie[any](ctxWithCookie, "name", wrongSecret, nil)
@@ -285,7 +286,7 @@ func TestSignedCookie(t *testing.T) {
 		// Arrange
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := &mockContext[any]{response: w, request: r}
+		ctx := &mockContext[any]{response: w, request: thttp.NewRequest(r)}
 		secret := "secret-key-must-be-32-bytes-long!!"
 
 		cookie.SetSignedCookie[any](ctx, "name", "takibi", secret, nil)
@@ -296,7 +297,7 @@ func TestSignedCookie(t *testing.T) {
 
 		reqWithCookie := httptest.NewRequest("GET", "/", nil)
 		reqWithCookie.AddCookie(tamperedCookie)
-		ctxWithCookie := &mockContext[any]{response: w, request: reqWithCookie}
+		ctxWithCookie := &mockContext[any]{response: w, request: thttp.NewRequest(reqWithCookie)}
 
 		// Act
 		c, ok := cookie.GetSignedCookie[any](ctxWithCookie, "name", secret, nil)
@@ -310,7 +311,7 @@ func TestSignedCookie(t *testing.T) {
 		// Arrange
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := &mockContext[any]{response: w, request: r}
+		ctx := &mockContext[any]{response: w, request: thttp.NewRequest(r)}
 		secret := "secret-key-must-be-32-bytes-long!!"
 
 		// Act

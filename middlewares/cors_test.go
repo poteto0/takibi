@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/poteto0/takibi/interfaces"
+	"github.com/poteto0/takibi/thttp"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,7 +17,7 @@ func TestCors(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Set("Origin", "http://example.com")
 		rec := httptest.NewRecorder()
-		ctx := &mockContext[any]{req: req, res: rec}
+		ctx := &mockContext[any]{req: thttp.NewRequest(req), res: rec}
 
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
 			return nil
@@ -34,7 +35,7 @@ func TestCors(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Set("Origin", "http://example.com")
 		rec := httptest.NewRecorder()
-		ctx := &mockContext[any]{req: req, res: rec}
+		ctx := &mockContext[any]{req: thttp.NewRequest(req), res: rec}
 
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
 			return nil
@@ -50,7 +51,7 @@ func TestCors(t *testing.T) {
 		req := httptest.NewRequest(http.MethodOptions, "/", nil)
 		req.Header.Set("Origin", "http://example.com")
 		rec := httptest.NewRecorder()
-		ctx := &mockContext[any]{req: req, res: rec}
+		ctx := &mockContext[any]{req: thttp.NewRequest(req), res: rec}
 
 		var nextCalled bool
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
@@ -74,7 +75,7 @@ func TestCors(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Set("Origin", "http://example.com")
 		rec := httptest.NewRecorder()
-		ctx := &mockContext[any]{req: req, res: rec}
+		ctx := &mockContext[any]{req: thttp.NewRequest(req), res: rec}
 
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
 			return nil
@@ -93,7 +94,7 @@ func TestCors(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Set("Origin", "http://example.com")
 		rec := httptest.NewRecorder()
-		ctx := &mockContext[any]{req: req, res: rec}
+		ctx := &mockContext[any]{req: thttp.NewRequest(req), res: rec}
 
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
 			return nil

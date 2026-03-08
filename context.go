@@ -8,11 +8,12 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/poteto0/takibi/interfaces"
+	"github.com/poteto0/takibi/thttp"
 )
 
 type context[Bindings any] struct {
 	env        *Bindings
-	request    *http.Request
+	request    interfaces.IRequest
 	response   http.ResponseWriter
 	ctx        stdContext.Context
 	statusCode int
@@ -28,7 +29,7 @@ func NewContext[Bindings any](w http.ResponseWriter, r *http.Request, bindings *
 
 	return &context[Bindings]{
 		env:        bindings,
-		request:    r,
+		request:    thttp.NewRequest(r),
 		response:   w,
 		ctx:        ctx,
 		statusCode: http.StatusOK,
@@ -37,10 +38,6 @@ func NewContext[Bindings any](w http.ResponseWriter, r *http.Request, bindings *
 
 func (c *context[Bindings]) Env() *Bindings {
 	return c.env
-}
-
-func (c *context[Bindings]) Request() *http.Request {
-	return c.request
 }
 
 func (c *context[Bindings]) Response() http.ResponseWriter {
@@ -52,7 +49,7 @@ func (c *context[Bindings]) Context() stdContext.Context {
 }
 
 func (c *context[Bindings]) Reset(w http.ResponseWriter, r *http.Request) {
-	c.request = r
+	c.request = thttp.NewRequest(r)
 	c.response = w
 	if r != nil {
 		c.ctx = r.Context()
@@ -78,10 +75,10 @@ func (c *context[Bindings]) Text(text string) error {
 }
 
 func (c *context[Bindings]) Json(data any) error {
-	if c.request == nil || c.response == nil {
+	if c.request.Raw() == nil || c.response == nil {
 		return fmt.Errorf("request or response is nil")
 	}
-	contentType := c.request.Header.Get("Content-Type")
+	contentType := c.request.Raw().Header.Get("Content-Type")
 	if !strings.Contains(contentType, "application/json") {
 		return fmt.Errorf("content-type must be application/json")
 	}
@@ -92,6 +89,10 @@ func (c *context[Bindings]) Json(data any) error {
 }
 
 func (c *context[Bindings]) Redirect(url string) error {
-	http.Redirect(c.response, c.request, url, http.StatusFound)
+	http.Redirect(c.response, c.request.Raw(), url, http.StatusFound)
 	return nil
+}
+
+func (c *context[Bindings]) Req() interfaces.IRequest {
+	return c.request
 }

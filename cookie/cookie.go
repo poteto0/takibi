@@ -53,7 +53,7 @@ func GetCookie[T any](ctx interfaces.IContext[T], name string, opts *CookieOptio
 		name = constants.CookieHostPrefix + name
 	}
 
-	c, err := ctx.Request().Cookie(name)
+	c, err := ctx.Req().Raw().Cookie(name)
 	if err != nil {
 		return nil, false
 	}
@@ -88,7 +88,7 @@ func GetSignedCookie[T any](ctx interfaces.IContext[T], name, secret string, opt
 }
 
 func GetCookies[T any](ctx interfaces.IContext[T]) []*http.Cookie {
-	return ctx.Request().Cookies()
+	return ctx.Req().Raw().Cookies()
 }
 
 func makeCookieSecure(c *http.Cookie) {
