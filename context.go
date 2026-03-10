@@ -17,6 +17,7 @@ type context[Bindings any] struct {
 	response   http.ResponseWriter
 	ctx        stdContext.Context
 	statusCode int
+	pathParams map[string]string
 }
 
 func NewContext[Bindings any](w http.ResponseWriter, r *http.Request, bindings *Bindings) interfaces.IContext[Bindings] {
@@ -33,6 +34,7 @@ func NewContext[Bindings any](w http.ResponseWriter, r *http.Request, bindings *
 		response:   w,
 		ctx:        ctx,
 		statusCode: http.StatusOK,
+		pathParams: make(map[string]string),
 	}
 }
 
@@ -57,6 +59,7 @@ func (c *context[Bindings]) Reset(w http.ResponseWriter, r *http.Request) {
 		c.ctx = stdContext.Background()
 	}
 	c.statusCode = http.StatusOK
+	c.pathParams = make(map[string]string)
 }
 
 func (c *context[Bindings]) Status(code int) interfaces.IContext[Bindings] {
@@ -105,4 +108,16 @@ func (c *context[Bindings]) Redirect(url string) error {
 
 func (c *context[Bindings]) Req() interfaces.IRequest {
 	return c.request
+}
+
+func (c *context[Bindings]) Param() map[string]string {
+	return c.pathParams
+}
+
+func (c *context[Bindings]) ParamBy(key string) string {
+	return c.pathParams[key]
+}
+
+func (c *context[Bindings]) SetParam(params map[string]string) {
+	c.pathParams = params
 }

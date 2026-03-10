@@ -336,4 +336,20 @@ func TestTakibi_ServeHTTP(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, rec.Code)
 	})
+
+	t.Run("path param", func(t *testing.T) {
+		app := New[any](nil)
+		app.Get("/users/:id", func(ctx interfaces.IContext[any]) error {
+			id := ctx.ParamBy("id")
+			return ctx.Text("user " + id)
+		})
+
+		req := httptest.NewRequest(http.MethodGet, "/users/123", nil)
+		rec := httptest.NewRecorder()
+
+		app.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.Equal(t, "user 123", rec.Body.String())
+	})
 }

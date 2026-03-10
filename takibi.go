@@ -195,7 +195,10 @@ func (
 	defer t.cache.Put(ctx)
 
 	// TODO: pathParams
-	n, middlewares, _ := t.router.Find(r.Method, r.URL.Path)
+	n, middlewares, params := t.router.Find(r.Method, r.URL.Path)
+	if len(params) > 0 {
+		ctx.SetParam(params)
+	}
 
 	var handler interfaces.HandlerFunc[Bindings]
 	if n != nil {
