@@ -18,4 +18,9 @@ type IContext[Bindings any] interface {
 	Bytes(data []byte) error
 	Json(data any) error
 	Redirect(url string) error
+
+	// Params
+	Param() map[string]string
+	ParamBy(key string) string
+	SetParam(params map[string]string)
 }
