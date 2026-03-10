@@ -42,13 +42,89 @@ func TestCreateMiddleware(t *testing.T) {
 func TestParamBy(t *testing.T) {
 	type Bindings struct{}
 
-	t.Run("int", func(t *testing.T) {
+	t.Run("0 value", func(t *testing.T) {
 		ctx := takibi.NewContext[Bindings](nil, nil, nil)
-		ctx.SetParam(map[string]string{"id": "123"})
+		ctx.SetParam(map[string]string{"id": ""})
 
 		val, err := ParamBy[int](ctx, "id")
 		assert.NoError(t, err)
-		assert.Equal(t, 123, val)
+		assert.Equal(t, 0, val) // zero value for int
+	})
+
+	t.Run("int", func(t *testing.T) {
+		t.Run("parse", func(t *testing.T) {
+			ctx := takibi.NewContext[Bindings](nil, nil, nil)
+			ctx.SetParam(map[string]string{"id": "123"})
+
+			val, err := ParamBy[int](ctx, "id")
+			assert.NoError(t, err)
+			assert.Equal(t, 123, val)
+		})
+
+		t.Run("failed", func(t *testing.T) {
+			ctx := takibi.NewContext[Bindings](nil, nil, nil)
+			ctx.SetParam(map[string]string{"id": "failed to parse"})
+
+			_, err := ParamBy[int](ctx, "id")
+			assert.Error(t, err)
+		})
+	})
+
+	t.Run("int 64", func(t *testing.T) {
+		t.Run("parse", func(t *testing.T) {
+			ctx := takibi.NewContext[Bindings](nil, nil, nil)
+			ctx.SetParam(map[string]string{"id": "1234567890"})
+
+			val, err := ParamBy[int64](ctx, "id")
+			assert.NoError(t, err)
+			assert.Equal(t, int64(1234567890), val)
+		})
+
+		t.Run("failed", func(t *testing.T) {
+			ctx := takibi.NewContext[Bindings](nil, nil, nil)
+			ctx.SetParam(map[string]string{"id": "failed to parse"})
+
+			_, err := ParamBy[int64](ctx, "id")
+			assert.Error(t, err)
+		})
+	})
+
+	t.Run("float 64", func(t *testing.T) {
+		t.Run("parse", func(t *testing.T) {
+			ctx := takibi.NewContext[Bindings](nil, nil, nil)
+			ctx.SetParam(map[string]string{"value": "3.14"})
+
+			val, err := ParamBy[float64](ctx, "value")
+			assert.NoError(t, err)
+			assert.Equal(t, 3.14, val)
+		})
+
+		t.Run("failed", func(t *testing.T) {
+			ctx := takibi.NewContext[Bindings](nil, nil, nil)
+			ctx.SetParam(map[string]string{"value": "failed to parse"})
+
+			_, err := ParamBy[float64](ctx, "value")
+			assert.Error(t, err)
+		})
+	})
+
+	t.Run("bool", func(t *testing.T) {
+		t.Run("parse", func(t *testing.T) {
+			ctx := takibi.NewContext[Bindings](nil, nil, nil)
+			ctx.SetParam(map[string]string{"flag": "true"})
+
+			val, err := ParamBy[bool](ctx, "flag")
+			assert.NoError(t, err)
+			assert.True(t, val)
+		})
+
+		t.Run("failed", func(t *testing.T) {
+			ctx := takibi.NewContext[Bindings](nil, nil, nil)
+			ctx.SetParam(map[string]string{"flag": "failed to parse"})
+
+			_, err := ParamBy[bool](ctx, "flag")
+			assert.Error(t, err)
+		})
 	})
 
 	t.Run("string", func(t *testing.T) {
@@ -60,11 +136,15 @@ func TestParamBy(t *testing.T) {
 		assert.Equal(t, "takibi", val)
 	})
 
-	t.Run("invalid int", func(t *testing.T) {
-		ctx := takibi.NewContext[Bindings](nil, nil, nil)
-		ctx.SetParam(map[string]string{"id": "abc"})
+	t.Run("failed to parse custom type", func(t *testing.T) {
+		type custom struct {
+			Name string
+		}
 
-		_, err := ParamBy[int](ctx, "id")
+		ctx := takibi.NewContext[Bindings](nil, nil, nil)
+		ctx.SetParam(map[string]string{"name": "failed to parse"})
+
+		_, err := ParamBy[custom](ctx, "name")
 		assert.Error(t, err)
 	})
 }

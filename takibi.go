@@ -194,7 +194,6 @@ func (
 	ctx := t.initializeContext(w, r)
 	defer t.cache.Put(ctx)
 
-	// TODO: pathParams
 	n, middlewares, params := t.router.Find(r.Method, r.URL.Path)
 	if len(params) > 0 {
 		ctx.SetParam(params)
