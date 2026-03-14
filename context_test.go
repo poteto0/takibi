@@ -2,10 +2,12 @@ package takibi
 
 import (
 	"bytes"
+	"html/template"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/poteto0/takibi/interfaces"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -135,6 +137,71 @@ func TestContext_Response(t *testing.T) {
 			assert.Contains(t, "data", w.Body.String())
 			w.Body.Reset()
 		}
+	})
+
+	t.Run("render template", func(t *testing.T) {
+		t.Run("render w/ template", func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			w := httptest.NewRecorder()
+			ctx := NewContext[any](w, req, nil)
+			tmpl := template.Must(template.New("test").Parse("Hello {{.Name}}"))
+			config := &interfaces.RenderConfig{
+				Template:    tmpl,
+				ContentType: "text/html",
+			}
+
+			err := ctx.Render(config, map[string]string{"Name": "Takibi"})
+
+			assert.Nil(t, err)
+			assert.Equal(t, "text/html", w.Header().Get("Content-Type"))
+			assert.Equal(t, "Hello Takibi", w.Body.String())
+		})
+
+		t.Run("render w/ rendererMap", func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			w := httptest.NewRecorder()
+			ctx := NewContext[any](w, req, nil)
+
+			ctx.RegisterRenderer(
+				map[string]*template.Template{
+					"index": template.Must(template.New("test").Parse("Hello {{.Name}}")),
+				},
+			)
+
+			config := &interfaces.RenderConfig{
+				Key:         "index",
+				ContentType: "text/html",
+			}
+
+			err := ctx.Render(config, map[string]string{"Name": "Takibi"})
+
+			assert.Nil(t, err)
+			assert.Equal(t, "text/html", w.Header().Get("Content-Type"))
+			assert.Equal(t, "Hello Takibi", w.Body.String())
+		})
+
+		t.Run("error if template not found", func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			w := httptest.NewRecorder()
+			ctx := NewContext[any](w, req, nil)
+			config := &interfaces.RenderConfig{
+				Key: "not-found",
+			}
+
+			err := ctx.Render(config, map[string]string{"Name": "Takibi"})
+			assert.Error(t, err)
+			assert.Equal(t, "template not found", err.Error())
+		})
+
+		t.Run("error w/ nil config", func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			w := httptest.NewRecorder()
+			ctx := NewContext[any](w, req, nil)
+
+			err := ctx.Render(nil, map[string]string{"Name": "Takibi"})
+			assert.Error(t, err)
+			assert.Equal(t, "config is nil", err.Error())
+		})
 	})
 }
 
