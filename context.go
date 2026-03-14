@@ -87,6 +87,16 @@ func (c *context[Bindings]) Bytes(data []byte) error {
 	return err
 }
 
+func (c *context[Bindings]) Steam(data []byte) error {
+	if c.response == nil {
+		return fmt.Errorf("response is nil")
+	}
+
+	c.response.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=frame")
+	_, err := c.response.Write(data)
+	return err
+}
+
 func (c *context[Bindings]) Json(data any) error {
 	if c.request.Raw() == nil || c.response == nil {
 		return fmt.Errorf("request or response is nil")
