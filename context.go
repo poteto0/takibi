@@ -1,8 +1,8 @@
 package takibi
 
 import (
-	stdContext "context"
 	"fmt"
+	"html/template"
 	"net/http"
 	"strings"
 
@@ -15,24 +15,17 @@ type context[Bindings any] struct {
 	env        *Bindings
 	request    interfaces.IRequest
 	response   http.ResponseWriter
-	ctx        stdContext.Context
 	statusCode int
 	pathParams map[string]string
+
+	rendererMap map[string]*template.Template
 }
 
 func NewContext[Bindings any](w http.ResponseWriter, r *http.Request, bindings *Bindings) interfaces.IContext[Bindings] {
-	var ctx stdContext.Context
-	if r != nil {
-		ctx = r.Context()
-	} else {
-		ctx = stdContext.Background()
-	}
-
 	return &context[Bindings]{
 		env:        bindings,
 		request:    thttp.NewRequest(r),
 		response:   w,
-		ctx:        ctx,
 		statusCode: http.StatusOK,
 		pathParams: make(map[string]string),
 	}
@@ -46,18 +39,9 @@ func (c *context[Bindings]) Response() http.ResponseWriter {
 	return c.response
 }
 
-func (c *context[Bindings]) Context() stdContext.Context {
-	return c.ctx
-}
-
 func (c *context[Bindings]) Reset(w http.ResponseWriter, r *http.Request) {
 	c.request = thttp.NewRequest(r)
 	c.response = w
-	if r != nil {
-		c.ctx = r.Context()
-	} else {
-		c.ctx = stdContext.Background()
-	}
 	c.statusCode = http.StatusOK
 	c.pathParams = make(map[string]string)
 }
@@ -116,6 +100,27 @@ func (c *context[Bindings]) Redirect(url string) error {
 	return nil
 }
 
+func (c *context[Bindings]) Render(config *interfaces.RenderConfig, data any) error {
+	if config == nil {
+		return fmt.Errorf("config is nil")
+	}
+
+	if config.ContentType != "" {
+		c.response.Header().Set("Content-Type", config.ContentType)
+	} else {
+		c.response.Header().Set("Content-Type", "text/html")
+	}
+
+	if config.IsTemplate() {
+		return config.Template.Execute(c.response, data)
+	}
+
+	if tmpl, exists := c.rendererMap[config.Key]; exists {
+		return tmpl.Execute(c.response, data)
+	}
+	return fmt.Errorf("template not found")
+}
+
 func (c *context[Bindings]) Req() interfaces.IRequest {
 	return c.request
 }
@@ -130,4 +135,8 @@ func (c *context[Bindings]) ParamBy(key string) string {
 
 func (c *context[Bindings]) SetParam(params map[string]string) {
 	c.pathParams = params
+}
+
+func (c *context[Bindings]) RegisterRenderer(rendererMap map[string]*template.Template) {
+	c.rendererMap = rendererMap
 }

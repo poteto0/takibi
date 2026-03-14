@@ -3,6 +3,7 @@ package takibi
 import (
 	stdContext "context"
 	"fmt"
+	"html/template"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -352,4 +353,16 @@ func TestTakibi_ServeHTTP(t *testing.T) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Equal(t, "user 123", rec.Body.String())
 	})
+}
+
+func TestTakibi_Renderer(t *testing.T) {
+	app := New[any](nil).(*takibi[any])
+
+	tmpl := template.Must(template.New("test").Parse("Hello {{.Name}}"))
+	rendererMap := map[string]*template.Template{
+		"test": tmpl,
+	}
+	app.Renderer(rendererMap)
+
+	assert.Equal(t, rendererMap, app.rendererMap)
 }

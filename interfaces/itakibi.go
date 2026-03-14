@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	stdContext "context"
+	"html/template"
 	"net/http"
 )
 
@@ -23,6 +24,21 @@ type ITakibi[Bindings any] interface {
 	OnBlowError(handler BlowErrorHandlerFunc[Bindings])
 
 	Use(path string, middleware ...MiddlewareFunc[Bindings]) error
+
+	// set renderer map for render method
+	//
+	// register phase
+	//
+	//  app.Renderer(map[string]*template.Template{
+	//   "index": template.Must(template.New("index").Parse("Hello {{.Name}}")),
+	//  })
+	//
+	// render phase
+	//
+	//  ctx.Render("index", "Takibi")
+	//
+	// then, rendered result is "Hello Takibi"
+	Renderer(rendererMap map[string]*template.Template)
 
 	/* add node */
 	/*

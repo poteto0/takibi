@@ -1,7 +1,7 @@
 package interfaces
 
 import (
-	"context"
+	"html/template"
 	"net/http"
 )
 
@@ -9,7 +9,6 @@ type IContext[Bindings any] interface {
 	Env() *Bindings
 	Req() IRequest
 	Response() http.ResponseWriter
-	Context() context.Context
 	Reset(w http.ResponseWriter, r *http.Request)
 
 	// Response
@@ -32,8 +31,25 @@ type IContext[Bindings any] interface {
 	//  }
 	Steam(data []byte) error
 
+	// render with template or template key in renderer map
+	//
+	//  config := &interfaces.RenderConfig{
+	//      Template:    tmpl, // *template.Template
+	//      ContentType: "text/html",
+	//  }
+	// or
+	//  config := &interfaces.RenderConfig{
+	//     TemplateKey: "test", // key in renderer map
+	//      ContentType: "text/html",
+	//  }
+	// in handler
+	//  ctx.Render(config, data)
+	Render(config *RenderConfig, data any) error
+
 	// Params
 	Param() map[string]string
 	ParamBy(key string) string
 	SetParam(params map[string]string)
+
+	RegisterRenderer(rendererMap map[string]*template.Template)
 }

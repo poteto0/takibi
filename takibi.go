@@ -4,6 +4,7 @@ import (
 	stdContext "context"
 	"crypto/tls"
 	"fmt"
+	"html/template"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -25,11 +26,12 @@ type takibi[Bindings any] struct {
 	tasks            []interfaces.BlowTask[Bindings]
 	cron             *cron.Cron
 
-	ctx       stdContext.Context
-	cancel    stdContext.CancelFunc
-	fireMutex sync.RWMutex
-	Server    http.Server
-	Listener  net.Listener
+	ctx         stdContext.Context
+	cancel      stdContext.CancelFunc
+	fireMutex   sync.RWMutex
+	Server      http.Server
+	Listener    net.Listener
+	rendererMap map[string]*template.Template
 }
 
 func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
@@ -247,7 +249,9 @@ func (
 		return ctx
 	}
 
-	return NewContext(w, r, t.Env())
+	ctx := NewContext(w, r, t.Env())
+	ctx.RegisterRenderer(t.rendererMap)
+	return ctx
 }
 
 func (
@@ -279,6 +283,14 @@ func (
 	middleware ...interfaces.MiddlewareFunc[Bindings],
 ) error {
 	return t.router.Use(path, middleware...)
+}
+
+func (
+	t *takibi[Bindings],
+) Renderer(
+	rendererMap map[string]*template.Template,
+) {
+	t.rendererMap = rendererMap
 }
 
 func (
