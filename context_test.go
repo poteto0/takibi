@@ -1,6 +1,7 @@
 package takibi
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -118,6 +119,22 @@ func TestContext_Response(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusFound, w.Code)
 		assert.Equal(t, "/redirect", w.Header().Get("Location"))
+	})
+
+	t.Run("steam data w/o write header", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		w := httptest.NewRecorder()
+		ctx := NewContext[any](w, req, nil)
+
+		for i := 0; i < 3; i++ {
+			var buf bytes.Buffer
+			buf.WriteString("data")
+
+			err := ctx.Steam(buf.Bytes())
+			assert.Nil(t, err)
+			assert.Contains(t, "data", w.Body.String())
+			w.Body.Reset()
+		}
 	})
 }
 
