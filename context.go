@@ -76,7 +76,6 @@ func (c *context[Bindings]) Steam(data []byte) error {
 		return fmt.Errorf("response is nil")
 	}
 
-	c.response.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=frame")
 	_, err := c.response.Write(data)
 	return err
 }
