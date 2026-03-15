@@ -123,7 +123,7 @@ func TestContext_Response(t *testing.T) {
 		assert.Equal(t, "/redirect", w.Header().Get("Location"))
 	})
 
-	t.Run("steam data w/o write header", func(t *testing.T) {
+	t.Run("Stream data w/o write header", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		w := httptest.NewRecorder()
 		ctx := NewContext[any](w, req, nil)
@@ -132,7 +132,7 @@ func TestContext_Response(t *testing.T) {
 			var buf bytes.Buffer
 			buf.WriteString("data")
 
-			err := ctx.Steam(buf.Bytes())
+			err := ctx.Stream(buf.Bytes())
 			assert.Nil(t, err)
 			assert.Contains(t, "data", w.Body.String())
 			w.Body.Reset()
