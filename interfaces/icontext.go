@@ -29,11 +29,11 @@ type IContext[Bindings any] interface {
 	//    buf.Write(data) // data is []byte of jpeg image
 	//    buf.WriteString("\r\n")
 	//
-	//    if err := ctx.Steam(buf.Bytes()); err != nil {
+	//    if err := ctx.Stream(buf.Bytes()); err != nil {
 	//        return err
 	//    }
 	//  }
-	Steam(data []byte) error
+	Stream(data []byte) error
 
 	// render with template or template key in renderer map
 	//

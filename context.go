@@ -71,7 +71,7 @@ func (c *context[Bindings]) Bytes(data []byte) error {
 	return err
 }
 
-func (c *context[Bindings]) Steam(data []byte) error {
+func (c *context[Bindings]) Stream(data []byte) error {
 	if c.response == nil {
 		return fmt.Errorf("response is nil")
 	}
