@@ -113,8 +113,8 @@ type ITakibi[Bindings any] interface {
 	*/
 	Connect(path string, handler HandlerFunc[Bindings]) error
 
-	// Blow registers a task
-	Blow(task BlowTask[Bindings])
+	// Blow registers task
+	Blow(tasks ...BlowTask[Bindings])
 
 	// Camp simulates a request without starting the server
 	Camp(method, path string, opts ...CampOption) ICampResponse
