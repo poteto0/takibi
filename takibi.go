@@ -377,9 +377,9 @@ func (
 func (
 	t *takibi[Bindings],
 ) Blow(
-	task interfaces.BlowTask[Bindings],
+	tasks ...interfaces.BlowTask[Bindings],
 ) {
-	t.tasks = append(t.tasks, task)
+	t.tasks = append(t.tasks, tasks...)
 }
 
 func (
