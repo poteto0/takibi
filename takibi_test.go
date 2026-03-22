@@ -183,89 +183,135 @@ func TestTakibi_FireAndFinish(t *testing.T) {
 	})
 }
 
+var handler = func(c interfaces.IContext[any]) error {
+	return nil
+}
+
 func TestTakibi_addAllMethod(t *testing.T) {
 	app := New[any](nil).(*takibi[any])
 	assert.NotNil(t, app)
 
 	t.Run("Get", func(t *testing.T) {
-		assert.Nil(
-			t,
-			app.Get("/users", func(ctx interfaces.IContext[any]) error {
-				return nil
-			}),
-		)
+		err := app.Get("/users", handler)
+		assert.Nil(t, err)
+
+		resp := app.Camp("GET", "/users")
+		assert.Equal(t, http.StatusOK, resp.StatusCode())
 	})
 
 	t.Run("Post", func(t *testing.T) {
-		assert.Nil(
-			t,
-			app.Post("/users", func(ctx interfaces.IContext[any]) error {
-				return nil
-			}),
-		)
+		err := app.Post("/users", handler)
+		assert.Nil(t, err)
+
+		resp := app.Camp("POST", "/users")
+		assert.Equal(t, http.StatusOK, resp.StatusCode())
 	})
 
 	t.Run("Put", func(t *testing.T) {
-		assert.Nil(
-			t,
-			app.Put("/users", func(ctx interfaces.IContext[any]) error {
-				return nil
-			}),
-		)
+		err := app.Put("/users", handler)
+		assert.Nil(t, err)
+
+		resp := app.Camp("PUT", "/users")
+		assert.Equal(t, http.StatusOK, resp.StatusCode())
 	})
 
 	t.Run("Patch", func(t *testing.T) {
-		assert.Nil(
-			t,
-			app.Patch("/users", func(ctx interfaces.IContext[any]) error {
-				return nil
-			}),
-		)
+		err := app.Patch("/users", handler)
+		assert.Nil(t, err)
+
+		resp := app.Camp("PATCH", "/users")
+		assert.Equal(t, http.StatusOK, resp.StatusCode())
 	})
 
 	t.Run("Delete", func(t *testing.T) {
-		assert.Nil(
-			t,
-			app.Delete("/users", func(ctx interfaces.IContext[any]) error {
-				return nil
-			}),
-		)
+		err := app.Delete("/users", handler)
+		assert.Nil(t, err)
+
+		resp := app.Camp("DELETE", "/users")
+		assert.Equal(t, http.StatusOK, resp.StatusCode())
 	})
 
 	t.Run("Head", func(t *testing.T) {
-		assert.Nil(
-			t,
-			app.Head("/users", func(ctx interfaces.IContext[any]) error {
-				return nil
-			}),
-		)
+		err := app.Head("/users", handler)
+		assert.Nil(t, err)
+
+		resp := app.Camp("HEAD", "/users")
+		assert.Equal(t, http.StatusOK, resp.StatusCode())
 	})
 
 	t.Run("Options", func(t *testing.T) {
-		assert.Nil(
-			t,
-			app.Options("/users", func(ctx interfaces.IContext[any]) error {
-				return nil
-			}),
-		)
+		err := app.Options("/users", handler)
+		assert.Nil(t, err)
+
+		resp := app.Camp("OPTIONS", "/users")
+		assert.Equal(t, http.StatusOK, resp.StatusCode())
 	})
 
 	t.Run("Trace", func(t *testing.T) {
+		err := app.Trace("/users", handler)
 		assert.Nil(
 			t,
-			app.Trace("/users", func(ctx interfaces.IContext[any]) error {
-				return nil
-			}),
+			err,
 		)
+
+		resp := app.Camp("TRACE", "/users")
+		assert.Equal(t, http.StatusOK, resp.StatusCode())
 	})
 
 	t.Run("Connect", func(t *testing.T) {
-		assert.Nil(
-			t,
-			app.Connect("/users", func(ctx interfaces.IContext[any]) error {
-				return nil
-			}),
-		)
+		err := app.Connect("/users", handler)
+		assert.Nil(t, err)
+
+		resp := app.Camp("CONNECT", "/users")
+		assert.Equal(t, http.StatusOK, resp.StatusCode())
+	})
+
+	t.Run("All", func(t *testing.T) {
+		err := app.All("/all", handler)
+		assert.Nil(t, err)
+
+		methods := []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "TRACE", "CONNECT"}
+		for _, method := range methods {
+			resp := app.Camp(method, "/all")
+			assert.Equal(t, http.StatusOK, resp.StatusCode())
+		}
+
+		// error case
+		app.Get("/get", handler)
+		err = app.All("/get", handler)
+		assert.Error(t, err)
+
+		app.Post("/post", handler)
+		err = app.All("/post", handler)
+		assert.Error(t, err)
+
+		app.Put("/put", handler)
+		err = app.All("/put", handler)
+		assert.Error(t, err)
+
+		app.Patch("/patch", handler)
+		err = app.All("/patch", handler)
+		assert.Error(t, err)
+
+		app.Delete("/delete", handler)
+		err = app.All("/delete", handler)
+		assert.Error(t, err)
+
+		app.Head("/head", handler)
+		err = app.All("/head", handler)
+		assert.Error(t, err)
+
+		app.Options("/options", handler)
+		err = app.All("/options", handler)
+		assert.Error(t, err)
+
+		app.Trace("/trace", handler)
+		err = app.All("/trace", handler)
+		assert.Error(t, err)
+
+		app.Connect("/connect", handler)
+		err = app.All("/connect", handler)
+		assert.Error(t, err)
 	})
 }
 

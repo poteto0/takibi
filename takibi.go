@@ -376,6 +376,42 @@ func (
 
 func (
 	t *takibi[Bindings],
+) All(
+	path string,
+	handler interfaces.HandlerFunc[Bindings],
+) error {
+	if err := t.router.Get(path, handler); err != nil {
+		return err
+	}
+	if err := t.router.Post(path, handler); err != nil {
+		return err
+	}
+	if err := t.router.Put(path, handler); err != nil {
+		return err
+	}
+	if err := t.router.Patch(path, handler); err != nil {
+		return err
+	}
+	if err := t.router.Delete(path, handler); err != nil {
+		return err
+	}
+	if err := t.router.Head(path, handler); err != nil {
+		return err
+	}
+	if err := t.router.Options(path, handler); err != nil {
+		return err
+	}
+	if err := t.router.Trace(path, handler); err != nil {
+		return err
+	}
+	if err := t.router.Connect(path, handler); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (
+	t *takibi[Bindings],
 ) Blow(
 	tasks ...interfaces.BlowTask[Bindings],
 ) {

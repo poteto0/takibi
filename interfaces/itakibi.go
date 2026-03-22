@@ -113,6 +113,14 @@ type ITakibi[Bindings any] interface {
 	*/
 	Connect(path string, handler HandlerFunc[Bindings]) error
 
+	/*
+		Register All method Route at once
+
+		Trim Suffix "/"
+		EX: "/users/" -> "/users"
+	*/
+	All(path string, handler HandlerFunc[Bindings]) error
+
 	// Blow registers task
 	Blow(tasks ...BlowTask[Bindings])
 
