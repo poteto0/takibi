@@ -412,6 +412,60 @@ func (
 
 func (
 	t *takibi[Bindings],
+) On(
+	methods,
+	paths []string,
+	handler interfaces.HandlerFunc[Bindings],
+) error {
+	for _, method := range methods {
+		for _, path := range paths {
+			switch method {
+			case http.MethodGet:
+				if err := t.Get(path, handler); err != nil {
+					return err
+				}
+			case http.MethodPost:
+				if err := t.Post(path, handler); err != nil {
+					return err
+				}
+			case http.MethodPut:
+				if err := t.Put(path, handler); err != nil {
+					return err
+				}
+			case http.MethodPatch:
+				if err := t.Patch(path, handler); err != nil {
+					return err
+				}
+			case http.MethodDelete:
+				if err := t.Delete(path, handler); err != nil {
+					return err
+				}
+			case http.MethodHead:
+				if err := t.Head(path, handler); err != nil {
+					return err
+				}
+			case http.MethodOptions:
+				if err := t.Options(path, handler); err != nil {
+					return err
+				}
+			case http.MethodTrace:
+				if err := t.Trace(path, handler); err != nil {
+					return err
+				}
+			case http.MethodConnect:
+				if err := t.Connect(path, handler); err != nil {
+					return err
+				}
+			default:
+				return fmt.Errorf("invalid method: %s", method)
+			}
+		}
+	}
+	return nil
+}
+
+func (
+	t *takibi[Bindings],
 ) Blow(
 	tasks ...interfaces.BlowTask[Bindings],
 ) {

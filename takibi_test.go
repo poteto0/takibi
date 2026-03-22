@@ -313,6 +313,70 @@ func TestTakibi_addAllMethod(t *testing.T) {
 		err = app.All("/connect", handler)
 		assert.Error(t, err)
 	})
+
+	t.Run("On", func(t *testing.T) {
+		t.Run("register all", func(t *testing.T) {
+			err := app.On(
+				[]string{
+					http.MethodGet,
+					http.MethodPost,
+					http.MethodPut,
+					http.MethodPatch,
+					http.MethodDelete,
+					http.MethodHead,
+					http.MethodOptions,
+					http.MethodTrace,
+					http.MethodConnect,
+				},
+				[]string{
+					"/on1",
+					"/on2",
+				},
+				handler,
+			)
+			assert.Nil(t, err)
+
+			resp := app.Camp("GET", "/on1")
+			assert.Equal(t, http.StatusOK, resp.StatusCode())
+
+			resp = app.Camp("POST", "/on2")
+			assert.Equal(t, http.StatusOK, resp.StatusCode())
+		})
+
+		t.Run("invalid method error", func(t *testing.T) {
+			err := app.On([]string{"invalid"}, []string{"/invalid"}, handler)
+			assert.Error(t, err)
+		})
+
+		t.Run("inner error", func(t *testing.T) {
+			err := app.On([]string{http.MethodGet}, []string{"/on1"}, handler)
+			assert.Error(t, err)
+
+			err = app.On([]string{http.MethodPost}, []string{"/on1"}, handler)
+			assert.Error(t, err)
+
+			err = app.On([]string{http.MethodPut}, []string{"/on1"}, handler)
+			assert.Error(t, err)
+
+			err = app.On([]string{http.MethodPatch}, []string{"/on1"}, handler)
+			assert.Error(t, err)
+
+			err = app.On([]string{http.MethodDelete}, []string{"/on1"}, handler)
+			assert.Error(t, err)
+
+			err = app.On([]string{http.MethodHead}, []string{"/on1"}, handler)
+			assert.Error(t, err)
+
+			err = app.On([]string{http.MethodOptions}, []string{"/on1"}, handler)
+			assert.Error(t, err)
+
+			err = app.On([]string{http.MethodTrace}, []string{"/on1"}, handler)
+			assert.Error(t, err)
+
+			err = app.On([]string{http.MethodConnect}, []string{"/on1"}, handler)
+			assert.Error(t, err)
+		})
+	})
 }
 
 func TestTakibi_ServeHTTP(t *testing.T) {
