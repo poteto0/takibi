@@ -26,7 +26,7 @@ jobs:
           cache: true
 
       - name: Setup just
-        uses: extractions/setup-just@v3
+        uses: extractions/setup-just@v4
         with:
           just-version: ${{ env.JUST_VERSION }}
 
@@ -49,7 +49,7 @@ jobs:
           cache: true
 
       - name: Setup just
-        uses: extractions/setup-just@v3
+        uses: extractions/setup-just@v4
         with:
           just-version: ${{ env.JUST_VERSION }}
 
