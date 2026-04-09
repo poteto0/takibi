@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/goccy/go-json"
+	"encoding/json"
+
 	"github.com/poteto0/takibi/interfaces"
 	"github.com/poteto0/takibi/thttp"
 )
