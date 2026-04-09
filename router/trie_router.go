@@ -31,6 +31,17 @@ func New[Bindings any]() interfaces.IRouter[Bindings] {
 
 func (
 	tr *trieRouter[Bindings],
+) LinearizeTree() map[string][]interfaces.NodeUnit[Bindings] {
+	results := map[string][]interfaces.NodeUnit[Bindings]{}
+	for _, method := range SupportedHttpMethod {
+		tree := tr.trees[method]
+		results[method] = tree.Linearize()
+	}
+	return results
+}
+
+func (
+	tr *trieRouter[Bindings],
 ) Find(
 	method,
 	path string,
@@ -55,6 +66,16 @@ func (
 		}
 	}
 	return nil
+}
+
+func (
+	tr *trieRouter[Bindings],
+) Add(
+	method,
+	path string,
+	handler interfaces.HandlerFunc[Bindings],
+) error {
+	return tr.add(method, path, handler)
 }
 
 func (

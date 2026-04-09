@@ -49,6 +49,7 @@ func (
 	if path != "" && path[0] != '/' {
 		return constants.ErrInvalidPath
 	}
+
 	// if path is just / or empty after trim, it's root
 	if path == "/" || path == "" {
 		currentNode.middlewares = append(currentNode.middlewares, middleware...)
