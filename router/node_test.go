@@ -181,3 +181,35 @@ func TestNode_AddMiddleware(t *testing.T) {
 		assert.ErrorIs(t, err, constants.ErrInvalidPath)
 	})
 }
+
+func TestNode_Linearize(t *testing.T) {
+	emptyHandler := func(ctx interfaces.IContext[any]) error { return nil }
+
+	t.Run("Linearize all nodes", func(t *testing.T) {
+		// Arrange
+		n := NewNode[any]()
+
+		n.Add("/", emptyHandler)
+		n.Add("/users", emptyHandler)
+		n.Add("/users/:id", emptyHandler)
+		n.Add("/users/:id/profile", emptyHandler)
+		n.Add("/posts", emptyHandler)
+
+		// Act
+		units := n.Linearize()
+
+		// Assert
+		expectedPaths := []string{
+			"",
+			"/users",
+			"/users/:id",
+			"/users/:id/profile",
+			"/posts",
+		}
+		assert.Len(t, units, len(expectedPaths))
+		for i, unit := range units {
+			assert.Equal(t, expectedPaths[i], unit.Path)
+			assert.NotNil(t, unit.Handler)
+		}
+	})
+}

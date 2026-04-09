@@ -195,3 +195,44 @@ func (
 
 	return currentNode, middlewares, pathParams
 }
+
+func (
+	n *node[Bindings],
+) Linearize() []interfaces.NodeUnit[Bindings] {
+	visited := make(map[string]struct{})
+	results := []interfaces.NodeUnit[Bindings]{}
+	n.dfs(n, "", &visited, &results)
+	return results
+}
+
+func (
+	n *node[Bindings],
+) dfs(
+	curr *node[Bindings],
+	path string,
+	visited *map[string]struct{},
+	results *[]interfaces.NodeUnit[Bindings],
+) {
+	if curr == nil {
+		return
+	}
+
+	if _, ok := (*visited)[path]; ok {
+		return
+	}
+	(*visited)[path] = struct{}{}
+
+	if curr.handler != nil {
+		*results = append(*results, interfaces.NodeUnit[Bindings]{
+			Path:       path,
+			Handler:    curr.handler,
+			Middleware: curr.middlewares,
+		})
+	}
+
+	for key, child := range curr.children {
+		childNode := child.(*node[Bindings])
+		nextPath := path + "/" + key
+		n.dfs(childNode, nextPath, visited, results)
+	}
+}
