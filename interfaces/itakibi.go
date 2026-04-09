@@ -40,6 +40,19 @@ type ITakibi[Bindings any] interface {
 	// then, rendered result is "Hello Takibi"
 	Renderer(rendererMap map[string]*template.Template)
 
+	// Route registers sub app
+	//
+	// EX:
+	//  api := takibi.New[any](nil)
+	//  api.Get("/users", func(ctx interfaces.IContext[any]) error {
+	//   return ctx.Text("users")
+	//  })
+	//
+	//  app.Route("/api", api)
+	//
+	// then, GET /api/users will return "users"
+	Route(basePath string, app ITakibi[Bindings]) error
+
 	/* add node */
 	/*
 		Register GET method Route
@@ -134,4 +147,7 @@ type ITakibi[Bindings any] interface {
 
 	// Camp simulates a request without starting the server
 	Camp(method, path string, opts ...CampOption) ICampResponse
+
+	// just getter
+	Router() IRouter[Bindings]
 }

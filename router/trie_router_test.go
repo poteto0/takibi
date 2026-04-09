@@ -17,7 +17,7 @@ func TestNewTrieRouter(t *testing.T) {
 	assert.Equal(t, len(SupportedHttpMethod), len(tr.trees))
 }
 
-func TestTrieRouter_add(t *testing.T) {
+func TestTrieRouter_Add(t *testing.T) {
 	t.Run("can add route into each trees", func(t *testing.T) {
 		tr := New[any]().(*trieRouter[any])
 
@@ -80,7 +80,7 @@ func TestTrieRouter_add(t *testing.T) {
 
 		for _, test := range tests {
 			t.Run(test.name, func(t *testing.T) {
-				err := tr.add(test.method, test.path, func(ctx interfaces.IContext[any]) error {
+				err := tr.Add(test.method, test.path, func(ctx interfaces.IContext[any]) error {
 					return nil
 				})
 
@@ -111,6 +111,19 @@ func TestTrieRouter_add(t *testing.T) {
 		})
 		assert.ErrorIs(t, err, constants.ErrNotSupportedMethod)
 	})
+}
+
+func TestTrieRouter_LinearizeTree(t *testing.T) {
+	tr := New[any]().(*trieRouter[any])
+
+	err := tr.Get("/users/:id/name", func(ctx interfaces.IContext[any]) error {
+		return nil
+	})
+	assert.Nil(t, err)
+
+	linearized := tr.LinearizeTree()
+	assert.Len(t, linearized[http.MethodGet], 1)
+	assert.Equal(t, "/users/:id/name", linearized[http.MethodGet][0].Path)
 }
 
 func TestTrieRouter_Find(t *testing.T) {

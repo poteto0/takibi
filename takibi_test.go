@@ -187,6 +187,41 @@ var handler = func(c interfaces.IContext[any]) error {
 	return nil
 }
 
+func TestTakibi_Router(t *testing.T) {
+	t.Run("can add route w/ base path", func(t *testing.T) {
+		// Arrange
+		app1 := newNilApp()
+		app2 := newNilApp()
+
+		app1.Get("/users", handler)
+		app2.Get("/hello", handler)
+
+		// Act
+		err := app1.Route("/greet", app2)
+
+		// Assert
+		assert.Nil(t, err)
+
+		resp := app1.Camp("GET", "/greet/hello")
+		assert.Equal(t, http.StatusOK, resp.StatusCode())
+	})
+
+	t.Run("return error if duplicate when Route", func(t *testing.T) {
+		// Arrange
+		app1 := newNilApp()
+		app2 := newNilApp()
+
+		app1.Get("/greet/users", handler)
+		app2.Get("/users", handler)
+
+		// Act
+		err := app1.Route("/greet", app2)
+
+		// Assert
+		assert.Error(t, err)
+	})
+}
+
 func TestTakibi_addAllMethod(t *testing.T) {
 	app := New[any](nil).(*takibi[any])
 	assert.NotNil(t, app)

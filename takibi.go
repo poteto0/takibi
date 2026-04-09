@@ -295,6 +295,35 @@ func (
 
 func (
 	t *takibi[Bindings],
+) Router() interfaces.IRouter[Bindings] {
+	return t.router
+}
+
+func (
+	t *takibi[Bindings],
+) Route(
+	basePath string,
+	app interfaces.ITakibi[Bindings],
+) error {
+	linearRoutes := app.Router().LinearizeTree()
+	for _, method := range router.SupportedHttpMethod {
+		for _, route := range linearRoutes[method] {
+			fullPath := basePath + route.Path
+
+			if err := t.router.Add(method, fullPath, route.Handler); err != nil {
+				return err
+			}
+
+			if err := t.router.Use(fullPath, route.Middleware...); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (
+	t *takibi[Bindings],
 ) Get(
 	path string,
 	handler interfaces.HandlerFunc[Bindings],

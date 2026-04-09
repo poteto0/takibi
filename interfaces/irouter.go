@@ -1,6 +1,9 @@
 package interfaces
 
 type IRouter[Bindings any] interface {
+	// make all routes in a linear slice
+	LinearizeTree() map[string][]NodeUnit[Bindings]
+
 	/*
 		find router by method &
 		find node by path
@@ -8,6 +11,11 @@ type IRouter[Bindings any] interface {
 	Find(method, path string) (INode[Bindings], []MiddlewareFunc[Bindings], map[string]string)
 
 	Use(path string, middleware ...MiddlewareFunc[Bindings]) error
+
+	/*
+		Register Route with method
+	*/
+	Add(method, path string, handler HandlerFunc[Bindings]) error
 
 	/*
 		Register GET method Route
