@@ -2,16 +2,12 @@ package takibi
 
 import (
 	stdContext "context"
-	"crypto/tls"
 	"fmt"
 	"html/template"
 	"net"
 	"net/http"
-	"net/http/httptest"
-	"strings"
 	"sync"
 
-	"github.com/poteto0/takibi/constants"
 	"github.com/poteto0/takibi/interfaces"
 	"github.com/poteto0/takibi/router"
 	"github.com/robfig/cron/v3"
@@ -24,14 +20,14 @@ type takibi[Bindings any] struct {
 	errorHandler     interfaces.ErrorHandlerFunc[Bindings]
 	blowErrorHandler interfaces.BlowErrorHandlerFunc[Bindings]
 	tasks            []interfaces.BlowTask[Bindings]
-	cron             *cron.Cron
 
-	ctx         stdContext.Context
-	cancel      stdContext.CancelFunc
-	fireMutex   sync.RWMutex
-	Server      http.Server
-	Listener    net.Listener
+	ctx    stdContext.Context
+	cancel stdContext.CancelFunc
+
 	rendererMap map[string]*template.Template
+
+	// internal engine for server/cron
+	engine *engine[Bindings]
 }
 
 func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
@@ -53,137 +49,6 @@ func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
 		ctx:    ctx,
 		cancel: cancel,
 	}
-}
-
-func (
-	t *takibi[Bindings],
-) Fire(
-	addr string,
-) error {
-	t.fireMutex.Lock()
-
-	if !strings.HasPrefix(addr, constants.PortPrefix) {
-		addr = constants.PortPrefix + addr
-	}
-
-	t.Server.Addr = addr
-	if err := t.setupServer(); err != nil {
-		t.fireMutex.Unlock()
-		return err
-	}
-
-	t.fireMutex.Unlock()
-
-	t.startTasks()
-
-	return t.Server.Serve(t.Listener)
-}
-
-func (
-	t *takibi[Bindings],
-) startTasks() {
-	for _, task := range t.tasks {
-		if task.BlowActionTag == "trigger" && task.BlowActionTrigger == "start" {
-			r, _ := http.NewRequestWithContext(t.ctx, "GET", "/", nil)
-			c := NewContext(nil, r, t.env)
-			go func(task interfaces.BlowTask[Bindings]) {
-				if err := task.BlowAction(c); err != nil {
-					t.blowErrorHandler(c, err)
-				}
-			}(task)
-		}
-
-		if task.BlowActionTag == "schedule" && task.BlowActionSchedule != "" {
-			if t.cron == nil {
-				t.cron = cron.New(cron.WithSeconds())
-			}
-			_, _ = t.cron.AddFunc(task.BlowActionSchedule, func() {
-				r, _ := http.NewRequestWithContext(t.ctx, "GET", "/", nil)
-				c := NewContext(nil, r, t.env)
-				if err := task.BlowAction(c); err != nil {
-					t.blowErrorHandler(c, err)
-				}
-			})
-		}
-	}
-
-	if t.cron != nil {
-		t.cron.Start()
-	}
-}
-
-func (
-	t *takibi[Bindings],
-) Finish(
-	ctx stdContext.Context,
-) error {
-	t.fireMutex.Lock()
-
-	if err := t.Server.Shutdown(ctx); err != nil {
-		t.fireMutex.Unlock()
-		return err
-	}
-
-	t.stopTasks(ctx)
-
-	t.cancel()
-
-	t.fireMutex.Unlock()
-	return nil
-}
-
-func (
-	t *takibi[Bindings],
-) stopTasks(ctx stdContext.Context) {
-	if t.cron != nil {
-		t.cron.Stop()
-	}
-
-	// execute stop tasks
-	var wg sync.WaitGroup
-	for _, task := range t.tasks {
-		if task.BlowActionTag == "trigger" && task.BlowActionTrigger == "stop" {
-			wg.Add(1)
-			go func(task interfaces.BlowTask[Bindings]) {
-				defer wg.Done()
-				r, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
-				c := NewContext(nil, r, t.env)
-				if err := task.BlowAction(c); err != nil {
-					t.blowErrorHandler(c, err)
-				}
-			}(task)
-		}
-	}
-	wg.Wait()
-}
-
-func (
-	t *takibi[Bindings],
-) setupServer() error {
-	// TODO: print banner
-
-	// setting handler
-	t.Server.Handler = t
-
-	if t.Listener != nil {
-		return nil
-	}
-
-	// set listener
-	// TODO: add multiple listner
-	ln, err := net.Listen("tcp", t.Server.Addr)
-	if err != nil {
-		return err
-	}
-
-	if t.Server.TLSConfig == nil {
-		t.Listener = ln
-		return nil
-	}
-
-	// tls mode
-	t.Listener = tls.NewListener(ln, t.Server.TLSConfig)
-	return nil
 }
 
 func (
@@ -252,12 +117,6 @@ func (
 	ctx := NewContext(w, r, t.Env())
 	ctx.RegisterRenderer(t.rendererMap)
 	return ctx
-}
-
-func (
-	t *takibi[Bindings],
-) Env() *Bindings {
-	return t.env
 }
 
 func (
@@ -495,26 +354,14 @@ func (
 
 func (
 	t *takibi[Bindings],
-) Blow(
-	tasks ...interfaces.BlowTask[Bindings],
-) {
-	t.tasks = append(t.tasks, tasks...)
+) Env() *Bindings {
+	return t.env
 }
 
 func (
 	t *takibi[Bindings],
-) Camp(
-	method,
-	path string,
-	opts ...interfaces.CampOption,
-) interfaces.ICampResponse {
-	r, _ := http.NewRequest(method, path, nil)
-	for _, opt := range opts {
-		opt(r)
-	}
-
-	w := httptest.NewRecorder()
-	t.ServeHTTP(w, r)
-
-	return newCampResponse(w.Result())
+) Blow(
+	tasks ...interfaces.BlowTask[Bindings],
+) {
+	t.tasks = append(t.tasks, tasks...)
 }
