@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"sync"
 
 	"github.com/a-h/templ"
@@ -24,7 +23,6 @@ type takibi[Bindings any] struct {
 
 	ctx         stdContext.Context
 	cancel      stdContext.CancelFunc
-	fireMutex   sync.RWMutex
 	rendererMap map[string]templ.Component
 }
 
@@ -397,13 +395,5 @@ func (
 	path string,
 	opts ...interfaces.CampOption,
 ) interfaces.ICampResponse {
-	r, _ := http.NewRequest(method, path, nil)
-	for _, opt := range opts {
-		opt(r)
-	}
-
-	w := httptest.NewRecorder()
-	t.ServeHTTP(w, r)
-
-	return newCampResponse(w.Result())
+	return nil
 }
