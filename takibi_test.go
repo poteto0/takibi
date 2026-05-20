@@ -3,12 +3,13 @@ package takibi
 import (
 	stdContext "context"
 	"fmt"
-	"html/template"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/a-h/templ"
+	"github.com/poteto0/takibi/fixtures"
 	"github.com/poteto0/takibi/interfaces"
 	"github.com/stretchr/testify/assert"
 )
@@ -502,10 +503,8 @@ func TestTakibi_ServeHTTP(t *testing.T) {
 
 func TestTakibi_Renderer(t *testing.T) {
 	app := New[any](nil).(*takibi[any])
-
-	tmpl := template.Must(template.New("test").Parse("Hello {{.Name}}"))
-	rendererMap := map[string]*template.Template{
-		"test": tmpl,
+	rendererMap := map[string]templ.Component{
+		"test": fixtures.Hello("Takibi"),
 	}
 	app.Renderer(rendererMap)
 

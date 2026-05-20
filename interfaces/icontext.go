@@ -1,7 +1,6 @@
 package interfaces
 
 import (
-	"html/template"
 	"net/http"
 )
 
@@ -35,25 +34,18 @@ type IContext[Bindings any] interface {
 	//  }
 	Stream(data []byte) error
 
-	// render with template or template key in renderer map
+	// render with component
 	//
 	//  config := &interfaces.RenderConfig{
-	//      Template:    tmpl, // *template.Template
-	//      ContentType: "text/html",
-	//  }
-	// or
-	//  config := &interfaces.RenderConfig{
-	//     TemplateKey: "test", // key in renderer map
+	//      Component:   component, // templ.Component
 	//      ContentType: "text/html",
 	//  }
 	// in handler
-	//  ctx.Render(config, data)
+	//  ctx.Render(config, nil)
 	Render(config *RenderConfig, data any) error
 
 	// Params
 	Param() map[string]string
 	ParamBy(key string) string
 	SetParam(params map[string]string)
-
-	RegisterRenderer(rendererMap map[string]*template.Template)
 }

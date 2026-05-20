@@ -1,12 +1,10 @@
 package takibi
 
 import (
+	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strings"
-
-	"encoding/json"
 
 	"github.com/poteto0/takibi/interfaces"
 	"github.com/poteto0/takibi/thttp"
@@ -18,8 +16,6 @@ type context[Bindings any] struct {
 	response   http.ResponseWriter
 	statusCode int
 	pathParams map[string]string
-
-	rendererMap map[string]*template.Template
 }
 
 func NewContext[Bindings any](w http.ResponseWriter, r *http.Request, bindings *Bindings) interfaces.IContext[Bindings] {
@@ -111,14 +107,11 @@ func (c *context[Bindings]) Render(config *interfaces.RenderConfig, data any) er
 		c.response.Header().Set("Content-Type", "text/html")
 	}
 
-	if config.IsTemplate() {
-		return config.Template.Execute(c.response, data)
+	if config.Component != nil {
+		return config.Component.Render(c.request.Raw().Context(), c.response)
 	}
 
-	if tmpl, exists := c.rendererMap[config.Key]; exists {
-		return tmpl.Execute(c.response, data)
-	}
-	return fmt.Errorf("template not found")
+	return fmt.Errorf("component not found")
 }
 
 func (c *context[Bindings]) Req() interfaces.IRequest {
@@ -135,8 +128,4 @@ func (c *context[Bindings]) ParamBy(key string) string {
 
 func (c *context[Bindings]) SetParam(params map[string]string) {
 	c.pathParams = params
-}
-
-func (c *context[Bindings]) RegisterRenderer(rendererMap map[string]*template.Template) {
-	c.rendererMap = rendererMap
 }
