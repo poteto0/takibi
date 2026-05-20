@@ -2,10 +2,6 @@
 
 package takibi
 
-import (
-	stdContext "context"
-)
+type engine[Bindings any] struct{}
 
-func (t *takibi[Bindings]) startTasks() {}
-
-func (t *takibi[Bindings]) stopTasks(ctx stdContext.Context) {}
+func (t *takibi[Bindings]) initEngine() {}

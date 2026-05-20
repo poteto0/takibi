@@ -1,7 +1,6 @@
 package interfaces
 
 import (
-	"html/template"
 	"net/http"
 )
 
@@ -38,7 +37,7 @@ type IContext[Bindings any] interface {
 	// render with template or template key in renderer map
 	//
 	//  config := &interfaces.RenderConfig{
-	//      Template:    tmpl, // *template.Template
+	//      Template:    tmpl, // any (e.g. *template.Template)
 	//      ContentType: "text/html",
 	//  }
 	// or
@@ -55,5 +54,5 @@ type IContext[Bindings any] interface {
 	ParamBy(key string) string
 	SetParam(params map[string]string)
 
-	RegisterRenderer(rendererMap map[string]*template.Template)
+	RegisterRenderer(rendererMap map[string]any)
 }

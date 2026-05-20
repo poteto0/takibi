@@ -163,7 +163,7 @@ func TestContext_Response(t *testing.T) {
 			ctx := NewContext[any](w, req, nil)
 
 			ctx.RegisterRenderer(
-				map[string]*template.Template{
+				map[string]any{
 					"index": template.Must(template.New("test").Parse("Hello {{.Name}}")),
 				},
 			)

@@ -3,14 +3,11 @@ package takibi
 import (
 	stdContext "context"
 	"fmt"
-	"html/template"
-	"net"
 	"net/http"
 	"sync"
 
 	"github.com/poteto0/takibi/interfaces"
 	"github.com/poteto0/takibi/router"
-	"github.com/robfig/cron/v3"
 )
 
 type takibi[Bindings any] struct {
@@ -24,7 +21,7 @@ type takibi[Bindings any] struct {
 	ctx    stdContext.Context
 	cancel stdContext.CancelFunc
 
-	rendererMap map[string]*template.Template
+	rendererMap map[string]any
 
 	// internal engine for server/cron
 	engine *engine[Bindings]
@@ -37,7 +34,7 @@ func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
 
 	ctx, cancel := stdContext.WithCancel(stdContext.Background())
 
-	return &takibi[Bindings]{
+	t := &takibi[Bindings]{
 		env:    bindings,
 		router: router.New[Bindings](),
 		errorHandler: func(ctx interfaces.IContext[Bindings], err error) error {
@@ -49,6 +46,9 @@ func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
 		ctx:    ctx,
 		cancel: cancel,
 	}
+
+	t.initEngine()
+	return t
 }
 
 func (
@@ -147,7 +147,7 @@ func (
 func (
 	t *takibi[Bindings],
 ) Renderer(
-	rendererMap map[string]*template.Template,
+	rendererMap map[string]any,
 ) {
 	t.rendererMap = rendererMap
 }

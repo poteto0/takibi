@@ -2,7 +2,6 @@ package interfaces
 
 import (
 	stdContext "context"
-	"html/template"
 	"net/http"
 )
 
@@ -29,7 +28,7 @@ type ITakibi[Bindings any] interface {
 	//
 	// register phase
 	//
-	//  app.Renderer(map[string]*template.Template{
+	//  app.Renderer(map[string]any{
 	//   "index": template.Must(template.New("index").Parse("Hello {{.Name}}")),
 	//  })
 	//
@@ -38,7 +37,7 @@ type ITakibi[Bindings any] interface {
 	//  ctx.Render("index", "Takibi")
 	//
 	// then, rendered result is "Hello Takibi"
-	Renderer(rendererMap map[string]*template.Template)
+	Renderer(rendererMap map[string]any)
 
 	// Route registers sub app
 	//

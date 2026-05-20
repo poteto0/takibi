@@ -1,14 +1,12 @@
 package interfaces
 
-import "html/template"
-
 type RenderConfig struct {
 	// template files key
 	// set w/ renderer middleware
 	Key string
 
 	// template
-	Template *template.Template
+	Template any
 
 	// content type
 	// default is text/html

@@ -19,7 +19,38 @@ type context[Bindings any] struct {
 	statusCode int
 	pathParams map[string]string
 
-	rendererMap map[string]*template.Template
+	rendererMap map[string]any
+}
+
+func (c *context[Bindings]) Render(config *interfaces.RenderConfig, data any) error {
+	if config == nil {
+		return fmt.Errorf("config is nil")
+	}
+
+	if config.ContentType != "" {
+		c.response.Header().Set("Content-Type", config.ContentType)
+	} else {
+		c.response.Header().Set("Content-Type", "text/html")
+	}
+
+	execute := func(tmpl any, data any) error {
+		if e, ok := tmpl.(interface {
+			Execute(http.ResponseWriter, any) error
+		}); ok {
+			return e.Execute(c.response, data)
+		}
+		return fmt.Errorf("renderer does not implement Execute")
+	}
+
+	if config.IsTemplate() {
+		templ := config.Template.(*template.Template)
+		return execute(config.Template, data)
+	}
+
+	if tmpl, exists := c.rendererMap[config.Key]; exists {
+		return execute(tmpl, data)
+	}
+	return fmt.Errorf("template not found")
 }
 
 func NewContext[Bindings any](w http.ResponseWriter, r *http.Request, bindings *Bindings) interfaces.IContext[Bindings] {
@@ -100,27 +131,6 @@ func (c *context[Bindings]) Redirect(url string) error {
 	return nil
 }
 
-func (c *context[Bindings]) Render(config *interfaces.RenderConfig, data any) error {
-	if config == nil {
-		return fmt.Errorf("config is nil")
-	}
-
-	if config.ContentType != "" {
-		c.response.Header().Set("Content-Type", config.ContentType)
-	} else {
-		c.response.Header().Set("Content-Type", "text/html")
-	}
-
-	if config.IsTemplate() {
-		return config.Template.Execute(c.response, data)
-	}
-
-	if tmpl, exists := c.rendererMap[config.Key]; exists {
-		return tmpl.Execute(c.response, data)
-	}
-	return fmt.Errorf("template not found")
-}
-
 func (c *context[Bindings]) Req() interfaces.IRequest {
 	return c.request
 }
@@ -137,6 +147,6 @@ func (c *context[Bindings]) SetParam(params map[string]string) {
 	c.pathParams = params
 }
 
-func (c *context[Bindings]) RegisterRenderer(rendererMap map[string]*template.Template) {
+func (c *context[Bindings]) RegisterRenderer(rendererMap map[string]any) {
 	c.rendererMap = rendererMap
 }

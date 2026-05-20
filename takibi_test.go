@@ -504,7 +504,7 @@ func TestTakibi_Renderer(t *testing.T) {
 	app := New[any](nil).(*takibi[any])
 
 	tmpl := template.Must(template.New("test").Parse("Hello {{.Name}}"))
-	rendererMap := map[string]*template.Template{
+	rendererMap := map[string]any{
 		"test": tmpl,
 	}
 	app.Renderer(rendererMap)
