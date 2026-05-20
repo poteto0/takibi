@@ -31,7 +31,7 @@ func main() {
 	app := takibi.New(bindings)
 
 	app.Renderer(
-		map[string]any{
+		map[string]*template.Template{
 			"index": template.Must(
 				template.New("index.html").ParseFS(templatesFS, "public/templates/index.html"),
 			),
