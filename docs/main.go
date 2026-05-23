@@ -33,7 +33,6 @@ func main() {
 			&interfaces.RenderConfig{
 				Component: Hello("Takibi"),
 			},
-			nil,
 		)
 	})
 

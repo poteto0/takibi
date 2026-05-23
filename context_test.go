@@ -156,7 +156,7 @@ func TestContext_Response(t *testing.T) {
 				ContentType: "text/html",
 			}
 
-			err := ctx.Render(config, nil)
+			err := ctx.Render(config)
 
 			assert.Nil(t, err)
 			assert.Equal(t, "text/html", w.Header().Get("Content-Type"))
@@ -168,7 +168,7 @@ func TestContext_Response(t *testing.T) {
 			w := httptest.NewRecorder()
 			ctx := NewContext[any](w, req, nil)
 
-			err := ctx.Render(nil, nil)
+			err := ctx.Render(nil)
 			assert.Error(t, err)
 			assert.Equal(t, "config is nil", err.Error())
 		})

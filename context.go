@@ -96,7 +96,7 @@ func (c *context[Bindings]) Redirect(url string) error {
 	return nil
 }
 
-func (c *context[Bindings]) Render(config *interfaces.RenderConfig, data any) error {
+func (c *context[Bindings]) Render(config *interfaces.RenderConfig) error {
 	if config == nil {
 		return fmt.Errorf("config is nil")
 	}

@@ -8,8 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/a-h/templ"
-	"github.com/poteto0/takibi/fixtures"
 	"github.com/poteto0/takibi/interfaces"
 	"github.com/stretchr/testify/assert"
 )
@@ -499,14 +497,4 @@ func TestTakibi_ServeHTTP(t *testing.T) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Equal(t, "user 123", rec.Body.String())
 	})
-}
-
-func TestTakibi_Renderer(t *testing.T) {
-	app := New[any](nil).(*takibi[any])
-	rendererMap := map[string]templ.Component{
-		"test": fixtures.Hello("Takibi"),
-	}
-	app.Renderer(rendererMap)
-
-	assert.Equal(t, rendererMap, app.rendererMap)
 }

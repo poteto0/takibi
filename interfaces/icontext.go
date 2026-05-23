@@ -41,8 +41,8 @@ type IContext[Bindings any] interface {
 	//      ContentType: "text/html",
 	//  }
 	// in handler
-	//  ctx.Render(config, nil)
-	Render(config *RenderConfig, data any) error
+	//  ctx.Render(config)
+	Render(config *RenderConfig) error
 
 	// Params
 	Param() map[string]string

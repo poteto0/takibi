@@ -12,7 +12,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/a-h/templ"
 	"github.com/poteto0/takibi/constants"
 	"github.com/poteto0/takibi/interfaces"
 	"github.com/poteto0/takibi/router"
@@ -28,12 +27,11 @@ type takibi[Bindings any] struct {
 	tasks            []interfaces.BlowTask[Bindings]
 	cron             *cron.Cron
 
-	ctx         stdContext.Context
-	cancel      stdContext.CancelFunc
-	fireMutex   sync.RWMutex
-	Server      http.Server
-	Listener    net.Listener
-	rendererMap map[string]templ.Component
+	ctx       stdContext.Context
+	cancel    stdContext.CancelFunc
+	fireMutex sync.RWMutex
+	Server    http.Server
+	Listener  net.Listener
 }
 
 func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
@@ -283,14 +281,6 @@ func (
 	middleware ...interfaces.MiddlewareFunc[Bindings],
 ) error {
 	return t.router.Use(path, middleware...)
-}
-
-func (
-	t *takibi[Bindings],
-) Renderer(
-	rendererMap map[string]templ.Component,
-) {
-	t.rendererMap = rendererMap
 }
 
 func (

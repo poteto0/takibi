@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/a-h/templ"
 	"github.com/poteto0/takibi/interfaces"
 	"github.com/poteto0/takibi/router"
 	"github.com/syumai/workers"
@@ -21,9 +20,8 @@ type takibi[Bindings any] struct {
 	router       interfaces.IRouter[Bindings]
 	errorHandler interfaces.ErrorHandlerFunc[Bindings]
 
-	ctx         stdContext.Context
-	cancel      stdContext.CancelFunc
-	rendererMap map[string]templ.Component
+	ctx    stdContext.Context
+	cancel stdContext.CancelFunc
 }
 
 func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
@@ -162,6 +160,7 @@ func (
 ) OnBlowError(
 	handler interfaces.BlowErrorHandlerFunc[Bindings],
 ) {
+	fmt.Println("it is not supported for wasm")
 }
 
 func (
@@ -171,14 +170,6 @@ func (
 	middleware ...interfaces.MiddlewareFunc[Bindings],
 ) error {
 	return t.router.Use(path, middleware...)
-}
-
-func (
-	t *takibi[Bindings],
-) Renderer(
-	rendererMap map[string]templ.Component,
-) {
-	t.rendererMap = rendererMap
 }
 
 func (
@@ -386,6 +377,7 @@ func (
 ) Blow(
 	tasks ...interfaces.BlowTask[Bindings],
 ) {
+	fmt.Println("it is not supported for wasm")
 }
 
 func (
