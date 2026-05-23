@@ -2,15 +2,19 @@ package interfaces
 
 import (
 	stdContext "context"
-	"html/template"
 	"net/http"
 )
 
 type ITakibi[Bindings any] interface {
 	// start up server
+	//	- on native go:
+	//		- start up net/http server
+	// 	- on wasm:
+	//		- use syumai worker
 	Fire(addr string) error
 
 	// stop server
+	//	- ! it is not supported for wasm
 	Finish(ctx stdContext.Context) error
 
 	//
@@ -21,24 +25,10 @@ type ITakibi[Bindings any] interface {
 
 	OnError(handler ErrorHandlerFunc[Bindings])
 
+	//	- ! it is not supported for wasm
 	OnBlowError(handler BlowErrorHandlerFunc[Bindings])
 
 	Use(path string, middleware ...MiddlewareFunc[Bindings]) error
-
-	// set renderer map for render method
-	//
-	// register phase
-	//
-	//  app.Renderer(map[string]*template.Template{
-	//   "index": template.Must(template.New("index").Parse("Hello {{.Name}}")),
-	//  })
-	//
-	// render phase
-	//
-	//  ctx.Render("index", "Takibi")
-	//
-	// then, rendered result is "Hello Takibi"
-	Renderer(rendererMap map[string]*template.Template)
 
 	// Route registers sub app
 	//
@@ -143,6 +133,7 @@ type ITakibi[Bindings any] interface {
 	On(methods, paths []string, handler HandlerFunc[Bindings]) error
 
 	// Blow registers task
+	//	- ! it is not supported for wasm
 	Blow(tasks ...BlowTask[Bindings])
 
 	// Camp simulates a request without starting the server

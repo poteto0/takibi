@@ -1,20 +1,14 @@
 package interfaces
 
-import "html/template"
+import (
+	"github.com/a-h/templ"
+)
 
 type RenderConfig struct {
-	// template files key
-	// set w/ renderer middleware
-	Key string
-
-	// template
-	Template *template.Template
+	// templ component
+	Component templ.Component
 
 	// content type
 	// default is text/html
 	ContentType string
-}
-
-func (c *RenderConfig) IsTemplate() bool {
-	return c.Template != nil
 }
