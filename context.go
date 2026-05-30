@@ -50,9 +50,16 @@ func (c *context[Bindings]) Status(code int) interfaces.IContext[Bindings] {
 	return c
 }
 
-func (c *context[Bindings]) Text(text string) error {
+func (c *context[Bindings]) checkResponse() error {
 	if c.response == nil {
 		return fmt.Errorf("response is nil")
+	}
+	return nil
+}
+
+func (c *context[Bindings]) Text(text string) error {
+	if err := c.checkResponse(); err != nil {
+		return err
 	}
 	c.response.Header().Set("Content-Type", "text/plain")
 	c.response.WriteHeader(c.statusCode)
@@ -61,8 +68,8 @@ func (c *context[Bindings]) Text(text string) error {
 }
 
 func (c *context[Bindings]) Bytes(data []byte) error {
-	if c.response == nil {
-		return fmt.Errorf("response is nil")
+	if err := c.checkResponse(); err != nil {
+		return err
 	}
 	c.response.Header().Set("Content-Type", "application/octet-stream")
 	c.response.WriteHeader(c.statusCode)
@@ -71,10 +78,9 @@ func (c *context[Bindings]) Bytes(data []byte) error {
 }
 
 func (c *context[Bindings]) Stream(data []byte) error {
-	if c.response == nil {
-		return fmt.Errorf("response is nil")
+	if err := c.checkResponse(); err != nil {
+		return err
 	}
-
 	_, err := c.response.Write(data)
 	return err
 }
@@ -94,8 +100,8 @@ func (c *context[Bindings]) Json(data any) error {
 }
 
 func (c *context[Bindings]) Redirect(path string) error {
-	if c.response == nil {
-		return fmt.Errorf("response is nil")
+	if err := c.checkResponse(); err != nil {
+		return err
 	}
 	parsed, err := url.Parse(path)
 	if err == nil && parsed.Host != "" {
@@ -106,8 +112,8 @@ func (c *context[Bindings]) Redirect(path string) error {
 }
 
 func (c *context[Bindings]) RedirectExternal(rawURL string, allowedHosts []string) error {
-	if c.response == nil {
-		return fmt.Errorf("response is nil")
+	if err := c.checkResponse(); err != nil {
+		return err
 	}
 	if len(allowedHosts) == 0 {
 		return fmt.Errorf("redirect: allowedHosts must not be empty")
@@ -124,8 +130,8 @@ func (c *context[Bindings]) RedirectExternal(rawURL string, allowedHosts []strin
 }
 
 func (c *context[Bindings]) Render(config *interfaces.RenderConfig) error {
-	if c.response == nil {
-		return fmt.Errorf("response is nil")
+	if err := c.checkResponse(); err != nil {
+		return err
 	}
 	if config == nil {
 		return fmt.Errorf("config is nil")
