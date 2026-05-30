@@ -8,10 +8,11 @@ import (
 )
 
 type node[Bindings any] struct {
-	children      map[string]interfaces.INode[Bindings]
-	childParamKey string
-	handler       interfaces.HandlerFunc[Bindings]
-	middlewares   []interfaces.MiddlewareFunc[Bindings]
+	children        map[string]interfaces.INode[Bindings]
+	childParamKey   string
+	handler         interfaces.HandlerFunc[Bindings]
+	composedHandler interfaces.HandlerFunc[Bindings]
+	middlewares     []interfaces.MiddlewareFunc[Bindings]
 }
 
 func NewNode[Bindings any]() interfaces.INode[Bindings] {
@@ -24,6 +25,41 @@ func (
 	n *node[Bindings],
 ) Handler() interfaces.HandlerFunc[Bindings] {
 	return n.handler
+}
+
+func (
+	n *node[Bindings],
+) ComposedHandler() interfaces.HandlerFunc[Bindings] {
+	return n.composedHandler
+}
+
+// Compose wraps handler with middlewares, outermost first.
+func Compose[Bindings any](
+	handler interfaces.HandlerFunc[Bindings],
+	middlewares []interfaces.MiddlewareFunc[Bindings],
+) interfaces.HandlerFunc[Bindings] {
+	for i := len(middlewares) - 1; i >= 0; i-- {
+		mw := middlewares[i]
+		next := handler
+		handler = func(ctx interfaces.IContext[Bindings]) error {
+			return mw(ctx, next)
+		}
+	}
+	return handler
+}
+
+// rebuildComposedHandlers does a DFS from n, accumulating middlewares from ancestor
+// nodes and composing them with each node's handler at registration time.
+func (n *node[Bindings]) rebuildComposedHandlers(accumulated []interfaces.MiddlewareFunc[Bindings]) {
+	// Three-index slice caps capacity so append always allocates a fresh backing
+	// array, preventing sibling branches from sharing and corrupting each other's slice.
+	full := append(accumulated[:len(accumulated):len(accumulated)], n.middlewares...)
+	if n.handler != nil {
+		n.composedHandler = Compose(n.handler, full)
+	}
+	for _, child := range n.children {
+		child.(*node[Bindings]).rebuildComposedHandlers(full)
+	}
 }
 
 func (
@@ -53,6 +89,7 @@ func (
 	// if path is just / or empty after trim, it's root
 	if path == "/" || path == "" {
 		currentNode.middlewares = append(currentNode.middlewares, middleware...)
+		n.rebuildComposedHandlers(nil)
 		return nil
 	}
 
@@ -84,6 +121,7 @@ func (
 	}
 
 	currentNode.middlewares = append(currentNode.middlewares, middleware...)
+	n.rebuildComposedHandlers(nil)
 	return nil
 }
 
@@ -101,6 +139,7 @@ func (
 			return constants.ErrHandlerAlreadyExists
 		}
 		currentNode.handler = handler
+		n.rebuildComposedHandlers(nil)
 		return nil
 	}
 
@@ -135,8 +174,10 @@ func (
 	}
 
 	currentNode.handler = handler
+	n.rebuildComposedHandlers(nil)
 	return nil
 }
+
 func (
 	n *node[Bindings],
 ) Find(
