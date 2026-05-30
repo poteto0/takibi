@@ -27,11 +27,13 @@ func Timeout[Bindings any](limit time.Duration) interfaces.MiddlewareFunc[Bindin
 			result = next(ctx)
 		}()
 
+		timer := time.NewTimer(limit)
+		defer timer.Stop()
+
 		select {
 		case <-done:
 			return result
-		// this loaded
-		case <-time.After(limit):
+		case <-timer.C:
 			return constants.ErrRequestTimeout
 		}
 	}

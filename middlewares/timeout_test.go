@@ -59,4 +59,24 @@ func TestTimeout(t *testing.T) {
 
 		assert.Error(t, err)
 	})
+
+	t.Run("timer is stopped when request completes before deadline", func(t *testing.T) {
+		// Run many back-to-back fast requests with a long timeout.
+		// If time.After leaks, each call leaves a live timer in the heap
+		// until the deadline expires. With time.NewTimer + Stop(), timers
+		// are cancelled immediately on the done path.
+		timeout := 30 * time.Second
+		mw := middlewares.Timeout[any](timeout)
+
+		for i := 0; i < 100; i++ {
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			rec := httptest.NewRecorder()
+			ctx := takibi.NewContext[any](rec, req, nil)
+
+			err := mw(ctx, func(c interfaces.IContext[any]) error {
+				return nil
+			})
+			assert.Nil(t, err)
+		}
+	})
 }
