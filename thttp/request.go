@@ -4,14 +4,25 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/poteto0/takibi/constants"
 )
 
-type Request struct {
-	request *http.Request
+type RequestOption struct {
+	MaxBodyBytes int64
 }
 
-func NewRequest(r *http.Request) *Request {
-	return &Request{request: r}
+type Request struct {
+	request      *http.Request
+	maxBodyBytes int64
+}
+
+func NewRequest(r *http.Request, opt *RequestOption) *Request {
+	req := &Request{request: r, maxBodyBytes: constants.DefaultMaxBodyBytes}
+	if opt != nil && opt.MaxBodyBytes > 0 {
+		req.maxBodyBytes = opt.MaxBodyBytes
+	}
+	return req
 }
 
 func (r *Request) Raw() *http.Request {
@@ -45,7 +56,8 @@ func (r *Request) Unmarshall(dest any) error {
 		return fmt.Errorf("unsupported content type: %s", r.ContentType())
 	}
 
-	return json.NewDecoder(r.request.Body).Decode(dest)
+	limited := http.MaxBytesReader(nil, r.request.Body, r.maxBodyBytes)
+	return json.NewDecoder(limited).Decode(dest)
 }
 
 func (r *Request) Queries() map[string][]string {

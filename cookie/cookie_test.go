@@ -24,7 +24,7 @@ func TestSetCookie(t *testing.T) {
 		// Arrange
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := takibi.NewContext[any](w, r, nil)
+		ctx := takibi.NewContext[any](w, r, nil, nil)
 
 		// Act
 		ok := cookie.SetCookie[any](ctx, "name", "takibi", nil)
@@ -43,7 +43,7 @@ func TestSetCookie(t *testing.T) {
 		// Arrange
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := takibi.NewContext[any](w, r, nil)
+		ctx := takibi.NewContext[any](w, r, nil, nil)
 		expires := time.Now().Add(24 * time.Hour)
 
 		// Act
@@ -74,7 +74,7 @@ func TestSetCookie(t *testing.T) {
 		// Arrange
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := takibi.NewContext[any](w, r, nil)
+		ctx := takibi.NewContext[any](w, r, nil, nil)
 
 		// Act
 		ok := cookie.SetCookie[any](ctx, "name", "value", &cookie.CookieOptions{
@@ -92,7 +92,7 @@ func TestSetCookie(t *testing.T) {
 		// Arrange
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := takibi.NewContext[any](w, r, nil)
+		ctx := takibi.NewContext[any](w, r, nil, nil)
 
 		// Act
 		ok := cookie.SetCookie[any](ctx, "name", "value", &cookie.CookieOptions{
@@ -114,7 +114,7 @@ func TestGetCookie(t *testing.T) {
 		// Arrange
 		r := httptest.NewRequest("GET", "/", nil)
 		r.AddCookie(&http.Cookie{Name: "name", Value: "takibi"})
-		ctx := takibi.NewContext[any](nil, r, nil)
+		ctx := takibi.NewContext[any](nil, r, nil, nil)
 
 		// Act
 		c, ok := cookie.GetCookie[any](ctx, "name", nil)
@@ -130,7 +130,7 @@ func TestGetCookie(t *testing.T) {
 		// Arrange
 		r := httptest.NewRequest("GET", "/", nil)
 		r.AddCookie(&http.Cookie{Name: constants.CookieSecurePrefix + "name", Value: "takibi"})
-		ctx := takibi.NewContext[any](nil, r, nil)
+		ctx := takibi.NewContext[any](nil, r, nil, nil)
 
 		// Act
 		c, ok := cookie.GetCookie[any](ctx, "name", &cookie.CookieOptions{
@@ -146,7 +146,7 @@ func TestGetCookie(t *testing.T) {
 		// Arrange
 		r := httptest.NewRequest("GET", "/", nil)
 		r.AddCookie(&http.Cookie{Name: constants.CookieHostPrefix + "name", Value: "takibi"})
-		ctx := takibi.NewContext[any](nil, r, nil)
+		ctx := takibi.NewContext[any](nil, r, nil, nil)
 
 		// Act
 		c, ok := cookie.GetCookie[any](ctx, "name", &cookie.CookieOptions{
@@ -160,7 +160,7 @@ func TestGetCookie(t *testing.T) {
 
 	t.Run("fail when cookie does not exist", func(t *testing.T) {
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := takibi.NewContext[any](nil, r, nil)
+		ctx := takibi.NewContext[any](nil, r, nil, nil)
 
 		c, ok := cookie.GetCookie[any](ctx, "name", nil)
 		assert.False(t, ok)
@@ -173,7 +173,7 @@ func TestGetCookies(t *testing.T) {
 		r := httptest.NewRequest("GET", "/", nil)
 		r.AddCookie(&http.Cookie{Name: "name1", Value: "value1"})
 		r.AddCookie(&http.Cookie{Name: "name2", Value: "value2"})
-		ctx := takibi.NewContext[any](nil, r, nil)
+		ctx := takibi.NewContext[any](nil, r, nil, nil)
 
 		cookies := cookie.GetCookies[any](ctx)
 		assert.Len(t, cookies, 2)
@@ -187,7 +187,7 @@ func TestSignedCookie(t *testing.T) {
 		// Arrange Set
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := takibi.NewContext[any](w, r, nil)
+		ctx := takibi.NewContext[any](w, r, nil, nil)
 		secret := "secret-key-must-be-32-bytes-long!!"
 
 		// Act Set
@@ -203,7 +203,7 @@ func TestSignedCookie(t *testing.T) {
 		// Arrange Get
 		reqWithCookie := httptest.NewRequest("GET", "/", nil)
 		reqWithCookie.AddCookie(cookies[0])
-		ctxWithCookie := takibi.NewContext[any](w, reqWithCookie, nil)
+		ctxWithCookie := takibi.NewContext[any](w, reqWithCookie, nil, nil)
 
 		// Act Get
 		c, ok := cookie.GetSignedCookie[any](ctxWithCookie, "name", secret, nil)
@@ -218,7 +218,7 @@ func TestSignedCookie(t *testing.T) {
 		// Arrange
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := takibi.NewContext[any](w, r, nil)
+		ctx := takibi.NewContext[any](w, r, nil, nil)
 		secret := ""
 
 		// Act
@@ -232,7 +232,7 @@ func TestSignedCookie(t *testing.T) {
 		// Arrange
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := takibi.NewContext[any](w, r, nil)
+		ctx := takibi.NewContext[any](w, r, nil, nil)
 		secret := "secret-key-must-be-32-bytes-long!!"
 		wrongSecret := "wrong-key-must-be-32-bytes-long!!"
 
@@ -241,7 +241,7 @@ func TestSignedCookie(t *testing.T) {
 
 		reqWithCookie := httptest.NewRequest("GET", "/", nil)
 		reqWithCookie.AddCookie(cookies[0])
-		ctxWithCookie := takibi.NewContext[any](w, reqWithCookie, nil)
+		ctxWithCookie := takibi.NewContext[any](w, reqWithCookie, nil, nil)
 
 		// Act
 		c, ok := cookie.GetSignedCookie[any](ctxWithCookie, "name", wrongSecret, nil)
@@ -255,7 +255,7 @@ func TestSignedCookie(t *testing.T) {
 		// Arrange
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := takibi.NewContext[any](w, r, nil)
+		ctx := takibi.NewContext[any](w, r, nil, nil)
 		secret := "secret-key-must-be-32-bytes-long!!"
 
 		cookie.SetSignedCookie[any](ctx, "name", "takibi", secret, nil)
@@ -266,7 +266,7 @@ func TestSignedCookie(t *testing.T) {
 
 		reqWithCookie := httptest.NewRequest("GET", "/", nil)
 		reqWithCookie.AddCookie(tamperedCookie)
-		ctxWithCookie := takibi.NewContext[any](w, reqWithCookie, nil)
+		ctxWithCookie := takibi.NewContext[any](w, reqWithCookie, nil, nil)
 
 		// Act
 		c, ok := cookie.GetSignedCookie[any](ctxWithCookie, "name", secret, nil)
@@ -280,7 +280,7 @@ func TestSignedCookie(t *testing.T) {
 		// Arrange
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
-		ctx := takibi.NewContext[any](w, r, nil)
+		ctx := takibi.NewContext[any](w, r, nil, nil)
 		secret := "secret-key-must-be-32-bytes-long!!"
 
 		// Act

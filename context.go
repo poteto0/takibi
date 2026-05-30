@@ -8,25 +8,40 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/poteto0/takibi/constants"
 	"github.com/poteto0/takibi/interfaces"
 	"github.com/poteto0/takibi/thttp"
 )
 
-type context[Bindings any] struct {
-	env        *Bindings
-	request    interfaces.IRequest
-	response   http.ResponseWriter
-	statusCode int
-	pathParams map[string]string
+type contextOption struct {
+	maxBodyBytes int64
 }
 
-func NewContext[Bindings any](w http.ResponseWriter, r *http.Request, bindings *Bindings) interfaces.IContext[Bindings] {
+func toContextOption(opt *interfaces.TakibiOption) contextOption {
+	if opt == nil || opt.MaxBodyBytes == 0 {
+		return contextOption{maxBodyBytes: constants.DefaultMaxBodyBytes}
+	}
+	return contextOption{maxBodyBytes: opt.MaxBodyBytes}
+}
+
+type context[Bindings any] struct {
+	env          *Bindings
+	request      interfaces.IRequest
+	response     http.ResponseWriter
+	statusCode   int
+	pathParams   map[string]string
+	maxBodyBytes int64
+}
+
+func NewContext[Bindings any](w http.ResponseWriter, r *http.Request, bindings *Bindings, opt *interfaces.TakibiOption) interfaces.IContext[Bindings] {
+	co := toContextOption(opt)
 	return &context[Bindings]{
-		env:        bindings,
-		request:    thttp.NewRequest(r),
-		response:   w,
-		statusCode: http.StatusOK,
-		pathParams: make(map[string]string),
+		env:          bindings,
+		request:      thttp.NewRequest(r, &thttp.RequestOption{MaxBodyBytes: co.maxBodyBytes}),
+		response:     w,
+		statusCode:   http.StatusOK,
+		pathParams:   make(map[string]string),
+		maxBodyBytes: co.maxBodyBytes,
 	}
 }
 
@@ -39,7 +54,7 @@ func (c *context[Bindings]) Response() http.ResponseWriter {
 }
 
 func (c *context[Bindings]) Reset(w http.ResponseWriter, r *http.Request) {
-	c.request = thttp.NewRequest(r)
+	c.request = thttp.NewRequest(r, &thttp.RequestOption{MaxBodyBytes: c.maxBodyBytes})
 	c.response = w
 	c.statusCode = http.StatusOK
 	clear(c.pathParams)

@@ -70,7 +70,7 @@ func BenchmarkServeHTTP_10MW(b *testing.B) {
 func newResetBenchCtx(b *testing.B) (interfaces.IContext[any], *httptest.ResponseRecorder, *http.Request) {
 	b.Helper()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	ctx := NewContext[any](httptest.NewRecorder(), req, nil)
+	ctx := NewContext[any](httptest.NewRecorder(), req, nil, nil)
 	newReq := httptest.NewRequest(http.MethodGet, "/new", nil)
 	return ctx, httptest.NewRecorder(), newReq
 }

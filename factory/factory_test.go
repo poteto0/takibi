@@ -26,7 +26,7 @@ func TestCreateMiddleware(t *testing.T) {
 			}
 		})
 
-		ctx := takibi.NewContext[Bindings](nil, nil, &Bindings{Val: "initial"})
+		ctx := takibi.NewContext[Bindings](nil, nil, &Bindings{Val: "initial"}, nil)
 		next := func(c interfaces.IContext[Bindings]) error {
 			return nil
 		}
@@ -43,7 +43,7 @@ func TestParamBy(t *testing.T) {
 	type Bindings struct{}
 
 	t.Run("0 value", func(t *testing.T) {
-		ctx := takibi.NewContext[Bindings](nil, nil, nil)
+		ctx := takibi.NewContext[Bindings](nil, nil, nil, nil)
 		ctx.SetParam(map[string]string{"id": ""})
 
 		val, err := ParamBy[int](ctx, "id")
@@ -53,7 +53,7 @@ func TestParamBy(t *testing.T) {
 
 	t.Run("int", func(t *testing.T) {
 		t.Run("parse", func(t *testing.T) {
-			ctx := takibi.NewContext[Bindings](nil, nil, nil)
+			ctx := takibi.NewContext[Bindings](nil, nil, nil, nil)
 			ctx.SetParam(map[string]string{"id": "123"})
 
 			val, err := ParamBy[int](ctx, "id")
@@ -62,7 +62,7 @@ func TestParamBy(t *testing.T) {
 		})
 
 		t.Run("failed", func(t *testing.T) {
-			ctx := takibi.NewContext[Bindings](nil, nil, nil)
+			ctx := takibi.NewContext[Bindings](nil, nil, nil, nil)
 			ctx.SetParam(map[string]string{"id": "failed to parse"})
 
 			_, err := ParamBy[int](ctx, "id")
@@ -72,7 +72,7 @@ func TestParamBy(t *testing.T) {
 
 	t.Run("int 64", func(t *testing.T) {
 		t.Run("parse", func(t *testing.T) {
-			ctx := takibi.NewContext[Bindings](nil, nil, nil)
+			ctx := takibi.NewContext[Bindings](nil, nil, nil, nil)
 			ctx.SetParam(map[string]string{"id": "1234567890"})
 
 			val, err := ParamBy[int64](ctx, "id")
@@ -81,7 +81,7 @@ func TestParamBy(t *testing.T) {
 		})
 
 		t.Run("failed", func(t *testing.T) {
-			ctx := takibi.NewContext[Bindings](nil, nil, nil)
+			ctx := takibi.NewContext[Bindings](nil, nil, nil, nil)
 			ctx.SetParam(map[string]string{"id": "failed to parse"})
 
 			_, err := ParamBy[int64](ctx, "id")
@@ -91,7 +91,7 @@ func TestParamBy(t *testing.T) {
 
 	t.Run("float 64", func(t *testing.T) {
 		t.Run("parse", func(t *testing.T) {
-			ctx := takibi.NewContext[Bindings](nil, nil, nil)
+			ctx := takibi.NewContext[Bindings](nil, nil, nil, nil)
 			ctx.SetParam(map[string]string{"value": "3.14"})
 
 			val, err := ParamBy[float64](ctx, "value")
@@ -100,7 +100,7 @@ func TestParamBy(t *testing.T) {
 		})
 
 		t.Run("failed", func(t *testing.T) {
-			ctx := takibi.NewContext[Bindings](nil, nil, nil)
+			ctx := takibi.NewContext[Bindings](nil, nil, nil, nil)
 			ctx.SetParam(map[string]string{"value": "failed to parse"})
 
 			_, err := ParamBy[float64](ctx, "value")
@@ -110,7 +110,7 @@ func TestParamBy(t *testing.T) {
 
 	t.Run("bool", func(t *testing.T) {
 		t.Run("parse", func(t *testing.T) {
-			ctx := takibi.NewContext[Bindings](nil, nil, nil)
+			ctx := takibi.NewContext[Bindings](nil, nil, nil, nil)
 			ctx.SetParam(map[string]string{"flag": "true"})
 
 			val, err := ParamBy[bool](ctx, "flag")
@@ -119,7 +119,7 @@ func TestParamBy(t *testing.T) {
 		})
 
 		t.Run("failed", func(t *testing.T) {
-			ctx := takibi.NewContext[Bindings](nil, nil, nil)
+			ctx := takibi.NewContext[Bindings](nil, nil, nil, nil)
 			ctx.SetParam(map[string]string{"flag": "failed to parse"})
 
 			_, err := ParamBy[bool](ctx, "flag")
@@ -128,7 +128,7 @@ func TestParamBy(t *testing.T) {
 	})
 
 	t.Run("string", func(t *testing.T) {
-		ctx := takibi.NewContext[Bindings](nil, nil, nil)
+		ctx := takibi.NewContext[Bindings](nil, nil, nil, nil)
 		ctx.SetParam(map[string]string{"name": "takibi"})
 
 		val, err := ParamBy[string](ctx, "name")
@@ -141,7 +141,7 @@ func TestParamBy(t *testing.T) {
 			Name string
 		}
 
-		ctx := takibi.NewContext[Bindings](nil, nil, nil)
+		ctx := takibi.NewContext[Bindings](nil, nil, nil, nil)
 		ctx.SetParam(map[string]string{"name": "failed to parse"})
 
 		_, err := ParamBy[custom](ctx, "name")
@@ -154,7 +154,7 @@ func TestQueryBy(t *testing.T) {
 
 	t.Run("int", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/?page=2", nil)
-		ctx := takibi.NewContext[Bindings](nil, req, nil)
+		ctx := takibi.NewContext[Bindings](nil, req, nil, nil)
 
 		val, err := QueryBy[int](ctx, "page")
 		assert.NoError(t, err)
@@ -163,7 +163,7 @@ func TestQueryBy(t *testing.T) {
 
 	t.Run("bool", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/?flag=true", nil)
-		ctx := takibi.NewContext[Bindings](nil, req, nil)
+		ctx := takibi.NewContext[Bindings](nil, req, nil, nil)
 
 		val, err := QueryBy[bool](ctx, "flag")
 		assert.NoError(t, err)

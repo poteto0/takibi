@@ -26,6 +26,7 @@ type takibi[Bindings any] struct {
 	blowErrorHandler interfaces.BlowErrorHandlerFunc[Bindings]
 	tasks            []interfaces.BlowTask[Bindings]
 	cron             *cron.Cron
+	option           interfaces.TakibiOption
 
 	ctx       stdContext.Context
 	cancel    stdContext.CancelFunc
@@ -35,6 +36,10 @@ type takibi[Bindings any] struct {
 }
 
 func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
+	return NewWithOption(bindings, interfaces.DefaultTakibiOption)
+}
+
+func NewWithOption[Bindings any](bindings *Bindings, opt interfaces.TakibiOption) interfaces.ITakibi[Bindings] {
 	if bindings == nil {
 		bindings = new(Bindings)
 	}
@@ -52,6 +57,7 @@ func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
 		},
 		ctx:    ctx,
 		cancel: cancel,
+		option: opt,
 	}
 }
 
@@ -85,7 +91,7 @@ func (
 	for _, task := range t.tasks {
 		if task.BlowActionTag == "trigger" && task.BlowActionTrigger == "start" {
 			r, _ := http.NewRequestWithContext(t.ctx, "GET", "/", nil)
-			c := NewContext(nil, r, t.env)
+			c := NewContext(nil, r, t.env, &t.option)
 			go func(task interfaces.BlowTask[Bindings]) {
 				if err := task.BlowAction(c); err != nil {
 					t.blowErrorHandler(c, err)
@@ -99,7 +105,7 @@ func (
 			}
 			_, _ = t.cron.AddFunc(task.BlowActionSchedule, func() {
 				r, _ := http.NewRequestWithContext(t.ctx, "GET", "/", nil)
-				c := NewContext(nil, r, t.env)
+				c := NewContext(nil, r, t.env, &t.option)
 				if err := task.BlowAction(c); err != nil {
 					t.blowErrorHandler(c, err)
 				}
@@ -147,7 +153,7 @@ func (
 			go func(task interfaces.BlowTask[Bindings]) {
 				defer wg.Done()
 				r, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
-				c := NewContext(nil, r, t.env)
+				c := NewContext(nil, r, t.env, &t.option)
 				if err := task.BlowAction(c); err != nil {
 					t.blowErrorHandler(c, err)
 				}
@@ -234,7 +240,7 @@ func (
 		return ctx
 	}
 
-	return NewContext(w, r, t.Env())
+	return NewContext(w, r, t.Env(), &t.option)
 }
 
 func (

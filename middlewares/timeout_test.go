@@ -20,7 +20,7 @@ func TestTimeout(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		rec := httptest.NewRecorder()
-		ctx := takibi.NewContext[any](rec, req, nil)
+		ctx := takibi.NewContext[any](rec, req, nil, nil)
 
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
 			return nil
@@ -35,7 +35,7 @@ func TestTimeout(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		rec := httptest.NewRecorder()
-		ctx := takibi.NewContext[any](rec, req, nil)
+		ctx := takibi.NewContext[any](rec, req, nil, nil)
 
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
 			time.Sleep(20 * time.Millisecond)
@@ -51,7 +51,7 @@ func TestTimeout(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		rec := httptest.NewRecorder()
-		ctx := takibi.NewContext[any](rec, req, nil)
+		ctx := takibi.NewContext[any](rec, req, nil, nil)
 
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
 			panic("error")
@@ -71,7 +71,7 @@ func TestTimeout(t *testing.T) {
 		for i := 0; i < 100; i++ {
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			rec := httptest.NewRecorder()
-			ctx := takibi.NewContext[any](rec, req, nil)
+			ctx := takibi.NewContext[any](rec, req, nil, nil)
 
 			err := mw(ctx, func(c interfaces.IContext[any]) error {
 				return nil

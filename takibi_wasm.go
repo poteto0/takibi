@@ -19,12 +19,17 @@ type takibi[Bindings any] struct {
 	cache        sync.Pool
 	router       interfaces.IRouter[Bindings]
 	errorHandler interfaces.ErrorHandlerFunc[Bindings]
+	option       interfaces.TakibiOption
 
 	ctx    stdContext.Context
 	cancel stdContext.CancelFunc
 }
 
 func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
+	return NewWithOption(bindings, interfaces.DefaultTakibiOption)
+}
+
+func NewWithOption[Bindings any](bindings *Bindings, opt interfaces.TakibiOption) interfaces.ITakibi[Bindings] {
 	if bindings == nil {
 		bindings = new(Bindings)
 	}
@@ -39,6 +44,7 @@ func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
 		},
 		ctx:    ctx,
 		cancel: cancel,
+		option: opt,
 	}
 }
 
@@ -123,7 +129,7 @@ func (
 		return ctx
 	}
 
-	return NewContext(w, r, t.Env())
+	return NewContext(w, r, t.Env(), &t.option)
 }
 
 func (

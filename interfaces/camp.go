@@ -25,12 +25,13 @@ func Header(key, value string) CampOption {
 func Body(v any) CampOption {
 	return func(r *http.Request) {
 		if reader, ok := v.(io.Reader); ok {
-			rc := io.NopCloser(reader)
-			r.Body = rc
+			r.Body = io.NopCloser(reader)
+			r.ContentLength = -1 // size unknown
 			return
 		}
 
 		b, _ := json.Marshal(v)
 		r.Body = io.NopCloser(bytes.NewBuffer(b))
+		r.ContentLength = int64(len(b))
 	}
 }
