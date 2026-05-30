@@ -42,7 +42,7 @@ func (c *context[Bindings]) Reset(w http.ResponseWriter, r *http.Request) {
 	c.request = thttp.NewRequest(r)
 	c.response = w
 	c.statusCode = http.StatusOK
-	c.pathParams = make(map[string]string)
+	clear(c.pathParams)
 }
 
 func (c *context[Bindings]) Status(code int) interfaces.IContext[Bindings] {
@@ -148,5 +148,8 @@ func (c *context[Bindings]) ParamBy(key string) string {
 }
 
 func (c *context[Bindings]) SetParam(params map[string]string) {
-	c.pathParams = params
+	clear(c.pathParams)
+	for k, v := range params {
+		c.pathParams[k] = v
+	}
 }

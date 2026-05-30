@@ -52,6 +52,41 @@ func TestContext_Reset(t *testing.T) {
 		assert.Equal(t, newReq, ctx.Req().Raw())
 		assert.Equal(t, newW, ctx.Response())
 	})
+
+	t.Run("pathParams cleared after reset", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		w := httptest.NewRecorder()
+		ctx := NewContext[Bindings](w, req, nil)
+
+		ctx.SetParam(map[string]string{"id": "42", "name": "foo"})
+		assert.Equal(t, "42", ctx.ParamBy("id"))
+
+		newReq := httptest.NewRequest(http.MethodGet, "/new", nil)
+		ctx.Reset(httptest.NewRecorder(), newReq)
+
+		assert.Empty(t, ctx.Param())
+		assert.Equal(t, "", ctx.ParamBy("id"))
+		assert.Equal(t, "", ctx.ParamBy("name"))
+	})
+
+	t.Run("pathParams map reused across resets (no alloc)", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		w := httptest.NewRecorder()
+		ctx := NewContext[Bindings](w, req, nil).(*context[Bindings])
+
+		newReq := httptest.NewRequest(http.MethodGet, "/new", nil)
+		newW := httptest.NewRecorder()
+
+		// prime the map so bucket capacity is already allocated
+		ctx.SetParam(map[string]string{"id": "1"})
+
+		allocs := testing.AllocsPerRun(100, func() {
+			ctx.pathParams["id"] = "1"
+			ctx.Reset(newW, newReq)
+		})
+		// Only thttp.NewRequest is expected to allocate; the map must not.
+		assert.LessOrEqual(t, allocs, float64(1), "Reset should not allocate an extra map beyond thttp.NewRequest")
+	})
 }
 
 func TestContext_Response(t *testing.T) {
