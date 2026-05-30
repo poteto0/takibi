@@ -45,7 +45,7 @@ func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
 		env:    bindings,
 		router: router.New[Bindings](),
 		errorHandler: func(ctx interfaces.IContext[Bindings], err error) error {
-			return ctx.Status(http.StatusInternalServerError).Text(err.Error())
+			return ctx.Status(http.StatusInternalServerError).Text("Internal Server Error")
 		},
 		blowErrorHandler: func(c interfaces.IContext[Bindings], err error) {
 			fmt.Println(err.Error())

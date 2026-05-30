@@ -24,7 +24,7 @@ func TestDefaultErrorHandler(t *testing.T) {
 	app.ServeHTTP(w, r)
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
-	assert.Equal(t, "something went wrong", w.Body.String())
+	assert.Equal(t, "Internal Server Error", w.Body.String())
 }
 
 func TestCustomErrorHandler(t *testing.T) {

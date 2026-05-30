@@ -66,6 +66,17 @@ func main() {
 }
 ```
 
+## Error Handling
+
+By default, takibi responds with a generic `"Internal Server Error"` message for unhandled errors — raw error details are never exposed to clients. Use `OnError` to customize the behavior:
+
+```go
+app.OnError(func(ctx interfaces.IContext[Bindings], err error) error {
+    // log err internally if needed
+    return ctx.Status(http.StatusInternalServerError).Text("something went wrong")
+})
+```
+
 ## Document
 
 docs link
