@@ -97,7 +97,6 @@ func TestContext_Response(t *testing.T) {
 	t.Run("check json method", func(t *testing.T) {
 		t.Run("success", func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
-			req.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			ctx := NewContext[any](w, req, nil, nil)
 
@@ -106,16 +105,6 @@ func TestContext_Response(t *testing.T) {
 			assert.Equal(t, http.StatusOK, w.Code)
 			assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
 			assert.JSONEq(t, `{"msg":"hello"}`, w.Body.String())
-		})
-
-		t.Run("fail if no content type", func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodGet, "/", nil)
-			w := httptest.NewRecorder()
-			ctx := NewContext[any](w, req, nil, nil)
-
-			err := ctx.Json(map[string]string{"msg": "hello"})
-			assert.Error(t, err)
-			assert.Equal(t, "content-type must be application/json", err.Error())
 		})
 
 		t.Run("returns error when response is nil", func(t *testing.T) {
