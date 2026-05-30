@@ -94,6 +94,9 @@ func (c *context[Bindings]) Json(data any) error {
 }
 
 func (c *context[Bindings]) Redirect(path string) error {
+	if c.response == nil {
+		return fmt.Errorf("response is nil")
+	}
 	parsed, err := url.Parse(path)
 	if err == nil && parsed.Host != "" {
 		return fmt.Errorf("redirect: absolute URLs are not allowed, use RedirectExternal")
@@ -103,6 +106,9 @@ func (c *context[Bindings]) Redirect(path string) error {
 }
 
 func (c *context[Bindings]) RedirectExternal(rawURL string, allowedHosts []string) error {
+	if c.response == nil {
+		return fmt.Errorf("response is nil")
+	}
 	if len(allowedHosts) == 0 {
 		return fmt.Errorf("redirect: allowedHosts must not be empty")
 	}
@@ -118,6 +124,9 @@ func (c *context[Bindings]) RedirectExternal(rawURL string, allowedHosts []strin
 }
 
 func (c *context[Bindings]) Render(config *interfaces.RenderConfig) error {
+	if c.response == nil {
+		return fmt.Errorf("response is nil")
+	}
 	if config == nil {
 		return fmt.Errorf("config is nil")
 	}

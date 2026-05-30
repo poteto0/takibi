@@ -157,6 +157,15 @@ func TestContext_Response(t *testing.T) {
 				assert.Equal(t, tt.path, w.Header().Get("Location"))
 			})
 		}
+
+		t.Run("returns error when response is nil", func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			ctx := NewContext[any](nil, req, nil)
+
+			err := ctx.Redirect("/safe")
+			assert.Error(t, err)
+			assert.Equal(t, "response is nil", err.Error())
+		})
 	})
 
 	t.Run("check redirect external method", func(t *testing.T) {
@@ -205,6 +214,15 @@ func TestContext_Response(t *testing.T) {
 				assert.Equal(t, tt.url, w.Header().Get("Location"))
 			})
 		}
+
+		t.Run("returns error when response is nil", func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			ctx := NewContext[any](nil, req, nil)
+
+			err := ctx.RedirectExternal("https://api.example.com/cb", []string{"api.example.com"})
+			assert.Error(t, err)
+			assert.Equal(t, "response is nil", err.Error())
+		})
 	})
 
 	t.Run("Stream data w/o write header", func(t *testing.T) {
@@ -253,6 +271,19 @@ func TestContext_Response(t *testing.T) {
 			err := ctx.Render(nil)
 			assert.Error(t, err)
 			assert.Equal(t, "config is nil", err.Error())
+		})
+
+		t.Run("returns error when response is nil", func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			ctx := NewContext[any](nil, req, nil)
+
+			component := templ.ComponentFunc(func(ctx stdContext.Context, w io.Writer) error {
+				_, err := w.Write([]byte("Hello"))
+				return err
+			})
+			err := ctx.Render(&interfaces.RenderConfig{Component: component})
+			assert.Error(t, err)
+			assert.Equal(t, "response is nil", err.Error())
 		})
 	})
 }
