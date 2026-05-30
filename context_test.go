@@ -107,16 +107,16 @@ func TestContext_Response(t *testing.T) {
 			assert.JSONEq(t, `{"msg":"hello"}`, w.Body.String())
 		})
 
-		t.Run("GET request returns JSON without request Content-Type", func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodGet, "/users", nil)
+		t.Run("returns error and sends no headers when data cannot be marshalled", func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
 			ctx := NewContext[any](w, req, nil, nil)
 
-			err := ctx.Json([]map[string]string{{"id": "1"}})
-			assert.Nil(t, err)
-			assert.Equal(t, http.StatusOK, w.Code)
-			assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
-			assert.JSONEq(t, `[{"id":"1"}]`, w.Body.String())
+			err := ctx.Json(make(chan int))
+			assert.Error(t, err)
+			assert.Equal(t, 200, w.Code) // WriteHeader never called
+			assert.Empty(t, w.Header().Get("Content-Type"))
+			assert.Empty(t, w.Body.String())
 		})
 
 		t.Run("returns error when response is nil", func(t *testing.T) {
