@@ -86,8 +86,8 @@ func (c *context[Bindings]) Stream(data []byte) error {
 }
 
 func (c *context[Bindings]) Json(data any) error {
-	if c.request.Raw() == nil || c.response == nil {
-		return fmt.Errorf("request or response is nil")
+	if err := c.checkResponse(); err != nil {
+		return err
 	}
 	contentType := c.request.Raw().Header.Get("Content-Type")
 	if !strings.Contains(contentType, "application/json") {
