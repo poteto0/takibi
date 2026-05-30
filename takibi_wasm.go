@@ -92,39 +92,24 @@ func (
 
 	var handler interfaces.HandlerFunc[Bindings]
 	if n != nil {
-		handler = n.Handler()
+		handler = n.ComposedHandler()
 	}
 
 	if handler == nil {
-		handler = func(c interfaces.IContext[Bindings]) error {
+		notFound := func(c interfaces.IContext[Bindings]) error {
 			c.Response().WriteHeader(http.StatusNotFound)
 			return nil
 		}
+		handler = router.Compose(notFound, middlewares)
 	}
 
-	composedHandler := compose(handler, middlewares)
-
-	if err := composedHandler(ctx); err != nil {
+	if err := handler(ctx); err != nil {
 		if err := t.errorHandler(ctx, err); err != nil {
 			// fallback
 			ctx.Response().WriteHeader(http.StatusInternalServerError)
 		}
 		return
 	}
-}
-
-func compose[Bindings any](
-	handler interfaces.HandlerFunc[Bindings],
-	middlewares []interfaces.MiddlewareFunc[Bindings],
-) interfaces.HandlerFunc[Bindings] {
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		mw := middlewares[i]
-		next := handler
-		handler = func(ctx interfaces.IContext[Bindings]) error {
-			return mw(ctx, next)
-		}
-	}
-	return handler
 }
 
 func (

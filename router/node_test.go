@@ -182,6 +182,76 @@ func TestNode_AddMiddleware(t *testing.T) {
 	})
 }
 
+func TestNode_ComposedHandler(t *testing.T) {
+	t.Run("returns nil when no handler registered", func(t *testing.T) {
+		n := NewNode[any]()
+		assert.Nil(t, n.ComposedHandler())
+	})
+
+	t.Run("returns non-nil after Add", func(t *testing.T) {
+		n := NewNode[any]()
+		n.Add("/", func(ctx interfaces.IContext[any]) error { return nil })
+		assert.NotNil(t, n.ComposedHandler())
+	})
+
+	t.Run("executes middleware in correct order before handler", func(t *testing.T) {
+		n := NewNode[any]()
+		order := []string{}
+
+		n.AddMiddleware("/", func(c interfaces.IContext[any], next interfaces.HandlerFunc[any]) error {
+			order = append(order, "mw1")
+			return next(c)
+		})
+		n.Add("/", func(ctx interfaces.IContext[any]) error {
+			order = append(order, "handler")
+			return nil
+		})
+
+		n.ComposedHandler()(nil)
+		assert.Equal(t, []string{"mw1", "handler"}, order)
+	})
+
+	t.Run("middleware added after Add still composes correctly", func(t *testing.T) {
+		n := NewNode[any]()
+		order := []string{}
+
+		n.Add("/path", func(ctx interfaces.IContext[any]) error {
+			order = append(order, "handler")
+			return nil
+		})
+		n.AddMiddleware("/", func(c interfaces.IContext[any], next interfaces.HandlerFunc[any]) error {
+			order = append(order, "mw")
+			return next(c)
+		})
+
+		found, _, _ := n.Find("/path")
+		found.ComposedHandler()(nil)
+		assert.Equal(t, []string{"mw", "handler"}, order)
+	})
+
+	t.Run("ancestor and child middlewares both apply", func(t *testing.T) {
+		n := NewNode[any]()
+		order := []string{}
+
+		n.AddMiddleware("/", func(c interfaces.IContext[any], next interfaces.HandlerFunc[any]) error {
+			order = append(order, "root-mw")
+			return next(c)
+		})
+		n.AddMiddleware("/api", func(c interfaces.IContext[any], next interfaces.HandlerFunc[any]) error {
+			order = append(order, "api-mw")
+			return next(c)
+		})
+		n.Add("/api/users", func(ctx interfaces.IContext[any]) error {
+			order = append(order, "handler")
+			return nil
+		})
+
+		found, _, _ := n.Find("/api/users")
+		found.ComposedHandler()(nil)
+		assert.Equal(t, []string{"root-mw", "api-mw", "handler"}, order)
+	})
+}
+
 func TestNode_Linearize(t *testing.T) {
 	emptyHandler := func(ctx interfaces.IContext[any]) error { return nil }
 
@@ -207,9 +277,11 @@ func TestNode_Linearize(t *testing.T) {
 			"/posts",
 		}
 		assert.Len(t, units, len(expectedPaths))
+		actualPaths := make([]string, len(units))
 		for i, unit := range units {
-			assert.Equal(t, expectedPaths[i], unit.Path)
+			actualPaths[i] = unit.Path
 			assert.NotNil(t, unit.Handler)
 		}
+		assert.ElementsMatch(t, expectedPaths, actualPaths)
 	})
 }

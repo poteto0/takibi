@@ -9,4 +9,7 @@ lint:
 fmt:
   go fmt ./...
 
+bench:
+  go test -bench=. -benchmem -run='^$' ./...
+
 ci: ut lint fmt
