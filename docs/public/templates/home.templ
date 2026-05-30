@@ -1,0 +1,64 @@
+package templates
+
+templ Home() {
+	<section class="hero">
+		<div class="hero-logo">
+			<svg viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg">
+				<rect x="10" y="62" width="80" height="16" rx="8" fill="#8B4513" transform="rotate(-15 50 70)"></rect>
+				<rect x="10" y="62" width="80" height="16" rx="8" fill="#A0522D" transform="rotate(15 50 70)"></rect>
+				<path d="M 50 18 Q 25 42 28 64 Q 32 78 50 86 Q 68 78 72 64 Q 75 42 50 18 Z" fill="#00ADD8" opacity="0.9"></path>
+				<path d="M 50 30 Q 36 50 38 63 Q 41 75 50 80 Q 59 75 62 63 Q 64 50 50 30 Z" fill="#5DC9E2" opacity="0.9"></path>
+			</svg>
+			<span class="logo-text-hero">takibi</span>
+		</div>
+		<p class="tagline">Hono Inspired Type-Safe Context Web Framework for Go</p>
+		<h1>Build fast, safe web APIs with type-safe bindings &#8212; deployable on Cloudflare Workers</h1>
+		<div class="hero-actions">
+			<a href="/getting-started" class="btn btn-primary">Get Started &#8594;</a>
+			<a href="https://github.com/poteto0/takibi" class="btn btn-outline" target="_blank" rel="noopener">GitHub</a>
+		</div>
+		<div class="hero-code">
+			<div class="dots">
+				<div class="dot dot-red"></div>
+				<div class="dot dot-yellow"></div>
+				<div class="dot dot-green"></div>
+			</div>
+			<pre><code>app := takibi.New(bindings)
+
+app.Get(&#34;/hello&#34;, func(ctx MyContext) error &#123;
+    name := ctx.Env().Name  // 100% type-safe
+    return ctx.Text(&#34;Hello, &#34; + name)
+&#125;)
+
+app.Fire(&#34;:8000&#34;)</code></pre>
+		</div>
+	</section>
+	<section class="features">
+		<div class="features-inner">
+			<h2>Why takibi?</h2>
+			<p class="subtitle">Inspired by Hono, built for Go</p>
+			<div class="feature-grid">
+				<div class="feature-card">
+					<div class="feature-icon">🛡️</div>
+					<h3>Type-Safe Context</h3>
+					<p>Bindings are fully generic &#8212; no type assertions, no runtime panics. Your IDE knows exactly what your context holds.</p>
+				</div>
+				<div class="feature-card">
+					<div class="feature-icon">🔥</div>
+					<h3>Cloudflare Workers Ready</h3>
+					<p>Compile to WASM and deploy with syumai/workers. Zero cold starts, global edge distribution.</p>
+				</div>
+				<div class="feature-card">
+					<div class="feature-icon">🔒</div>
+					<h3>Safe Redirects</h3>
+					<p>Built-in protection against open redirects. External hosts require an explicit allowlist.</p>
+				</div>
+				<div class="feature-card">
+					<div class="feature-icon">⚡</div>
+					<h3>Hono-Like API</h3>
+					<p>Familiar routing and middleware patterns. If you know Hono, you already know takibi.</p>
+				</div>
+			</div>
+		</div>
+	</section>
+}
