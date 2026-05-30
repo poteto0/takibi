@@ -1,9 +1,12 @@
 package takibi_test
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/poteto0/takibi"
@@ -44,6 +47,54 @@ func TestCamp_PostWithBody(t *testing.T) {
 	var respBody map[string]string
 	resp.Unmarshall(&respBody)
 	assert.Equal(t, "echo", respBody["msg"])
+}
+
+func TestNew_WithMaxBodyBytes(t *testing.T) {
+	type Bindings struct{}
+	type Payload struct {
+		Message string `json:"message"`
+	}
+
+	t.Run("body exceeding custom limit returns error in handler", func(t *testing.T) {
+		app := takibi.New(&Bindings{}, takibi.WithMaxBodyBytes[Bindings](20))
+
+		var handlerErr error
+		app.Post("/upload", func(c interfaces.IContext[Bindings]) error {
+			handlerErr = c.Req().Unmarshall(&Payload{})
+			return handlerErr
+		})
+
+		bigBody := strings.Repeat("x", 100)
+		jsonBody := `{"message":"` + bigBody + `"}`
+		app.Camp("POST", "/upload",
+			interfaces.Header("Content-Type", "application/json"),
+			interfaces.Body(bytes.NewBufferString(jsonBody)),
+		)
+
+		assert.NotNil(t, handlerErr)
+		var maxBytesErr *http.MaxBytesError
+		assert.True(t, errors.As(handlerErr, &maxBytesErr))
+	})
+
+	t.Run("body within custom limit succeeds", func(t *testing.T) {
+		app := takibi.New(&Bindings{}, takibi.WithMaxBodyBytes[Bindings](1024))
+
+		var result Payload
+		app.Post("/upload", func(c interfaces.IContext[Bindings]) error {
+			if err := c.Req().Unmarshall(&result); err != nil {
+				return err
+			}
+			return c.Text("ok")
+		})
+
+		resp := app.Camp("POST", "/upload",
+			interfaces.Header("Content-Type", "application/json"),
+			interfaces.Body(map[string]string{"message": "hello"}),
+		)
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode())
+		assert.Equal(t, "hello", result.Message)
+	})
 }
 
 func TestCamp_Json(t *testing.T) {

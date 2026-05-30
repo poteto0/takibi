@@ -6,12 +6,25 @@ import (
 	"net/http"
 )
 
-type Request struct {
-	request *http.Request
+const DefaultMaxBodyBytes int64 = 10 << 20 // 10 MiB
+
+type RequestOption func(*Request)
+
+func WithMaxBodyBytes(n int64) RequestOption {
+	return func(r *Request) { r.maxBodyBytes = n }
 }
 
-func NewRequest(r *http.Request) *Request {
-	return &Request{request: r}
+type Request struct {
+	request      *http.Request
+	maxBodyBytes int64
+}
+
+func NewRequest(r *http.Request, opts ...RequestOption) *Request {
+	req := &Request{request: r, maxBodyBytes: DefaultMaxBodyBytes}
+	for _, opt := range opts {
+		opt(req)
+	}
+	return req
 }
 
 func (r *Request) Raw() *http.Request {
@@ -45,7 +58,8 @@ func (r *Request) Unmarshall(dest any) error {
 		return fmt.Errorf("unsupported content type: %s", r.ContentType())
 	}
 
-	return json.NewDecoder(r.request.Body).Decode(dest)
+	limited := http.MaxBytesReader(nil, r.request.Body, r.maxBodyBytes)
+	return json.NewDecoder(limited).Decode(dest)
 }
 
 func (r *Request) Queries() map[string][]string {

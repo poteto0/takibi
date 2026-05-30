@@ -13,20 +13,26 @@ import (
 )
 
 type context[Bindings any] struct {
-	env        *Bindings
-	request    interfaces.IRequest
-	response   http.ResponseWriter
-	statusCode int
-	pathParams map[string]string
+	env          *Bindings
+	request      interfaces.IRequest
+	response     http.ResponseWriter
+	statusCode   int
+	pathParams   map[string]string
+	maxBodyBytes int64
 }
 
-func NewContext[Bindings any](w http.ResponseWriter, r *http.Request, bindings *Bindings) interfaces.IContext[Bindings] {
+func NewContext[Bindings any](w http.ResponseWriter, r *http.Request, bindings *Bindings, maxBodyBytes ...int64) interfaces.IContext[Bindings] {
+	mbBytes := thttp.DefaultMaxBodyBytes
+	if len(maxBodyBytes) > 0 {
+		mbBytes = maxBodyBytes[0]
+	}
 	return &context[Bindings]{
-		env:        bindings,
-		request:    thttp.NewRequest(r),
-		response:   w,
-		statusCode: http.StatusOK,
-		pathParams: make(map[string]string),
+		env:          bindings,
+		request:      thttp.NewRequest(r, thttp.WithMaxBodyBytes(mbBytes)),
+		response:     w,
+		statusCode:   http.StatusOK,
+		pathParams:   make(map[string]string),
+		maxBodyBytes: mbBytes,
 	}
 }
 
@@ -39,7 +45,7 @@ func (c *context[Bindings]) Response() http.ResponseWriter {
 }
 
 func (c *context[Bindings]) Reset(w http.ResponseWriter, r *http.Request) {
-	c.request = thttp.NewRequest(r)
+	c.request = thttp.NewRequest(r, thttp.WithMaxBodyBytes(c.maxBodyBytes))
 	c.response = w
 	c.statusCode = http.StatusOK
 	clear(c.pathParams)

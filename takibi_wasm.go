@@ -11,6 +11,7 @@ import (
 
 	"github.com/poteto0/takibi/interfaces"
 	"github.com/poteto0/takibi/router"
+	"github.com/poteto0/takibi/thttp"
 	"github.com/syumai/workers"
 )
 
@@ -19,27 +20,33 @@ type takibi[Bindings any] struct {
 	cache        sync.Pool
 	router       interfaces.IRouter[Bindings]
 	errorHandler interfaces.ErrorHandlerFunc[Bindings]
+	maxBodyBytes int64
 
 	ctx    stdContext.Context
 	cancel stdContext.CancelFunc
 }
 
-func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
+func New[Bindings any](bindings *Bindings, opts ...Option[Bindings]) interfaces.ITakibi[Bindings] {
 	if bindings == nil {
 		bindings = new(Bindings)
 	}
 
 	ctx, cancel := stdContext.WithCancel(stdContext.Background())
 
-	return &takibi[Bindings]{
+	t := &takibi[Bindings]{
 		env:    bindings,
 		router: router.New[Bindings](),
 		errorHandler: func(ctx interfaces.IContext[Bindings], err error) error {
 			return ctx.Status(http.StatusInternalServerError).Text(err.Error())
 		},
-		ctx:    ctx,
-		cancel: cancel,
+		ctx:          ctx,
+		cancel:       cancel,
+		maxBodyBytes: thttp.DefaultMaxBodyBytes,
 	}
+	for _, opt := range opts {
+		opt(t)
+	}
+	return t
 }
 
 func (
@@ -123,7 +130,7 @@ func (
 		return ctx
 	}
 
-	return NewContext(w, r, t.Env())
+	return NewContext(w, r, t.Env(), t.maxBodyBytes)
 }
 
 func (

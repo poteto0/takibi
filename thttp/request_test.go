@@ -2,6 +2,8 @@ package thttp_test
 
 import (
 	"bytes"
+	"errors"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -116,6 +118,42 @@ func Test_Request_Unmarshall(t *testing.T) {
 
 		// Assert
 		assert.NoError(t, err)
+	})
+}
+
+func Test_Request_Unmarshall_BodySizeLimit(t *testing.T) {
+	type Payload struct {
+		Message string `json:"message"`
+	}
+
+	t.Run("default limit constant is 10MB", func(t *testing.T) {
+		assert.Equal(t, int64(10<<20), thttp.DefaultMaxBodyBytes)
+	})
+
+	t.Run("body exceeding custom limit returns MaxBytesError", func(t *testing.T) {
+		jsonBody := `{"message": "hello world"}`
+		req := httptest.NewRequest("POST", "http://example.com", bytes.NewBufferString(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		r := thttp.NewRequest(req, thttp.WithMaxBodyBytes(5))
+
+		err := r.Unmarshall(&Payload{})
+
+		assert.Error(t, err)
+		var maxBytesErr *http.MaxBytesError
+		assert.True(t, errors.As(err, &maxBytesErr))
+	})
+
+	t.Run("body within custom limit succeeds", func(t *testing.T) {
+		jsonBody := `{"message": "hi"}`
+		req := httptest.NewRequest("POST", "http://example.com", bytes.NewBufferString(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		r := thttp.NewRequest(req, thttp.WithMaxBodyBytes(100))
+
+		payload := &Payload{}
+		err := r.Unmarshall(payload)
+
+		assert.NoError(t, err)
+		assert.Equal(t, "hi", payload.Message)
 	})
 }
 
