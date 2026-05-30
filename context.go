@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/poteto0/takibi/interfaces"
@@ -91,9 +93,28 @@ func (c *context[Bindings]) Json(data any) error {
 	return json.NewEncoder(c.response).Encode(data)
 }
 
-func (c *context[Bindings]) Redirect(url string) error {
-	http.Redirect(c.response, c.request.Raw(), url, http.StatusFound)
+func (c *context[Bindings]) Redirect(path string) error {
+	parsed, err := url.Parse(path)
+	if err == nil && parsed.Host != "" {
+		return fmt.Errorf("redirect: absolute URLs are not allowed, use RedirectExternal")
+	}
+	http.Redirect(c.response, c.request.Raw(), path, http.StatusFound)
 	return nil
+}
+
+func (c *context[Bindings]) RedirectExternal(rawURL string, allowedHosts []string) error {
+	if len(allowedHosts) == 0 {
+		return fmt.Errorf("redirect: allowedHosts must not be empty")
+	}
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return fmt.Errorf("redirect: invalid URL: %w", err)
+	}
+	if slices.Contains(allowedHosts, parsed.Hostname()) {
+		http.Redirect(c.response, c.request.Raw(), rawURL, http.StatusFound)
+		return nil
+	}
+	return fmt.Errorf("redirect: host %q is not in the allowlist", parsed.Hostname())
 }
 
 func (c *context[Bindings]) Render(config *interfaces.RenderConfig) error {

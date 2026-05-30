@@ -35,6 +35,37 @@ func main() {
 }
 ```
 
+## Safe Redirect
+
+`ctx.Redirect()` only accepts relative paths. For redirecting to external hosts, use `ctx.RedirectExternal()` with an explicit allowlist.
+
+```go
+type Bindings struct {
+    AllowedRedirectHosts []string
+}
+
+type MyContext = interfaces.IContext[Bindings]
+
+func main() {
+    bindings := &Bindings{
+        AllowedRedirectHosts: []string{"auth.example.com"},
+    }
+
+    app := takibi.New(bindings)
+
+    // relative redirect — always safe
+    app.Get("/dashboard", func(ctx MyContext) error {
+        return ctx.Redirect("/home")
+    })
+
+    // external redirect — host validated against allowlist
+    app.Get("/oauth/callback", func(ctx MyContext) error {
+        next := ctx.Req().QueryBy("next")
+        return ctx.RedirectExternal(next, ctx.Env().AllowedRedirectHosts)
+    })
+}
+```
+
 ## Document
 
 docs link
