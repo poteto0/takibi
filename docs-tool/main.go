@@ -13,19 +13,16 @@ import (
 )
 
 func main() {
-	// 1. コマンドライン引数の数を検証
+	// 1. 引数の数を検証
 	if len(os.Args) < 2 {
-		fmt.Println("使用方法:")
-		fmt.Println("  go run main.go <入力ファイルパス> [出力ファイルパス]")
-		fmt.Println("\n実行例:")
-		fmt.Println("  go run main.go assets/homego.txt")
+		fmt.Println("使用方法: go run main.go <入力ファイルパス> [出力ファイルパス]")
 		os.Exit(1)
 	}
 
+	// 💡 os.Args のインデックス 1 と 2 を、通常の半角角カッコ [ ] で正しく取得します
 	inputFile := os.Args[1]
 	var outputFile string
 
-	// 出力ファイルパスの決定
 	if len(os.Args) >= 3 {
 		outputFile = os.Args[2]
 	} else {
@@ -36,11 +33,10 @@ func main() {
 	// 2. 変換元ファイルの読み込み
 	codeBytes, err := os.ReadFile(inputFile)
 	if err != nil {
-		fmt.Printf("エラー: 入力ファイル '%s' の読み込みに失敗しました: %v\n", inputFile, err)
+		fmt.Printf("エラー: %v\n", err)
 		os.Exit(1)
 	}
 
-	// 3. Chroma構文解析ツールのセットアップ
 	lexer := lexers.Get("go")
 	if lexer == nil {
 		lexer = lexers.Fallback
@@ -48,42 +44,47 @@ func main() {
 
 	style := styles.Get("monokai")
 
+	// 💡 インラインの background を消去し、Chromaの pre 生成をスキップする正しいオプション
 	formatter := html.New(
 		html.WithClasses(true),
+		html.PreventSurroundingPre(true),
 		html.TabWidth(4),
 	)
 
-	// 4. トークン化とHTMLへのパースを実行
+	// 3. 構文解析の実行
 	iterator, err := lexer.Tokenise(nil, string(codeBytes))
 	if err != nil {
-		fmt.Printf("エラー: コードの解析に失敗しました: %v\n", err)
+		fmt.Printf("エラー: %v\n", err)
 		os.Exit(1)
 	}
 
 	var buf bytes.Buffer
 	err = formatter.Format(&buf, style, iterator)
 	if err != nil {
-		fmt.Printf("エラー: HTMLへの変換処理に失敗しました: %v\n", err)
+		fmt.Printf("エラー: %v\n", err)
 		os.Exit(1)
 	}
 
-	// 💡 5. 生成されたHTML内の「{」と「}」を安全な文字実体参照に置換
 	htmlStr := buf.String()
+
+	// 4. templのエラーを防ぐエスケープ処理
 	htmlStr = strings.ReplaceAll(htmlStr, "{", "&#123;")
 	htmlStr = strings.ReplaceAll(htmlStr, "}", "&#125;")
 
-	// 6. 出力先フォルダーの自動作成とファイルの書き出し
+	// 5. 外枠の pre.chroma で包んで結合
+	finalHTML := fmt.Sprintf("<pre class=\"chroma\"><code>%s</code></pre>", htmlStr)
+
 	err = os.MkdirAll(filepath.Dir(outputFile), os.ModePerm)
 	if err != nil {
-		fmt.Printf("エラー: 出力先ディレクトリの作成に失敗しました: %v\n", err)
+		fmt.Printf("エラー: %v\n", err)
 		os.Exit(1)
 	}
 
-	err = os.WriteFile(outputFile, []byte(htmlStr), 0644)
+	err = os.WriteFile(outputFile, []byte(finalHTML), 0644)
 	if err != nil {
-		fmt.Printf("エラー: HTMLファイルの書き出しに失敗しました: %v\n", err)
+		fmt.Printf("エラー: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("✨ 変換完了 (波括弧エスケープ済): %s -> %s\n", inputFile, outputFile)
+	fmt.Printf("✨ 変換完了: %s -> %s\n", inputFile, outputFile)
 }
