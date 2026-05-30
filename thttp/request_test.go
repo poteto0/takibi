@@ -13,13 +13,13 @@ import (
 
 func Test_NewRequest(t *testing.T) {
 	// Act & Assert
-	assert.NotNil(t, thttp.NewRequest(nil))
+	assert.NotNil(t, thttp.NewRequest(nil, nil))
 }
 
 func Test_Request_Raw(t *testing.T) {
 	// Arrange
 	req := httptest.NewRequest("GET", "http://example.com", nil)
-	r := thttp.NewRequest(req)
+	r := thttp.NewRequest(req, nil)
 
 	// Act & Assert
 	assert.Equal(t, req, r.Raw())
@@ -29,7 +29,7 @@ func Test_Request_Header(t *testing.T) {
 	// Arrange
 	req := httptest.NewRequest("GET", "http://example.com", nil)
 	req.Header.Set("X-Custom-Header", "value")
-	r := thttp.NewRequest(req)
+	r := thttp.NewRequest(req, nil)
 
 	// Act & Assert
 	assert.Equal(t, req.Header, r.Header())
@@ -39,7 +39,7 @@ func Test_Request_HeaderBy(t *testing.T) {
 	// Arrange
 	req := httptest.NewRequest("GET", "http://example.com", nil)
 	req.Header.Set("X-Custom-Header", "value")
-	r := thttp.NewRequest(req)
+	r := thttp.NewRequest(req, nil)
 
 	// Act & Assert
 	assert.Equal(t, "value", r.HeaderBy("X-Custom-Header"))
@@ -50,7 +50,7 @@ func Test_Request_ContentType(t *testing.T) {
 	// Arrange
 	req := httptest.NewRequest("GET", "http://example.com", nil)
 	req.Header.Set("Content-Type", "application/json")
-	r := thttp.NewRequest(req)
+	r := thttp.NewRequest(req, nil)
 
 	// Act & Assert
 	assert.Equal(t, "application/json", r.ContentType())
@@ -61,7 +61,7 @@ func Test_Request_Json(t *testing.T) {
 	jsonBody := `{"message": "hello"}`
 	req := httptest.NewRequest("POST", "http://example.com", bytes.NewBufferString(jsonBody))
 	req.Header.Set("Content-Type", "application/json")
-	r := thttp.NewRequest(req)
+	r := thttp.NewRequest(req, nil)
 
 	// Act
 	data, err := r.Json()
@@ -85,7 +85,7 @@ func Test_Request_Unmarshall(t *testing.T) {
 		// Arrange
 		req := httptest.NewRequest("POST", "http://example.com", nil)
 		req.Header.Set("Content-Type", "application/json")
-		r := thttp.NewRequest(req)
+		r := thttp.NewRequest(req, nil)
 
 		// Act
 		err := r.Unmarshall(payload)
@@ -98,7 +98,7 @@ func Test_Request_Unmarshall(t *testing.T) {
 		// Arrange
 		req := httptest.NewRequest("POST", "http://example.com", bytes.NewBufferString(jsonBody))
 		req.Header.Set("Content-Type", "text/plain")
-		r := thttp.NewRequest(req)
+		r := thttp.NewRequest(req, nil)
 
 		// Act
 		err := r.Unmarshall(payload)
@@ -111,7 +111,7 @@ func Test_Request_Unmarshall(t *testing.T) {
 		// Arrange
 		req := httptest.NewRequest("POST", "http://example.com", bytes.NewBufferString(jsonBody))
 		req.Header.Set("Content-Type", "application/json")
-		r := thttp.NewRequest(req)
+		r := thttp.NewRequest(req, nil)
 
 		// Act
 		err := r.Unmarshall(payload)
@@ -130,7 +130,7 @@ func Test_Request_Unmarshall_BodySizeLimit(t *testing.T) {
 		jsonBody := `{"message": "hello world"}`
 		req := httptest.NewRequest("POST", "http://example.com", bytes.NewBufferString(jsonBody))
 		req.Header.Set("Content-Type", "application/json")
-		r := thttp.NewRequest(req, thttp.WithMaxBodyBytes(5))
+		r := thttp.NewRequest(req, &thttp.RequestOption{MaxBodyBytes: 5})
 
 		err := r.Unmarshall(&Payload{})
 
@@ -143,7 +143,7 @@ func Test_Request_Unmarshall_BodySizeLimit(t *testing.T) {
 		jsonBody := `{"message": "hi"}`
 		req := httptest.NewRequest("POST", "http://example.com", bytes.NewBufferString(jsonBody))
 		req.Header.Set("Content-Type", "application/json")
-		r := thttp.NewRequest(req, thttp.WithMaxBodyBytes(100))
+		r := thttp.NewRequest(req, &thttp.RequestOption{MaxBodyBytes: 100})
 
 		payload := &Payload{}
 		err := r.Unmarshall(payload)
@@ -156,7 +156,7 @@ func Test_Request_Unmarshall_BodySizeLimit(t *testing.T) {
 func Test_Request_Queries(t *testing.T) {
 	// Arrange
 	req := httptest.NewRequest("GET", "http://example.com?foo=bar&foo=baz&qux=quux", nil)
-	r := thttp.NewRequest(req)
+	r := thttp.NewRequest(req, nil)
 
 	// Act
 	queries := r.Queries()
@@ -171,7 +171,7 @@ func Test_Request_Queries(t *testing.T) {
 func Test_Request_QueriesBy(t *testing.T) {
 	// Arrange
 	req := httptest.NewRequest("GET", "http://example.com?foo=bar&foo=baz&qux=quux", nil)
-	r := thttp.NewRequest(req)
+	r := thttp.NewRequest(req, nil)
 
 	// Act
 	fooValues := r.QueriesBy("foo")
@@ -188,7 +188,7 @@ func Test_Request_Query(t *testing.T) {
 	t.Run("get first value of query parameters", func(t *testing.T) {
 		// Arrange
 		req := httptest.NewRequest("GET", "http://example.com?foo=bar&foo=baz&qux=quux", nil)
-		r := thttp.NewRequest(req)
+		r := thttp.NewRequest(req, nil)
 
 		// Act
 		query := r.Query()
@@ -205,7 +205,7 @@ func Test_Request_QueryBy(t *testing.T) {
 	t.Run("get first value of query parameter by key", func(t *testing.T) {
 		// Arrange
 		req := httptest.NewRequest("GET", "http://example.com?foo=bar&foo=baz&qux=quux", nil)
-		r := thttp.NewRequest(req)
+		r := thttp.NewRequest(req, nil)
 
 		// Act
 		fooValues := r.QueryBy("foo")

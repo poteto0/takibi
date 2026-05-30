@@ -17,6 +17,13 @@ type contextOption struct {
 	maxBodyBytes int64
 }
 
+func toContextOption(opt *interfaces.TakibiOption) contextOption {
+	if opt == nil || opt.MaxBodyBytes == 0 {
+		return contextOption{maxBodyBytes: constants.DefaultMaxBodyBytes}
+	}
+	return contextOption{maxBodyBytes: opt.MaxBodyBytes}
+}
+
 type context[Bindings any] struct {
 	env          *Bindings
 	request      interfaces.IRequest
@@ -26,22 +33,15 @@ type context[Bindings any] struct {
 	maxBodyBytes int64
 }
 
-func NewContext[Bindings any](w http.ResponseWriter, r *http.Request, bindings *Bindings) interfaces.IContext[Bindings] {
-	return newContextWithOption(w, r, bindings, contextOption{})
-}
-
-func newContextWithOption[Bindings any](w http.ResponseWriter, r *http.Request, bindings *Bindings, opt contextOption) interfaces.IContext[Bindings] {
-	bodyBytes := opt.maxBodyBytes
-	if bodyBytes == 0 {
-		bodyBytes = constants.DefaultMaxBodyBytes
-	}
+func NewContext[Bindings any](w http.ResponseWriter, r *http.Request, bindings *Bindings, opt *interfaces.TakibiOption) interfaces.IContext[Bindings] {
+	co := toContextOption(opt)
 	return &context[Bindings]{
 		env:          bindings,
-		request:      thttp.NewRequest(r, thttp.WithMaxBodyBytes(bodyBytes)),
+		request:      thttp.NewRequest(r, &thttp.RequestOption{MaxBodyBytes: co.maxBodyBytes}),
 		response:     w,
 		statusCode:   http.StatusOK,
 		pathParams:   make(map[string]string),
-		maxBodyBytes: bodyBytes,
+		maxBodyBytes: co.maxBodyBytes,
 	}
 }
 
@@ -54,7 +54,7 @@ func (c *context[Bindings]) Response() http.ResponseWriter {
 }
 
 func (c *context[Bindings]) Reset(w http.ResponseWriter, r *http.Request) {
-	c.request = thttp.NewRequest(r, thttp.WithMaxBodyBytes(c.maxBodyBytes))
+	c.request = thttp.NewRequest(r, &thttp.RequestOption{MaxBodyBytes: c.maxBodyBytes})
 	c.response = w
 	c.statusCode = http.StatusOK
 	clear(c.pathParams)

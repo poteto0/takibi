@@ -26,7 +26,7 @@ type takibi[Bindings any] struct {
 	blowErrorHandler interfaces.BlowErrorHandlerFunc[Bindings]
 	tasks            []interfaces.BlowTask[Bindings]
 	cron             *cron.Cron
-	maxBodyBytes     int64
+	option           interfaces.TakibiOption
 
 	ctx       stdContext.Context
 	cancel    stdContext.CancelFunc
@@ -36,20 +36,15 @@ type takibi[Bindings any] struct {
 }
 
 func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
-	return NewWithOption(bindings, defaultTakibiOption())
+	return NewWithOption(bindings, interfaces.DefaultTakibiOption)
 }
 
-func NewWithOption[Bindings any](bindings *Bindings, opt TakibiOption) interfaces.ITakibi[Bindings] {
+func NewWithOption[Bindings any](bindings *Bindings, opt interfaces.TakibiOption) interfaces.ITakibi[Bindings] {
 	if bindings == nil {
 		bindings = new(Bindings)
 	}
 
 	ctx, cancel := stdContext.WithCancel(stdContext.Background())
-
-	maxBodyBytes := opt.MaxBodyBytes
-	if maxBodyBytes == 0 {
-		maxBodyBytes = constants.DefaultMaxBodyBytes
-	}
 
 	return &takibi[Bindings]{
 		env:    bindings,
@@ -60,9 +55,9 @@ func NewWithOption[Bindings any](bindings *Bindings, opt TakibiOption) interface
 		blowErrorHandler: func(c interfaces.IContext[Bindings], err error) {
 			fmt.Println(err.Error())
 		},
-		ctx:          ctx,
-		cancel:       cancel,
-		maxBodyBytes: maxBodyBytes,
+		ctx:    ctx,
+		cancel: cancel,
+		option: opt,
 	}
 }
 
@@ -96,7 +91,7 @@ func (
 	for _, task := range t.tasks {
 		if task.BlowActionTag == "trigger" && task.BlowActionTrigger == "start" {
 			r, _ := http.NewRequestWithContext(t.ctx, "GET", "/", nil)
-			c := newContextWithOption(nil, r, t.env, contextOption{maxBodyBytes: t.maxBodyBytes})
+			c := NewContext(nil, r, t.env, &t.option)
 			go func(task interfaces.BlowTask[Bindings]) {
 				if err := task.BlowAction(c); err != nil {
 					t.blowErrorHandler(c, err)
@@ -110,7 +105,7 @@ func (
 			}
 			_, _ = t.cron.AddFunc(task.BlowActionSchedule, func() {
 				r, _ := http.NewRequestWithContext(t.ctx, "GET", "/", nil)
-				c := newContextWithOption(nil, r, t.env, contextOption{maxBodyBytes: t.maxBodyBytes})
+				c := NewContext(nil, r, t.env, &t.option)
 				if err := task.BlowAction(c); err != nil {
 					t.blowErrorHandler(c, err)
 				}
@@ -158,7 +153,7 @@ func (
 			go func(task interfaces.BlowTask[Bindings]) {
 				defer wg.Done()
 				r, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
-				c := newContextWithOption(nil, r, t.env, contextOption{maxBodyBytes: t.maxBodyBytes})
+				c := NewContext(nil, r, t.env, &t.option)
 				if err := task.BlowAction(c); err != nil {
 					t.blowErrorHandler(c, err)
 				}
@@ -245,7 +240,7 @@ func (
 		return ctx
 	}
 
-	return newContextWithOption(w, r, t.Env(), contextOption{maxBodyBytes: t.maxBodyBytes})
+	return NewContext(w, r, t.Env(), &t.option)
 }
 
 func (

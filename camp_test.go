@@ -55,7 +55,7 @@ func TestNew_WithMaxBodyBytes(t *testing.T) {
 	}
 
 	t.Run("body exceeding custom limit returns error in handler", func(t *testing.T) {
-		app := takibi.NewWithOption(&Bindings{}, takibi.TakibiOption{MaxBodyBytes: 20})
+		app := takibi.NewWithOption(&Bindings{}, interfaces.TakibiOption{MaxBodyBytes: 20})
 
 		var handlerErr error
 		app.Post("/upload", func(c interfaces.IContext[Bindings]) error {
@@ -75,7 +75,7 @@ func TestNew_WithMaxBodyBytes(t *testing.T) {
 	})
 
 	t.Run("body within custom limit succeeds", func(t *testing.T) {
-		app := takibi.NewWithOption(&Bindings{}, takibi.TakibiOption{MaxBodyBytes: 1024})
+		app := takibi.NewWithOption(&Bindings{}, interfaces.TakibiOption{MaxBodyBytes: 1024})
 
 		var result Payload
 		app.Post("/upload", func(c interfaces.IContext[Bindings]) error {

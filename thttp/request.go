@@ -8,10 +8,8 @@ import (
 	"github.com/poteto0/takibi/constants"
 )
 
-type RequestOption func(*Request)
-
-func WithMaxBodyBytes(n int64) RequestOption {
-	return func(r *Request) { r.maxBodyBytes = n }
+type RequestOption struct {
+	MaxBodyBytes int64
 }
 
 type Request struct {
@@ -19,10 +17,10 @@ type Request struct {
 	maxBodyBytes int64
 }
 
-func NewRequest(r *http.Request, opts ...RequestOption) *Request {
+func NewRequest(r *http.Request, opt *RequestOption) *Request {
 	req := &Request{request: r, maxBodyBytes: constants.DefaultMaxBodyBytes}
-	for _, opt := range opts {
-		opt(req)
+	if opt != nil && opt.MaxBodyBytes > 0 {
+		req.maxBodyBytes = opt.MaxBodyBytes
 	}
 	return req
 }

@@ -23,7 +23,7 @@ func TestContext_Getter(t *testing.T) {
 		w := httptest.NewRecorder()
 		bindings := &Bindings{Val: "test"}
 
-		ctx := NewContext(w, req, bindings)
+		ctx := NewContext(w, req, bindings, nil)
 
 		assert.Equal(t, bindings, ctx.Env())
 		assert.Equal(t, req, ctx.Req().Raw())
@@ -41,7 +41,7 @@ func TestContext_Reset(t *testing.T) {
 		w := httptest.NewRecorder()
 		bindings := &Bindings{Val: "test"}
 
-		ctx := NewContext(w, req, bindings)
+		ctx := NewContext(w, req, bindings, nil)
 
 		newReq := httptest.NewRequest(http.MethodPost, "/new", nil)
 		newW := httptest.NewRecorder()
@@ -56,7 +56,7 @@ func TestContext_Reset(t *testing.T) {
 	t.Run("pathParams cleared after reset", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		w := httptest.NewRecorder()
-		ctx := NewContext[Bindings](w, req, nil)
+		ctx := NewContext[Bindings](w, req, nil, nil)
 
 		ctx.SetParam(map[string]string{"id": "42", "name": "foo"})
 		assert.Equal(t, "42", ctx.ParamBy("id"))
@@ -74,7 +74,7 @@ func TestContext_Response(t *testing.T) {
 	t.Run("check text method", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		w := httptest.NewRecorder()
-		ctx := NewContext[any](w, req, nil)
+		ctx := NewContext[any](w, req, nil, nil)
 
 		err := ctx.Text("hello world")
 		assert.Nil(t, err)
@@ -85,7 +85,7 @@ func TestContext_Response(t *testing.T) {
 	t.Run("check bytes method", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		w := httptest.NewRecorder()
-		ctx := NewContext[any](w, req, nil)
+		ctx := NewContext[any](w, req, nil, nil)
 
 		err := ctx.Bytes([]byte("hello world"))
 		assert.Nil(t, err)
@@ -99,7 +99,7 @@ func TestContext_Response(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			req.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
-			ctx := NewContext[any](w, req, nil)
+			ctx := NewContext[any](w, req, nil, nil)
 
 			err := ctx.Json(map[string]string{"msg": "hello"})
 			assert.Nil(t, err)
@@ -111,7 +111,7 @@ func TestContext_Response(t *testing.T) {
 		t.Run("fail if no content type", func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
-			ctx := NewContext[any](w, req, nil)
+			ctx := NewContext[any](w, req, nil, nil)
 
 			err := ctx.Json(map[string]string{"msg": "hello"})
 			assert.Error(t, err)
@@ -120,7 +120,7 @@ func TestContext_Response(t *testing.T) {
 
 		t.Run("returns error when response is nil", func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
-			ctx := NewContext[any](nil, req, nil)
+			ctx := NewContext[any](nil, req, nil, nil)
 
 			err := ctx.Json(map[string]string{"msg": "hello"})
 			assert.Error(t, err)
@@ -131,7 +131,7 @@ func TestContext_Response(t *testing.T) {
 	t.Run("check status method", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		w := httptest.NewRecorder()
-		ctx := NewContext[any](w, req, nil)
+		ctx := NewContext[any](w, req, nil, nil)
 
 		err := ctx.Status(http.StatusCreated).Text("created")
 		assert.Nil(t, err)
@@ -154,7 +154,7 @@ func TestContext_Response(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				req := httptest.NewRequest(http.MethodGet, "/", nil)
 				w := httptest.NewRecorder()
-				ctx := NewContext[any](w, req, nil)
+				ctx := NewContext[any](w, req, nil, nil)
 
 				err := ctx.Redirect(tt.path)
 				if tt.wantErr {
@@ -169,7 +169,7 @@ func TestContext_Response(t *testing.T) {
 
 		t.Run("returns error when response is nil", func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
-			ctx := NewContext[any](nil, req, nil)
+			ctx := NewContext[any](nil, req, nil, nil)
 
 			err := ctx.Redirect("/safe")
 			assert.Error(t, err)
@@ -211,7 +211,7 @@ func TestContext_Response(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				req := httptest.NewRequest(http.MethodGet, "/", nil)
 				w := httptest.NewRecorder()
-				ctx := NewContext[any](w, req, nil)
+				ctx := NewContext[any](w, req, nil, nil)
 
 				err := ctx.RedirectExternal(tt.url, tt.allowedHosts)
 				if tt.wantErr {
@@ -226,7 +226,7 @@ func TestContext_Response(t *testing.T) {
 
 		t.Run("returns error when response is nil", func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
-			ctx := NewContext[any](nil, req, nil)
+			ctx := NewContext[any](nil, req, nil, nil)
 
 			err := ctx.RedirectExternal("https://api.example.com/cb", []string{"api.example.com"})
 			assert.Error(t, err)
@@ -237,7 +237,7 @@ func TestContext_Response(t *testing.T) {
 	t.Run("Stream data w/o write header", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		w := httptest.NewRecorder()
-		ctx := NewContext[any](w, req, nil)
+		ctx := NewContext[any](w, req, nil, nil)
 
 		for i := 0; i < 3; i++ {
 			var buf bytes.Buffer
@@ -254,7 +254,7 @@ func TestContext_Response(t *testing.T) {
 		t.Run("render w/ component", func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
-			ctx := NewContext[any](w, req, nil)
+			ctx := NewContext[any](w, req, nil, nil)
 
 			component := templ.ComponentFunc(func(ctx stdContext.Context, w io.Writer) error {
 				_, err := w.Write([]byte("Hello Takibi"))
@@ -275,7 +275,7 @@ func TestContext_Response(t *testing.T) {
 		t.Run("error w/ nil config", func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
-			ctx := NewContext[any](w, req, nil)
+			ctx := NewContext[any](w, req, nil, nil)
 
 			err := ctx.Render(nil)
 			assert.Error(t, err)
@@ -284,7 +284,7 @@ func TestContext_Response(t *testing.T) {
 
 		t.Run("returns error when response is nil", func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/", nil)
-			ctx := NewContext[any](nil, req, nil)
+			ctx := NewContext[any](nil, req, nil, nil)
 
 			component := templ.ComponentFunc(func(ctx stdContext.Context, w io.Writer) error {
 				_, err := w.Write([]byte("Hello"))
@@ -300,7 +300,7 @@ func TestContext_Response(t *testing.T) {
 func TestContext_Rq(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	w := httptest.NewRecorder()
-	ctx := NewContext[any](w, req, nil)
+	ctx := NewContext[any](w, req, nil, nil)
 
 	assert.Equal(t, req, ctx.Req().Raw())
 }

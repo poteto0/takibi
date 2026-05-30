@@ -18,7 +18,7 @@ func TestCors(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Set("Origin", "http://example.com")
 		rec := httptest.NewRecorder()
-		ctx := takibi.NewContext[any](rec, req, nil)
+		ctx := takibi.NewContext[any](rec, req, nil, nil)
 
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
 			return nil
@@ -36,7 +36,7 @@ func TestCors(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Set("Origin", "http://example.com")
 		rec := httptest.NewRecorder()
-		ctx := takibi.NewContext[any](rec, req, nil)
+		ctx := takibi.NewContext[any](rec, req, nil, nil)
 
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
 			return nil
@@ -52,7 +52,7 @@ func TestCors(t *testing.T) {
 		req := httptest.NewRequest(http.MethodOptions, "/", nil)
 		req.Header.Set("Origin", "http://example.com")
 		rec := httptest.NewRecorder()
-		ctx := takibi.NewContext[any](rec, req, nil)
+		ctx := takibi.NewContext[any](rec, req, nil, nil)
 
 		var nextCalled bool
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
@@ -76,7 +76,7 @@ func TestCors(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Set("Origin", "http://example.com")
 		rec := httptest.NewRecorder()
-		ctx := takibi.NewContext[any](rec, req, nil)
+		ctx := takibi.NewContext[any](rec, req, nil, nil)
 
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
 			return nil
@@ -95,7 +95,7 @@ func TestCors(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Set("Origin", "http://example.com")
 		rec := httptest.NewRecorder()
-		ctx := takibi.NewContext[any](rec, req, nil)
+		ctx := takibi.NewContext[any](rec, req, nil, nil)
 
 		err := mw(ctx, func(c interfaces.IContext[any]) error {
 			return nil

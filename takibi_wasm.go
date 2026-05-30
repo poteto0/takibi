@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/poteto0/takibi/constants"
 	"github.com/poteto0/takibi/interfaces"
 	"github.com/poteto0/takibi/router"
 	"github.com/syumai/workers"
@@ -20,27 +19,22 @@ type takibi[Bindings any] struct {
 	cache        sync.Pool
 	router       interfaces.IRouter[Bindings]
 	errorHandler interfaces.ErrorHandlerFunc[Bindings]
-	maxBodyBytes int64
+	option       interfaces.TakibiOption
 
 	ctx    stdContext.Context
 	cancel stdContext.CancelFunc
 }
 
 func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
-	return NewWithOption(bindings, defaultTakibiOption())
+	return NewWithOption(bindings, interfaces.DefaultTakibiOption)
 }
 
-func NewWithOption[Bindings any](bindings *Bindings, opt TakibiOption) interfaces.ITakibi[Bindings] {
+func NewWithOption[Bindings any](bindings *Bindings, opt interfaces.TakibiOption) interfaces.ITakibi[Bindings] {
 	if bindings == nil {
 		bindings = new(Bindings)
 	}
 
 	ctx, cancel := stdContext.WithCancel(stdContext.Background())
-
-	maxBodyBytes := opt.MaxBodyBytes
-	if maxBodyBytes == 0 {
-		maxBodyBytes = constants.DefaultMaxBodyBytes
-	}
 
 	return &takibi[Bindings]{
 		env:    bindings,
@@ -48,9 +42,9 @@ func NewWithOption[Bindings any](bindings *Bindings, opt TakibiOption) interface
 		errorHandler: func(ctx interfaces.IContext[Bindings], err error) error {
 			return ctx.Status(http.StatusInternalServerError).Text(err.Error())
 		},
-		ctx:          ctx,
-		cancel:       cancel,
-		maxBodyBytes: maxBodyBytes,
+		ctx:    ctx,
+		cancel: cancel,
+		option: opt,
 	}
 }
 
@@ -135,7 +129,7 @@ func (
 		return ctx
 	}
 
-	return newContextWithOption(w, r, t.Env(), contextOption{maxBodyBytes: t.maxBodyBytes})
+	return NewContext(w, r, t.Env(), &t.option)
 }
 
 func (
