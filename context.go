@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
-	"strings"
 
 	"github.com/poteto0/takibi/constants"
 	"github.com/poteto0/takibi/interfaces"
@@ -104,11 +103,6 @@ func (c *context[Bindings]) Json(data any) error {
 	if err := c.checkResponse(); err != nil {
 		return err
 	}
-	contentType := c.request.Raw().Header.Get("Content-Type")
-	if !strings.Contains(contentType, "application/json") {
-		return fmt.Errorf("content-type must be application/json")
-	}
-
 	c.response.Header().Set("Content-Type", "application/json")
 	c.response.WriteHeader(c.statusCode)
 	return json.NewEncoder(c.response).Encode(data)
