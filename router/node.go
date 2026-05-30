@@ -55,9 +55,9 @@ func (n *node[Bindings]) rebuildComposedHandlers() {
 // walkAndCompose is the recursive DFS worker for rebuildComposedHandlers.
 // accumulated holds middlewares collected from ancestor nodes.
 func (n *node[Bindings]) walkAndCompose(accumulated []interfaces.MiddlewareFunc[Bindings]) {
-	// Three-index slice caps capacity so append always allocates a fresh backing
-	// array, preventing sibling branches from sharing and corrupting each other's slice.
-	full := append(accumulated[:len(accumulated):len(accumulated)], n.middlewares...)
+	full := make([]interfaces.MiddlewareFunc[Bindings], len(accumulated)+len(n.middlewares))
+	copy(full, accumulated)
+	copy(full[len(accumulated):], n.middlewares)
 	if n.handler != nil {
 		n.composedHandler = Compose(n.handler, full)
 	}

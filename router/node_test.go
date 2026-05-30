@@ -207,8 +207,7 @@ func TestNode_ComposedHandler(t *testing.T) {
 			return nil
 		})
 
-		h := n.ComposedHandler()
-		h(nil)
+		n.ComposedHandler()(nil)
 		assert.Equal(t, []string{"mw1", "handler"}, order)
 	})
 
@@ -226,8 +225,7 @@ func TestNode_ComposedHandler(t *testing.T) {
 		})
 
 		found, _, _ := n.Find("/path")
-		h := found.ComposedHandler()
-		h(nil)
+		found.ComposedHandler()(nil)
 		assert.Equal(t, []string{"mw", "handler"}, order)
 	})
 
@@ -249,8 +247,7 @@ func TestNode_ComposedHandler(t *testing.T) {
 		})
 
 		found, _, _ := n.Find("/api/users")
-		h := found.ComposedHandler()
-		h(nil)
+		found.ComposedHandler()(nil)
 		assert.Equal(t, []string{"root-mw", "api-mw", "handler"}, order)
 	})
 }
