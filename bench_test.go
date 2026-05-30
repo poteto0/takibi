@@ -66,3 +66,34 @@ func BenchmarkServeHTTP_10MW(b *testing.B) {
 		app.ServeHTTP(w, req)
 	}
 }
+
+func newResetBenchCtx(b *testing.B) (interfaces.IContext[any], *httptest.ResponseRecorder, *http.Request) {
+	b.Helper()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	ctx := NewContext[any](httptest.NewRecorder(), req, nil)
+	newReq := httptest.NewRequest(http.MethodGet, "/new", nil)
+	return ctx, httptest.NewRecorder(), newReq
+}
+
+func BenchmarkContextReset(b *testing.B) {
+	ctx, newW, newReq := newResetBenchCtx(b)
+	ctx.SetParam(map[string]string{"id": "1", "name": "foo"})
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ctx.Reset(newW, newReq)
+	}
+}
+
+func BenchmarkContextReset_WithParams(b *testing.B) {
+	ctx, newW, newReq := newResetBenchCtx(b)
+	params := map[string]string{"id": "1", "name": "foo"}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ctx.SetParam(params)
+		ctx.Reset(newW, newReq)
+	}
+}

@@ -52,6 +52,22 @@ func TestContext_Reset(t *testing.T) {
 		assert.Equal(t, newReq, ctx.Req().Raw())
 		assert.Equal(t, newW, ctx.Response())
 	})
+
+	t.Run("pathParams cleared after reset", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		w := httptest.NewRecorder()
+		ctx := NewContext[Bindings](w, req, nil)
+
+		ctx.SetParam(map[string]string{"id": "42", "name": "foo"})
+		assert.Equal(t, "42", ctx.ParamBy("id"))
+
+		newReq := httptest.NewRequest(http.MethodGet, "/new", nil)
+		ctx.Reset(httptest.NewRecorder(), newReq)
+
+		assert.Empty(t, ctx.Param())
+		assert.Equal(t, "", ctx.ParamBy("id"))
+		assert.Equal(t, "", ctx.ParamBy("name"))
+	})
 }
 
 func TestContext_Response(t *testing.T) {
