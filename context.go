@@ -103,14 +103,9 @@ func (c *context[Bindings]) Json(data any) error {
 	if err := c.checkResponse(); err != nil {
 		return err
 	}
-	b, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
 	c.response.Header().Set("Content-Type", "application/json")
 	c.response.WriteHeader(c.statusCode)
-	_, err = c.response.Write(b)
-	return err
+	return json.NewEncoder(c.response).Encode(data)
 }
 
 func (c *context[Bindings]) Redirect(path string) error {
