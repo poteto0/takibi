@@ -126,10 +126,6 @@ func Test_Request_Unmarshall_BodySizeLimit(t *testing.T) {
 		Message string `json:"message"`
 	}
 
-	t.Run("default limit constant is 10MB", func(t *testing.T) {
-		assert.Equal(t, int64(10<<20), thttp.DefaultMaxBodyBytes)
-	})
-
 	t.Run("body exceeding custom limit returns MaxBytesError", func(t *testing.T) {
 		jsonBody := `{"message": "hello world"}`
 		req := httptest.NewRequest("POST", "http://example.com", bytes.NewBufferString(jsonBody))

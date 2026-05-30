@@ -1,7 +1,17 @@
 package takibi
 
-type Option[Bindings any] func(*takibi[Bindings])
+import "github.com/poteto0/takibi/constants"
 
-func WithMaxBodyBytes[Bindings any](n int64) Option[Bindings] {
-	return func(t *takibi[Bindings]) { t.maxBodyBytes = n }
+// TakibiOption holds framework-level configuration passed to NewWithOption.
+// Zero values fall back to their documented defaults.
+type TakibiOption struct {
+	// MaxBodyBytes limits the size of request bodies decoded by Unmarshall.
+	// 0 means use the default (constants.DefaultMaxBodyBytes = 10 MiB).
+	MaxBodyBytes int64
+}
+
+func defaultTakibiOption() TakibiOption {
+	return TakibiOption{
+		MaxBodyBytes: constants.DefaultMaxBodyBytes,
+	}
 }

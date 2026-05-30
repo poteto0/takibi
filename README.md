@@ -79,10 +79,12 @@ app.OnError(func(ctx interfaces.IContext[Bindings], err error) error {
 
 ## Request Body Size Limit
 
-`ctx.Req().Unmarshall()` enforces a default limit of **10 MiB** per request body to prevent DoS via large payloads. Configure it per app via `WithMaxBodyBytes`:
+`ctx.Req().Unmarshall()` enforces a default limit of **10 MiB** per request body to prevent DoS via large payloads. Use `NewWithOption` to configure it:
 
 ```go
-app := takibi.New(bindings, takibi.WithMaxBodyBytes[Bindings](4<<20)) // 4 MiB
+app := takibi.NewWithOption(bindings, takibi.TakibiOption{
+    MaxBodyBytes: 4 << 20, // 4 MiB
+})
 
 app.Post("/upload", func(ctx MyContext) error {
     var payload MyPayload
@@ -97,7 +99,7 @@ app.Post("/upload", func(ctx MyContext) error {
 })
 ```
 
-The constant `thttp.DefaultMaxBodyBytes` (= `10 << 20`) is also available if you need to reference the default.
+`takibi.New` uses the default limit (`constants.DefaultMaxBodyBytes` = 10 MiB).
 
 ## Document
 

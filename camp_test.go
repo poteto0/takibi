@@ -3,7 +3,6 @@ package takibi_test
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -56,7 +55,7 @@ func TestNew_WithMaxBodyBytes(t *testing.T) {
 	}
 
 	t.Run("body exceeding custom limit returns error in handler", func(t *testing.T) {
-		app := takibi.New(&Bindings{}, takibi.WithMaxBodyBytes[Bindings](20))
+		app := takibi.NewWithOption(&Bindings{}, takibi.TakibiOption{MaxBodyBytes: 20})
 
 		var handlerErr error
 		app.Post("/upload", func(c interfaces.IContext[Bindings]) error {
@@ -71,13 +70,12 @@ func TestNew_WithMaxBodyBytes(t *testing.T) {
 			interfaces.Body(bytes.NewBufferString(jsonBody)),
 		)
 
-		assert.NotNil(t, handlerErr)
 		var maxBytesErr *http.MaxBytesError
-		assert.True(t, errors.As(handlerErr, &maxBytesErr))
+		assert.ErrorAs(t, handlerErr, &maxBytesErr)
 	})
 
 	t.Run("body within custom limit succeeds", func(t *testing.T) {
-		app := takibi.New(&Bindings{}, takibi.WithMaxBodyBytes[Bindings](1024))
+		app := takibi.NewWithOption(&Bindings{}, takibi.TakibiOption{MaxBodyBytes: 1024})
 
 		var result Payload
 		app.Post("/upload", func(c interfaces.IContext[Bindings]) error {

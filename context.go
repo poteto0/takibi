@@ -8,9 +8,14 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/poteto0/takibi/constants"
 	"github.com/poteto0/takibi/interfaces"
 	"github.com/poteto0/takibi/thttp"
 )
+
+type contextOption struct {
+	maxBodyBytes int64
+}
 
 type context[Bindings any] struct {
 	env          *Bindings
@@ -21,18 +26,22 @@ type context[Bindings any] struct {
 	maxBodyBytes int64
 }
 
-func NewContext[Bindings any](w http.ResponseWriter, r *http.Request, bindings *Bindings, maxBodyBytes ...int64) interfaces.IContext[Bindings] {
-	mbBytes := thttp.DefaultMaxBodyBytes
-	if len(maxBodyBytes) > 0 {
-		mbBytes = maxBodyBytes[0]
+func NewContext[Bindings any](w http.ResponseWriter, r *http.Request, bindings *Bindings) interfaces.IContext[Bindings] {
+	return newContextWithOption(w, r, bindings, contextOption{})
+}
+
+func newContextWithOption[Bindings any](w http.ResponseWriter, r *http.Request, bindings *Bindings, opt contextOption) interfaces.IContext[Bindings] {
+	bodyBytes := opt.maxBodyBytes
+	if bodyBytes == 0 {
+		bodyBytes = constants.DefaultMaxBodyBytes
 	}
 	return &context[Bindings]{
 		env:          bindings,
-		request:      thttp.NewRequest(r, thttp.WithMaxBodyBytes(mbBytes)),
+		request:      thttp.NewRequest(r, thttp.WithMaxBodyBytes(bodyBytes)),
 		response:     w,
 		statusCode:   http.StatusOK,
 		pathParams:   make(map[string]string),
-		maxBodyBytes: mbBytes,
+		maxBodyBytes: bodyBytes,
 	}
 }
 

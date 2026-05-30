@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-)
 
-const DefaultMaxBodyBytes int64 = 10 << 20 // 10 MiB
+	"github.com/poteto0/takibi/constants"
+)
 
 type RequestOption func(*Request)
 
@@ -20,7 +20,7 @@ type Request struct {
 }
 
 func NewRequest(r *http.Request, opts ...RequestOption) *Request {
-	req := &Request{request: r, maxBodyBytes: DefaultMaxBodyBytes}
+	req := &Request{request: r, maxBodyBytes: constants.DefaultMaxBodyBytes}
 	for _, opt := range opts {
 		opt(req)
 	}

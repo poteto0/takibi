@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/poteto0/takibi/constants"
 	"github.com/poteto0/takibi/interfaces"
 	"github.com/poteto0/takibi/router"
-	"github.com/poteto0/takibi/thttp"
 	"github.com/syumai/workers"
 )
 
@@ -26,14 +26,23 @@ type takibi[Bindings any] struct {
 	cancel stdContext.CancelFunc
 }
 
-func New[Bindings any](bindings *Bindings, opts ...Option[Bindings]) interfaces.ITakibi[Bindings] {
+func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
+	return NewWithOption(bindings, defaultTakibiOption())
+}
+
+func NewWithOption[Bindings any](bindings *Bindings, opt TakibiOption) interfaces.ITakibi[Bindings] {
 	if bindings == nil {
 		bindings = new(Bindings)
 	}
 
 	ctx, cancel := stdContext.WithCancel(stdContext.Background())
 
-	t := &takibi[Bindings]{
+	maxBodyBytes := opt.MaxBodyBytes
+	if maxBodyBytes == 0 {
+		maxBodyBytes = constants.DefaultMaxBodyBytes
+	}
+
+	return &takibi[Bindings]{
 		env:    bindings,
 		router: router.New[Bindings](),
 		errorHandler: func(ctx interfaces.IContext[Bindings], err error) error {
@@ -41,12 +50,8 @@ func New[Bindings any](bindings *Bindings, opts ...Option[Bindings]) interfaces.
 		},
 		ctx:          ctx,
 		cancel:       cancel,
-		maxBodyBytes: thttp.DefaultMaxBodyBytes,
+		maxBodyBytes: maxBodyBytes,
 	}
-	for _, opt := range opts {
-		opt(t)
-	}
-	return t
 }
 
 func (
@@ -130,7 +135,7 @@ func (
 		return ctx
 	}
 
-	return NewContext(w, r, t.Env(), t.maxBodyBytes)
+	return newContextWithOption(w, r, t.Env(), contextOption{maxBodyBytes: t.maxBodyBytes})
 }
 
 func (
