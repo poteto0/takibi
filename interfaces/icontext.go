@@ -15,7 +15,14 @@ type IContext[Bindings any] interface {
 	Text(text string) error
 	Bytes(data []byte) error
 	Json(data any) error
-	Redirect(url string) error
+	// Redirect sends a 302 response to a relative path.
+	// Returns an error if url is an absolute URL or protocol-relative URL.
+	// Use RedirectExternal for redirecting to external hosts.
+	Redirect(path string) error
+
+	// RedirectExternal sends a 302 response to an absolute URL.
+	// The host of url must appear in allowedHosts; returns an error otherwise.
+	RedirectExternal(url string, allowedHosts []string) error
 
 	// don't write header and status code
 	// so you can use for streaming response

@@ -115,14 +115,80 @@ func TestContext_Response(t *testing.T) {
 	})
 
 	t.Run("check redirect method", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		w := httptest.NewRecorder()
-		ctx := NewContext[any](w, req, nil)
+		tests := []struct {
+			name    string
+			path    string
+			wantErr bool
+		}{
+			{"relative path", "/redirect", false},
+			{"relative path with query", "/redirect?foo=bar", false},
+			{"absolute URL rejected", "https://evil.example.com/steal", true},
+			{"protocol-relative URL rejected", "//evil.example.com", true},
+		}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				req := httptest.NewRequest(http.MethodGet, "/", nil)
+				w := httptest.NewRecorder()
+				ctx := NewContext[any](w, req, nil)
 
-		err := ctx.Redirect("/redirect")
-		assert.Nil(t, err)
-		assert.Equal(t, http.StatusFound, w.Code)
-		assert.Equal(t, "/redirect", w.Header().Get("Location"))
+				err := ctx.Redirect(tt.path)
+				if tt.wantErr {
+					assert.Error(t, err)
+					return
+				}
+				assert.Nil(t, err)
+				assert.Equal(t, http.StatusFound, w.Code)
+				assert.Equal(t, tt.path, w.Header().Get("Location"))
+			})
+		}
+	})
+
+	t.Run("check redirect external method", func(t *testing.T) {
+		tests := []struct {
+			name         string
+			url          string
+			allowedHosts []string
+			wantErr      bool
+		}{
+			{
+				name:         "allowed host redirects",
+				url:          "https://api.example.com/callback",
+				allowedHosts: []string{"api.example.com"},
+			},
+			{
+				name:         "host not in allowlist",
+				url:          "https://evil.example.com/steal",
+				allowedHosts: []string{"api.example.com"},
+				wantErr:      true,
+			},
+			{
+				name:         "empty allowlist rejected",
+				url:          "https://api.example.com/callback",
+				allowedHosts: []string{},
+				wantErr:      true,
+			},
+			{
+				name:         "port is stripped when matching host",
+				url:          "https://api.example.com:8080/path",
+				allowedHosts: []string{"api.example.com"},
+			},
+		}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				req := httptest.NewRequest(http.MethodGet, "/", nil)
+				w := httptest.NewRecorder()
+				ctx := NewContext[any](w, req, nil)
+
+				err := ctx.RedirectExternal(tt.url, tt.allowedHosts)
+				if tt.wantErr {
+					assert.Error(t, err)
+					return
+				}
+				assert.Nil(t, err)
+				assert.Equal(t, http.StatusFound, w.Code)
+				assert.Equal(t, tt.url, w.Header().Get("Location"))
+			})
+		}
 	})
 
 	t.Run("Stream data w/o write header", func(t *testing.T) {
