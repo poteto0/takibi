@@ -148,8 +148,5 @@ func (c *context[Bindings]) ParamBy(key string) string {
 }
 
 func (c *context[Bindings]) SetParam(params map[string]string) {
-	clear(c.pathParams)
-	for k, v := range params {
-		c.pathParams[k] = v
-	}
+	c.pathParams = params
 }
