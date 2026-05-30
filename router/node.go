@@ -48,9 +48,13 @@ func Compose[Bindings any](
 	return handler
 }
 
-// rebuildComposedHandlers does a DFS from n, accumulating middlewares from ancestor
-// nodes and composing them with each node's handler at registration time.
-func (n *node[Bindings]) rebuildComposedHandlers(accumulated []interfaces.MiddlewareFunc[Bindings]) {
+func (n *node[Bindings]) rebuildComposedHandlers() {
+	n.walkAndCompose(nil)
+}
+
+// walkAndCompose is the recursive DFS worker for rebuildComposedHandlers.
+// accumulated holds middlewares collected from ancestor nodes.
+func (n *node[Bindings]) walkAndCompose(accumulated []interfaces.MiddlewareFunc[Bindings]) {
 	// Three-index slice caps capacity so append always allocates a fresh backing
 	// array, preventing sibling branches from sharing and corrupting each other's slice.
 	full := append(accumulated[:len(accumulated):len(accumulated)], n.middlewares...)
@@ -58,7 +62,7 @@ func (n *node[Bindings]) rebuildComposedHandlers(accumulated []interfaces.Middle
 		n.composedHandler = Compose(n.handler, full)
 	}
 	for _, child := range n.children {
-		child.(*node[Bindings]).rebuildComposedHandlers(full)
+		child.(*node[Bindings]).walkAndCompose(full)
 	}
 }
 
@@ -89,7 +93,7 @@ func (
 	// if path is just / or empty after trim, it's root
 	if path == "/" || path == "" {
 		currentNode.middlewares = append(currentNode.middlewares, middleware...)
-		n.rebuildComposedHandlers(nil)
+		n.rebuildComposedHandlers()
 		return nil
 	}
 
@@ -121,7 +125,7 @@ func (
 	}
 
 	currentNode.middlewares = append(currentNode.middlewares, middleware...)
-	n.rebuildComposedHandlers(nil)
+	n.rebuildComposedHandlers()
 	return nil
 }
 
@@ -139,7 +143,7 @@ func (
 			return constants.ErrHandlerAlreadyExists
 		}
 		currentNode.handler = handler
-		n.rebuildComposedHandlers(nil)
+		n.rebuildComposedHandlers()
 		return nil
 	}
 
@@ -174,7 +178,7 @@ func (
 	}
 
 	currentNode.handler = handler
-	n.rebuildComposedHandlers(nil)
+	n.rebuildComposedHandlers()
 	return nil
 }
 

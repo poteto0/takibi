@@ -207,7 +207,8 @@ func TestNode_ComposedHandler(t *testing.T) {
 			return nil
 		})
 
-		n.ComposedHandler()(nil)
+		h := n.ComposedHandler()
+		h(nil)
 		assert.Equal(t, []string{"mw1", "handler"}, order)
 	})
 
@@ -225,7 +226,8 @@ func TestNode_ComposedHandler(t *testing.T) {
 		})
 
 		found, _, _ := n.Find("/path")
-		found.ComposedHandler()(nil)
+		h := found.ComposedHandler()
+		h(nil)
 		assert.Equal(t, []string{"mw", "handler"}, order)
 	})
 
@@ -247,7 +249,8 @@ func TestNode_ComposedHandler(t *testing.T) {
 		})
 
 		found, _, _ := n.Find("/api/users")
-		found.ComposedHandler()(nil)
+		h := found.ComposedHandler()
+		h(nil)
 		assert.Equal(t, []string{"root-mw", "api-mw", "handler"}, order)
 	})
 }
@@ -268,7 +271,7 @@ func TestNode_Linearize(t *testing.T) {
 		// Act
 		units := n.Linearize()
 
-		// Assert — order is non-deterministic (map-based DFS), use set comparison
+		// Assert
 		expectedPaths := []string{
 			"",
 			"/users",
