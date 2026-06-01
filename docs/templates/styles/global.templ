@@ -58,6 +58,13 @@ templ GlobalStyles() {
 		.sidebar-scroll::-webkit-scrollbar { width: 4px; }
 		.sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
 		.sidebar-scroll::-webkit-scrollbar-thumb { background: #2d3f52; border-radius: 2px; }
+		/* sidebar accordion */
+		.sidebar-details { border-bottom: 1px solid #00ADD810; }
+		.sidebar-details > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; user-select: none; }
+		.sidebar-details > summary::-webkit-details-marker { display: none; }
+		.sidebar-section-summary::after { content: '›'; display: inline-block; margin-right: 16px; color: #475569; font-size: 16px; line-height: 1; transition: transform 0.2s ease; transform: rotate(0deg); }
+		.sidebar-details[open] > .sidebar-section-summary::after { transform: rotate(90deg); }
+		.sidebar-section-summary:hover { color: #94a3b8; }
 		/* btn hover */
 		.btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 16px #00ADD840; }
 		.btn-outline:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-1px); }
