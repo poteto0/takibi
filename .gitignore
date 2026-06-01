@@ -3,3 +3,4 @@ gha-creds-*.json
 build/
 playground/
 docs-tool/assets
+*_templ.go
