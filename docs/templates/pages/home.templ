@@ -1,11 +1,12 @@
-package templates
+package pages
 
-import "github.com/poteto0/takibi-docs/code"
+import "github.com/poteto0/takibi-docs/templates/code"
+import "github.com/poteto0/takibi-docs/templates/assets"
 
 templ Home() {
 	<section class="hero">
 		<div class="hero-logo">
-			@Logo()
+			@assets.Logo()
 			<span class="logo-text-hero">takibi</span>
 		</div>
 		<p class="tagline">Hono Inspired Type-Safe Context Web Framework for Go</p>

@@ -29,7 +29,7 @@ func main() {
 		outputFile = os.Args[2]
 	} else {
 		baseName := strings.TrimSuffix(filepath.Base(inputFile), filepath.Ext(inputFile))
-		outputFile = filepath.Join("../docs/code", baseName+".templ")
+		outputFile = filepath.Join("../docs/templates/code", baseName+".templ")
 	}
 
 	if _, err := os.Stat(outputFile); err == nil {
