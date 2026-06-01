@@ -1,14 +1,16 @@
 package pages
 
+import "github.com/poteto0/takibi-docs/templates/styles"
+
 templ GettingStarted() {
 	<h1>Getting Started</h1>
-	<p class="lead">takibi is a lightweight, type-safe web framework for Go, inspired by Hono. It supports standard HTTP servers and Cloudflare Workers via WASM.</p>
+	<p class={ styles.Lead() }>takibi is a lightweight, type-safe web framework for Go, inspired by Hono. It supports standard HTTP servers and Cloudflare Workers via WASM.</p>
 	<h2>Installation</h2>
-	<pre><span class="pre-label">shell</span><code>go get github.com/poteto0/takibi</code></pre>
+	<pre><span class={ styles.PreLabel() }>shell</span><code>go get github.com/poteto0/takibi</code></pre>
 	<h2>Basic Usage</h2>
 	<p>Define your bindings struct, create an app, add routes, and fire it up:</p>
 	<pre>
-		<span class="pre-label">go</span>
+		<span class={ styles.PreLabel() }>go</span>
 		<code>
 			package main
 			import (
@@ -33,7 +35,7 @@ templ GettingStarted() {
 	</pre>
 	<h2>Run It</h2>
 	<pre>
-		<span class="pre-label">shell</span>
+		<span class={ styles.PreLabel() }>shell</span>
 		<code>
 			go run main.go
 			curl http://localhost:8000/hello

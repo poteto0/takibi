@@ -1,11 +1,13 @@
 package pages
 
+import "github.com/poteto0/takibi-docs/templates/styles"
+
 templ Routing() {
 	<h1>Routing</h1>
-	<p class="lead">takibi supports the standard HTTP methods. Routes take a path pattern and a handler function that receives a typed context.</p>
+	<p class={ styles.Lead() }>takibi supports the standard HTTP methods. Routes take a path pattern and a handler function that receives a typed context.</p>
 	<h2>HTTP Methods</h2>
 	<pre>
-		<span class="pre-label">go</span>
+		<span class={ styles.PreLabel() }>go</span>
 		<code>
 			app.Get(&#34;/users&#34;, listUsers)
 			app.Post(&#34;/users&#34;, createUser)
@@ -16,7 +18,7 @@ templ Routing() {
 	<h2>Path Parameters</h2>
 	<p>Use <code>:name</code> syntax for path parameters, accessed via <code>ctx.Req().PathBy(&#34;name&#34;)</code>:</p>
 	<pre>
-		<span class="pre-label">go</span>
+		<span class={ styles.PreLabel() }>go</span>
 		<code>
 			app.Get(&#34;/users/:id&#34;, func(ctx MyContext) error &#123;
 			id := ctx.Req().PathBy(&#34;id&#34;)
@@ -26,7 +28,7 @@ templ Routing() {
 	</pre>
 	<h2>Query Parameters</h2>
 	<pre>
-		<span class="pre-label">go</span>
+		<span class={ styles.PreLabel() }>go</span>
 		<code>
 			app.Get(&#34;/search&#34;, func(ctx MyContext) error &#123;
 			q := ctx.Req().QueryBy(&#34;q&#34;)
@@ -36,7 +38,7 @@ templ Routing() {
 	</pre>
 	<h2>JSON Response</h2>
 	<pre>
-		<span class="pre-label">go</span>
+		<span class={ styles.PreLabel() }>go</span>
 		<code>
 			type User struct &#123;
 			ID   int    `json:&#34;id&#34;`
@@ -50,7 +52,7 @@ templ Routing() {
 	</pre>
 	<h2>Status Codes</h2>
 	<pre>
-		<span class="pre-label">go</span>
+		<span class={ styles.PreLabel() }>go</span>
 		<code>
 			app.Post(&#34;/items&#34;, func(ctx MyContext) error &#123;
 			return ctx.Status(201).JSON(newItem)
