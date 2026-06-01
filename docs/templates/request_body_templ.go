@@ -29,27 +29,27 @@ func RequestBody() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1>Request Body</h1><p class=\"lead\">takibi enforces a configurable request body size limit to protect against DoS attacks via large payloads. The default limit is <strong>10 MiB</strong>.</p><h2>Default Limit</h2><p><code>ctx.Req().Unmarshall()</code> automatically limits body reads to <code>constants.DefaultMaxBodyBytes</code> (10 MiB). No configuration required:</p><pre><span class=\"pre-label\">go</span><code>app.Post(&#34;/data&#34;, func(ctx MyContext) error &#123; var payload MyPayload ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1>Request Body</h1><p class=\"lead\">takibi enforces a configurable request body size limit to protect against DoS attacks via large payloads. The default limit is <strong>10 MiB</strong>.</p><h2>Default Limit</h2><p><code>ctx.Req().Unmarshall()</code> automatically limits body reads to <code>constants.DefaultMaxBodyBytes</code> (10 MiB). No configuration required:</p><pre><span class=\"pre-label\">go</span> <code>app.Post(&#34;/data&#34;, func(ctx MyContext) error &#123; var payload MyPayload ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs("if")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `public/templates/request_body.templ`, Line: 10, Col: 10}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docs/templates/request_body.templ`, Line: 13, Col: 9}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " err := ctx.Req().Unmarshall(&amp;payload); err != nil &#123; return err // bodies over 10 MiB are rejected automatically &#125; return ctx.JSON(payload) &#125;)</code></pre><h2>Custom Limit</h2><p>Use <code>takibi.NewWithOption</code> to configure the limit for your use case:</p><pre><span class=\"pre-label\">go</span><code>app := takibi.NewWithOption(bindings, takibi.TakibiOption&#123; MaxBodyBytes: 4 &lt;&lt; 20, // 4 MiB &#125;)</code></pre><h2>Handling Oversized Requests</h2><p>When the limit is exceeded, <code>Unmarshall</code> returns an <code>*http.MaxBytesError</code>:</p><pre><span class=\"pre-label\">go</span><code>app.Post(&#34;/upload&#34;, func(ctx MyContext) error &#123; var payload MyPayload ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " err := ctx.Req().Unmarshall(&amp;payload); err != nil &#123; return err // bodies over 10 MiB are rejected automatically &#125; return ctx.JSON(payload) &#125;)</code></pre><h2>Custom Limit</h2><p>Use <code>takibi.NewWithOption</code> to configure the limit for your use case:</p><pre><span class=\"pre-label\">go</span> <code>app := takibi.NewWithOption(bindings, takibi.TakibiOption&#123; MaxBodyBytes: 4 &lt;&lt; 20, // 4 MiB &#125;)</code></pre><h2>Handling Oversized Requests</h2><p>When the limit is exceeded, <code>Unmarshall</code> returns an <code>*http.MaxBytesError</code>:</p><pre><span class=\"pre-label\">go</span> <code>app.Post(&#34;/upload&#34;, func(ctx MyContext) error &#123; var payload MyPayload ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs("if")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `public/templates/request_body.templ`, Line: 24, Col: 10}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docs/templates/request_body.templ`, Line: 37, Col: 9}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -62,7 +62,7 @@ func RequestBody() templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs("if")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `public/templates/request_body.templ`, Line: 26, Col: 14}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docs/templates/request_body.templ`, Line: 39, Col: 9}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {

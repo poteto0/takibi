@@ -29,14 +29,14 @@ func Redirect() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1>Redirect</h1><p class=\"lead\">takibi provides two redirect methods with distinct security semantics &#8212; safe-by-default internal redirects, and explicit external redirects with an allowlist.</p><h2>Internal Redirect</h2><p><code>ctx.Redirect(path)</code> only accepts relative paths. Passing an absolute URL or external host returns an error, preventing open redirect vulnerabilities:</p><pre><span class=\"pre-label\">go</span><code>app.Get(&#34;/dashboard&#34;, func(ctx MyContext) error &#123; return ctx.Redirect(&#34;/home&#34;)  // safe: relative path &#125;) ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1>Redirect</h1><p class=\"lead\">takibi provides two redirect methods with distinct security semantics &#8212; safe-by-default internal redirects, and explicit external redirects with an allowlist.</p><h2>Internal Redirect</h2><p><code>ctx.Redirect(path)</code> only accepts relative paths. Passing an absolute URL or external host returns an error, preventing open redirect vulnerabilities:</p><pre><span class=\"pre-label\">go</span> <code>app.Get(&#34;/dashboard&#34;, func(ctx MyContext) error &#123; return ctx.Redirect(&#34;/home&#34;)  // safe: relative path &#125;) ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs("//")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `public/templates/redirect.templ`, Line: 12, Col: 6}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docs/templates/redirect.templ`, Line: 14, Col: 9}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -49,13 +49,13 @@ func Redirect() templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs("//")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `public/templates/redirect.templ`, Line: 13, Col: 6}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docs/templates/redirect.templ`, Line: 15, Col: 9}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " ctx.Redirect(&#34;https://evil.com&#34;)</code></pre><div class=\"callout\"><code>Redirect</code> enforces relative paths at the framework level. You cannot accidentally redirect to an external host.</div><h2>External Redirect</h2><p>For legitimate external redirects (OAuth callbacks, cross-domain flows), use <code>ctx.RedirectExternal(url, allowlist)</code>. The target host must appear in the allowlist:</p><pre><span class=\"pre-label\">go</span><code>type Bindings struct &#123; AllowedRedirectHosts []string &#125; func main() &#123; bindings := &amp;Bindings&#123; AllowedRedirectHosts: []string&#123;&#34;auth.example.com&#34;&#125;, &#125; app := takibi.New(bindings) app.Get(&#34;/oauth/callback&#34;, func(ctx MyContext) error &#123; next := ctx.Req().QueryBy(&#34;next&#34;) return ctx.RedirectExternal(next, ctx.Env().AllowedRedirectHosts) &#125;) &#125;</code></pre><div class=\"callout warning\">If the target host is not in the allowlist, <code>RedirectExternal</code> returns an error. Always restrict your allowlist to known, trusted domains.</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " ctx.Redirect(&#34;https://evil.com&#34;)</code></pre><div class=\"callout\"><code>Redirect</code> enforces relative paths at the framework level. You cannot accidentally redirect to an external host.</div><h2>External Redirect</h2><p>For legitimate external redirects (OAuth callbacks, cross-domain flows), use <code>ctx.RedirectExternal(url, allowlist)</code>. The target host must appear in the allowlist:</p><pre><span class=\"pre-label\">go</span> <code>type Bindings struct &#123; AllowedRedirectHosts []string &#125; func main() &#123; bindings := &amp;Bindings&#123; AllowedRedirectHosts: []string&#123;&#34;auth.example.com&#34;&#125;, &#125; app := takibi.New(bindings) app.Get(&#34;/oauth/callback&#34;, func(ctx MyContext) error &#123; next := ctx.Req().QueryBy(&#34;next&#34;) return ctx.RedirectExternal(next, ctx.Env().AllowedRedirectHosts) &#125;) &#125;</code></pre><div class=\"callout warning\">If the target host is not in the allowlist, <code>RedirectExternal</code> returns an error. Always restrict your allowlist to known, trusted domains.</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

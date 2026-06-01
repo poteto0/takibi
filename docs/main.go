@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/poteto0/takibi"
-	"github.com/poteto0/takibi-docs/public/templates"
+	"github.com/poteto0/takibi-docs/templates"
 	"github.com/poteto0/takibi/interfaces"
 )
 

@@ -29,14 +29,14 @@ func ErrorHandling() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1>Error Handling</h1><p class=\"lead\">takibi never exposes raw error messages to clients. By default, unhandled errors produce a generic <code>500 Internal Server Error</code> response. Use <code>OnError</code> to customize behavior.</p><h2>Default Behavior</h2><p>Without a custom error handler, any error returned from a handler produces:</p><pre><span class=\"pre-label\">http</span><code>HTTP/1.1 500 Internal Server Error Content-Type: text/plain Internal Server Error</code></pre><p>Raw error details are never sent to the client &#8212; safe by default.</p><h2>Custom Error Handler</h2><p>Register a global error handler with <code>app.OnError</code>:</p><pre><span class=\"pre-label\">go</span><code>app.OnError(func(ctx interfaces.IContext[Bindings], err error) error &#123; log.Printf(&#34;handler error: %v&#34;, err) return ctx.Status(http.StatusInternalServerError).Text(&#34;something went wrong&#34;) &#125;)</code></pre><h2>Typed Errors</h2><p>Use standard Go error types to distinguish error categories:</p><pre><span class=\"pre-label\">go</span><code>app.OnError(func(ctx interfaces.IContext[Bindings], err error) error &#123; var notFound *NotFoundError ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1>Error Handling</h1><p class=\"lead\">takibi never exposes raw error messages to clients. By default, unhandled errors produce a generic <code>500 Internal Server Error</code> response. Use <code>OnError</code> to customize behavior.</p><h2>Default Behavior</h2><p>Without a custom error handler, any error returned from a handler produces:</p><pre><span class=\"pre-label\">http</span> <code>HTTP/1.1 500 Internal Server Error Content-Type: text/plain Internal Server Error</code></pre><p>Raw error details are never sent to the client &#8212; safe by default.</p><h2>Custom Error Handler</h2><p>Register a global error handler with <code>app.OnError</code>:</p><pre><span class=\"pre-label\">go</span> <code>app.OnError(func(ctx interfaces.IContext[Bindings], err error) error &#123; log.Printf(&#34;handler error: %v&#34;, err) return ctx.Status(http.StatusInternalServerError).Text(&#34;something went wrong&#34;) &#125;)</code></pre><h2>Typed Errors</h2><p>Use standard Go error types to distinguish error categories:</p><pre><span class=\"pre-label\">go</span> <code>app.OnError(func(ctx interfaces.IContext[Bindings], err error) error &#123; var notFound *NotFoundError ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs("if")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `public/templates/error_handling.templ`, Line: 23, Col: 10}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docs/templates/error_handling.templ`, Line: 35, Col: 9}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {

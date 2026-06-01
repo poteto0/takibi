@@ -149,6 +149,39 @@ templ Head(title string) {
 				.sidebar { display: none; }
 				.content { margin-left: 0; padding: 32px 20px 60px; }
 			}
+
+			pre.chroma {
+    white-space: pre !important;
+    overflow-x: auto;
+    word-break: normal;
+    word-wrap: normal;
+    text-align: left;
+}
+
+/* 既存のコード用スタイルの干渉リセット */
+pre.chroma code {
+    background: none !important;
+    color: #c9d1d9 !important; /* 標準の文字色 (淡いグレー) */
+    padding: 0 !important;
+    border-radius: 0 !important;
+    white-space: pre !important;
+    font-size: 13.5px;
+    line-height: 1.65;
+    font-family: 'JetBrains Mono', 'Fira Code', Menlo, monospace !important;
+}
+
+/* GitHub Dark トークンカラー */
+.chroma .k { color: #ff7b72;} /* キーワード (return) */
+.chroma .kn { color: #ff7b72;} /* キーワード (package) */
+.chroma .kd { color: #ff7b72; }                   /* 宣言キーワード (struct, var, const, func, type) */
+.chroma .nf { color: #d2a8ff; }                   /* 関数名 (main, Get, New, Text) */
+.chroma .s  { color: #a5d6ff; }                   /* 文字列 ("Takibi", "/hello") */
+.chroma .o  { color: #ff7b72; }                   /* 演算子 (:=, =, &, +) */
+.chroma .c1 { color: #8b949e; font-style: italic; } /* 1行コメント (// ...) */
+.chroma .nx { color: #c9d1d9; }                   /* 通常の識別子/変数名 */
+.chroma .p  { color: #c9d1d9; }                   /* 括弧やコンマ ( { } [ ] ) */
+.chroma .nc { color: #ffa657; }                   /* 型名 (Bindings, MyContext) */
+.chroma .mi { color: #79c0ff; }                   /* 数値/文字列リテラル内の数字 */
 		</style>
 	</head>
 }
