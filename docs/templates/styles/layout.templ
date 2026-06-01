@@ -1,0 +1,81 @@
+package styles
+
+css Header() {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 60px;
+	background: { templ.SafeCSSProperty("var(--dark)") };
+	display: flex;
+	align-items: center;
+	padding: 0 24px;
+	z-index: 100;
+	border-bottom: 1px solid #00ADD820;
+}
+
+css HeaderLogo() {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	text-decoration: none;
+	flex-shrink: 0;
+}
+
+css LogoText() {
+	font-size: 22px;
+	font-weight: 700;
+	color: #fff;
+	letter-spacing: -0.5px;
+}
+
+css HeaderNav() {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	margin-left: auto;
+}
+
+css PageWrapper() {
+	display: flex;
+	padding-top: 60px;
+	min-height: 100vh;
+}
+
+css Sidebar() {
+	position: fixed;
+	top: 60px;
+	left: 0;
+	width: 260px;
+	height: { templ.SafeCSSProperty("calc(100vh - 60px)") };
+	background: { templ.SafeCSSProperty("var(--sidebar-bg)") };
+	overflow-y: auto;
+	padding: 24px 0;
+	border-right: 1px solid #00ADD815;
+}
+
+css SidebarSection() {
+	margin-bottom: 8px;
+}
+
+css SidebarSectionTitle() {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: #475569;
+	padding: 8px 20px 4px;
+}
+
+css Content() {
+	margin-left: 260px;
+	flex: 1;
+	padding: 48px 64px 80px;
+	max-width: 900px;
+}
+
+css ContentHome() {
+	margin-left: 0;
+	max-width: 100%;
+	padding: 0;
+}

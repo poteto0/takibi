@@ -1,0 +1,54 @@
+package pages
+
+import "github.com/poteto0/takibi-docs/templates/styles"
+
+templ GettingStarted() {
+	<h1>Getting Started</h1>
+	<p class={ styles.Lead() }>takibi is a lightweight, type-safe web framework for Go, inspired by Hono. It supports standard HTTP servers and Cloudflare Workers via WASM.</p>
+	<h2>Installation</h2>
+	<pre><span class={ styles.PreLabel() }>shell</span><code>go get github.com/poteto0/takibi</code></pre>
+	<h2>Basic Usage</h2>
+	<p>Define your bindings struct, create an app, add routes, and fire it up:</p>
+	<pre>
+		<span class={ styles.PreLabel() }>go</span>
+		<code>
+			package main
+			import (
+			&#34;github.com/poteto0/takibi&#34;
+			&#34;github.com/poteto0/takibi/interfaces&#34;
+			)
+			type Bindings struct &#123;
+			Name string
+			&#125;
+			type MyContext = interfaces.IContext[Bindings]
+			func main() &#123;
+			bindings := &amp;Bindings&#123;Name: &#34;World&#34;&#125;
+			app := takibi.New(bindings)
+			app.Get(&#34;/hello&#34;, func(ctx MyContext) error &#123;
+			return ctx.Text(&#34;Hello, &#34; + ctx.Env().Name)
+			&#125;)
+			{ "if" } err := app.Fire(&#34;:8000&#34;); err != nil &#123;
+			panic(err)
+			&#125;
+			&#125;
+		</code>
+	</pre>
+	<h2>Run It</h2>
+	<pre>
+		<span class={ styles.PreLabel() }>shell</span>
+		<code>
+			go run main.go
+			curl http://localhost:8000/hello
+			# Hello, World
+		</code>
+	</pre>
+	<h2>Next Steps</h2>
+	<p>Explore the core concepts and features:</p>
+	<ul style="list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+		<li><a href="/docs/type-safe-context" style="color:var(--primary);text-decoration:none;font-size:15px;">&#8594; Type-Safe Context</a></li>
+		<li><a href="/docs/routing" style="color:var(--primary);text-decoration:none;font-size:15px;">&#8594; Routing</a></li>
+		<li><a href="/docs/redirect" style="color:var(--primary);text-decoration:none;font-size:15px;">&#8594; Redirect</a></li>
+		<li><a href="/docs/error-handling" style="color:var(--primary);text-decoration:none;font-size:15px;">&#8594; Error Handling</a></li>
+		<li><a href="/docs/request-body" style="color:var(--primary);text-decoration:none;font-size:15px;">&#8594; Request Body Size Limit</a></li>
+	</ul>
+}

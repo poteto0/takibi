@@ -8,8 +8,24 @@ lint:
 
 fmt:
   go fmt ./...
+  templ fmt .
 
 bench:
   go test -bench=. -benchmem -run='^$' ./...
 
 ci: ut lint fmt
+
+gen:
+  templ generate
+
+[working-directory("docs-tool")]
+gen-code +input:
+  go run main.go {{input}}
+
+[working-directory("docs")]
+doc:
+  @pnpm run dev
+
+[working-directory("docs")]
+deploy-doc:
+  @pnpm run deploy
