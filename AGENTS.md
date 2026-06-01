@@ -44,3 +44,26 @@ just -l
 
 - develop with tdd
 - always update docs(`/docs`), if api changed.
+
+## docs
+
+### Write golang code for docs
+
+1. write golang-code to `docs-tool/assets/xxxgo.txt`
+2. generate template
+
+```bash
+$ just gen-code assets/xxxgo.txt
+```
+
+3. refer method like
+
+```templ
+@code.Xxxgo()
+```
+
+4. generate go
+
+```bash
+$ just gen
+```
