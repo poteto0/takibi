@@ -1,12 +1,14 @@
 package pages
 
+import "github.com/poteto0/takibi-docs/templates/styles"
+
 templ ErrorHandling() {
 	<h1>Error Handling</h1>
-	<p class="lead">takibi never exposes raw error messages to clients. By default, unhandled errors produce a generic <code>500 Internal Server Error</code> response. Use <code>OnError</code> to customize behavior.</p>
+	<p class={ styles.Lead() }>takibi never exposes raw error messages to clients. By default, unhandled errors produce a generic <code>500 Internal Server Error</code> response. Use <code>OnError</code> to customize behavior.</p>
 	<h2>Default Behavior</h2>
 	<p>Without a custom error handler, any error returned from a handler produces:</p>
 	<pre>
-		<span class="pre-label">http</span>
+		<span class={ styles.PreLabel() }>http</span>
 		<code>
 			HTTP/1.1 500 Internal Server Error
 			Content-Type: text/plain
@@ -17,7 +19,7 @@ templ ErrorHandling() {
 	<h2>Custom Error Handler</h2>
 	<p>Register a global error handler with <code>app.OnError</code>:</p>
 	<pre>
-		<span class="pre-label">go</span>
+		<span class={ styles.PreLabel() }>go</span>
 		<code>
 			app.OnError(func(ctx interfaces.IContext[Bindings], err error) error &#123;
 			log.Printf(&#34;handler error: %v&#34;, err)
@@ -28,7 +30,7 @@ templ ErrorHandling() {
 	<h2>Typed Errors</h2>
 	<p>Use standard Go error types to distinguish error categories:</p>
 	<pre>
-		<span class="pre-label">go</span>
+		<span class={ styles.PreLabel() }>go</span>
 		<code>
 			app.OnError(func(ctx interfaces.IContext[Bindings], err error) error &#123;
 			var notFound *NotFoundError
