@@ -25,3 +25,7 @@ gen-code +input:
 [working-directory("docs")]
 doc:
   @pnpm run dev
+
+[working-directory("docs")]
+deploy-doc:
+  @pnpm run deploy

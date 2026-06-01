@@ -26,21 +26,21 @@ templ Layout(title string, active string, content templ.Component) {
 			<div class={ styles.PageWrapper() }>
 				if active != "home" {
 					<nav class={ styles.Sidebar(), "sidebar-scroll" }>
-						<div class={ styles.SidebarSection() }>
-							<div class={ styles.SidebarSectionTitle() }>Introduction</div>
+						<details class="sidebar-details" open?={ active == "getting-started" }>
+							<summary class={ styles.SidebarSectionTitle(), "sidebar-section-summary" }>Introduction</summary>
 							<a href="/getting-started" class={ "sidebar-link", templ.KV("active", active == "getting-started") }>Getting Started</a>
-						</div>
-						<div class={ styles.SidebarSection() }>
-							<div class={ styles.SidebarSectionTitle() }>Core Concepts</div>
+						</details>
+						<details class="sidebar-details" open?={ active == "type-safe-context" || active == "routing" }>
+							<summary class={ styles.SidebarSectionTitle(), "sidebar-section-summary" }>Core Concepts</summary>
 							<a href="/docs/type-safe-context" class={ "sidebar-link", templ.KV("active", active == "type-safe-context") }>Type-Safe Context</a>
 							<a href="/docs/routing" class={ "sidebar-link", templ.KV("active", active == "routing") }>Routing</a>
-						</div>
-						<div class={ styles.SidebarSection() }>
-							<div class={ styles.SidebarSectionTitle() }>Features</div>
+						</details>
+						<details class="sidebar-details" open?={ active == "redirect" || active == "error-handling" || active == "request-body" }>
+							<summary class={ styles.SidebarSectionTitle(), "sidebar-section-summary" }>Features</summary>
 							<a href="/docs/redirect" class={ "sidebar-link", templ.KV("active", active == "redirect") }>Redirect</a>
 							<a href="/docs/error-handling" class={ "sidebar-link", templ.KV("active", active == "error-handling") }>Error Handling</a>
 							<a href="/docs/request-body" class={ "sidebar-link", templ.KV("active", active == "request-body") }>Request Body</a>
-						</div>
+						</details>
 					</nav>
 				}
 				<main class={ styles.Content(), templ.KV(styles.ContentHome(), active == "home"), templ.KV("doc-content", active != "home") }>
