@@ -8,7 +8,7 @@ package code
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func HomeGo() templ.Component {
+func Homego() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -31,30 +31,30 @@ func HomeGo() templ.Component {
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = templ.Raw(
 			`
-			<pre class="chroma"><code><span class="kn">package</span><span class="w"> </span><span class="nx">main</span><span class="w">
-</span><span class="w">
-</span><span class="kd">type</span><span class="w"> </span><span class="nx">Bindings</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">&#123;</span><span class="w">
-</span><span class="w">	</span><span class="nx">Name</span><span class="w"> </span><span class="kt">string</span><span class="w">
-</span><span class="p">&#125;</span><span class="w">
-</span><span class="w">
-</span><span class="kd">type</span><span class="w"> </span><span class="nx">MyContext</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">interfaces</span><span class="p">.</span><span class="nx">IContext</span><span class="p">[</span><span class="nx">Bindings</span><span class="p">]</span><span class="w">
-</span><span class="w">
-</span><span class="kd">func</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="p">)</span><span class="w"> </span><span class="p">&#123;</span><span class="w">
-</span><span class="w">	</span><span class="kd">var</span><span class="w"> </span><span class="nx">bindings</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">Bindings</span><span class="p">&#123;</span><span class="w">
-</span><span class="w">		</span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Takibi&#34;</span><span class="p">,</span><span class="w">
-</span><span class="w">	</span><span class="p">&#125;</span><span class="w">
-</span><span class="w">
-</span><span class="w">	</span><span class="nx">app</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">takibi</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">bindings</span><span class="p">)</span><span class="w">
-</span><span class="w">
-</span><span class="w">	</span><span class="nx">app</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s">&#34;/hello&#34;</span><span class="p">,</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">MyContext</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">&#123;</span><span class="w">
-</span><span class="w">		</span><span class="nx">name</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nf">Env</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nx">Name</span><span class="w">  </span><span class="c1">// 100% type-safe</span><span class="w">
-</span><span class="w">		</span><span class="k">return</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nf">Text</span><span class="p">(</span><span class="s">&#34;Hello, &#34;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nx">name</span><span class="p">)</span><span class="w">
-</span><span class="w">	</span><span class="p">&#125;</span><span class="p">)</span><span class="w">
-</span><span class="w">
-</span><span class="w">	</span><span class="nx">app</span><span class="p">.</span><span class="nf">Fire</span><span class="p">(</span><span class="s">&#34;8000&#34;</span><span class="p">)</span><span class="w">
-</span><span class="w">	</span><span class="err">#</span><span class="w"> </span><span class="nx">or</span><span class="w"> </span><span class="nx">cloudflare</span><span class="w"> </span><span class="nx">workers</span><span class="w">
-</span><span class="w">	</span><span class="err">#</span><span class="w"> </span><span class="nx">app</span><span class="p">.</span><span class="nf">Fire</span><span class="p">(</span><span class="s">&#34;&#34;</span><span class="p">)</span><span class="w">
-</span><span class="p">&#125;</span></code></pre>
+			<pre class="chroma"><code><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kd">type</span> <span class="nx">Bindings</span> <span class="kd">struct</span> <span class="p">&#123;</span>
+	<span class="nx">Name</span> <span class="kt">string</span>
+<span class="p">&#125;</span>
+
+<span class="kd">type</span> <span class="nx">MyContext</span> <span class="p">=</span> <span class="nx">interfaces</span><span class="p">.</span><span class="nx">IContext</span><span class="p">[</span><span class="nx">Bindings</span><span class="p">]</span>
+
+<span class="kd">func</span> <span class="nf">main</span><span class="p">(</span><span class="p">)</span> <span class="p">&#123;</span>
+	<span class="kd">var</span> <span class="nx">bindings</span> <span class="p">=</span> <span class="o">&amp;</span><span class="nx">Bindings</span><span class="p">&#123;</span>
+		<span class="nx">Name</span><span class="p">:</span> <span class="s">&#34;Takibi&#34;</span><span class="p">,</span>
+	<span class="p">&#125;</span>
+
+	<span class="nx">app</span> <span class="o">:=</span> <span class="nx">takibi</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">bindings</span><span class="p">)</span>
+
+	<span class="nx">app</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s">&#34;/hello&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">MyContext</span><span class="p">)</span> <span class="kt">error</span> <span class="p">&#123;</span>
+		<span class="nx">name</span> <span class="o">:=</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Env</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nx">Name</span>  <span class="c1">// 100% type-safe</span>
+		<span class="k">return</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Text</span><span class="p">(</span><span class="s">&#34;Hello, &#34;</span> <span class="o">+</span> <span class="nx">name</span><span class="p">)</span>
+	<span class="p">&#125;</span><span class="p">)</span>
+
+	<span class="nx">app</span><span class="p">.</span><span class="nf">Fire</span><span class="p">(</span><span class="s">&#34;8000&#34;</span><span class="p">)</span>
+	<span class="err">#</span> <span class="nx">or</span> <span class="nx">cloudflare</span> <span class="nx">workers</span>
+	<span class="err">#</span> <span class="nx">app</span><span class="p">.</span><span class="nf">Fire</span><span class="p">(</span><span class="s">&#34;&#34;</span><span class="p">)</span>
+<span class="p">&#125;</span></code></pre>
 		`,
 		).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {

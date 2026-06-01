@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/alecthomas/chroma/v2/formatters/html"
@@ -12,25 +14,35 @@ import (
 	"github.com/alecthomas/chroma/v2/styles"
 )
 
+var wsSpanRe = regexp.MustCompile(`<span class="w">([^<]*)</span>`)
+
 func main() {
-	// 1. 引数の数を検証
 	if len(os.Args) < 2 {
 		fmt.Println("使用方法: go run main.go <入力ファイルパス> [出力ファイルパス]")
 		os.Exit(1)
 	}
 
-	// 💡 os.Args のインデックス 1 と 2 を、通常の半角角カッコ [ ] で正しく取得します
 	inputFile := os.Args[1]
 	var outputFile string
 
 	if len(os.Args) >= 3 {
 		outputFile = os.Args[2]
 	} else {
-		ext := filepath.Ext(inputFile)
-		outputFile = strings.TrimSuffix(inputFile, ext) + ".html"
+		baseName := strings.TrimSuffix(filepath.Base(inputFile), filepath.Ext(inputFile))
+		outputFile = filepath.Join("../docs/code", baseName+".templ")
 	}
 
-	// 2. 変換元ファイルの読み込み
+	if _, err := os.Stat(outputFile); err == nil {
+		fmt.Printf("ファイルが既に存在します: %s\n上書きしますか？ [y/n]: ", outputFile)
+		reader := bufio.NewReader(os.Stdin)
+		answer, _ := reader.ReadString('\n')
+		answer = strings.TrimSpace(strings.ToLower(answer))
+		if answer != "y" {
+			fmt.Println("キャンセルしました。")
+			os.Exit(0)
+		}
+	}
+
 	codeBytes, err := os.ReadFile(inputFile)
 	if err != nil {
 		fmt.Printf("エラー: %v\n", err)
@@ -44,14 +56,12 @@ func main() {
 
 	style := styles.Get("monokai")
 
-	// 💡 インラインの background を消去し、Chromaの pre 生成をスキップする正しいオプション
 	formatter := html.New(
 		html.WithClasses(true),
 		html.PreventSurroundingPre(true),
 		html.TabWidth(4),
 	)
 
-	// 3. 構文解析の実行
 	iterator, err := lexer.Tokenise(nil, string(codeBytes))
 	if err != nil {
 		fmt.Printf("エラー: %v\n", err)
@@ -67,12 +77,24 @@ func main() {
 
 	htmlStr := buf.String()
 
-	// 4. templのエラーを防ぐエスケープ処理
+	// strip whitespace span wrappers to keep each source line on one line
+	htmlStr = wsSpanRe.ReplaceAllString(htmlStr, "$1")
+
+	// escape for templ
 	htmlStr = strings.ReplaceAll(htmlStr, "{", "&#123;")
 	htmlStr = strings.ReplaceAll(htmlStr, "}", "&#125;")
+	htmlStr = strings.TrimRight(htmlStr, "\n")
 
-	// 5. 外枠の pre.chroma で包んで結合
-	finalHTML := fmt.Sprintf("<pre class=\"chroma\"><code>%s</code></pre>", htmlStr)
+	packageName := filepath.Base(filepath.Dir(outputFile))
+	baseName := strings.TrimSuffix(filepath.Base(outputFile), filepath.Ext(outputFile))
+	funcName := strings.ToUpper(baseName[:1]) + baseName[1:]
+
+	finalContent := fmt.Sprintf(
+		"package %s\n\ntempl %s() {\n\t@templ.Raw(\n\t\t`\n\t\t\t<pre class=\"chroma\"><code>%s</code></pre>\n\t\t`,\n\t)\n}\n",
+		packageName,
+		funcName,
+		htmlStr,
+	)
 
 	err = os.MkdirAll(filepath.Dir(outputFile), os.ModePerm)
 	if err != nil {
@@ -80,7 +102,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = os.WriteFile(outputFile, []byte(finalHTML), 0644)
+	err = os.WriteFile(outputFile, []byte(finalContent), 0644)
 	if err != nil {
 		fmt.Printf("エラー: %v\n", err)
 		os.Exit(1)
