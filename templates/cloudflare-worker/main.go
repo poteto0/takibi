@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/poteto0/takibi"
 	"github.com/poteto0/takibi/interfaces"
+
+	"cloudflare-worker/templates/pages"
 )
 
 type Bindings struct{}
@@ -14,7 +16,7 @@ func main() {
 
 	app.Get("/", func(ctx MyContext) error {
 		return ctx.Render(&interfaces.RenderConfig{
-			Component: Index(),
+			Component: pages.Index(),
 		})
 	})
 
