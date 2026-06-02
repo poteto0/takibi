@@ -1,0 +1,41 @@
+package main
+
+templ Index() {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>takibi on Cloudflare Workers</title>
+			<style>
+				body {
+					font-family: sans-serif;
+					display: flex;
+					flex-direction: column;
+					align-items: center;
+					justify-content: center;
+					min-height: 100vh;
+					margin: 0;
+					background: #0d0d0d;
+					color: #fff;
+				}
+				svg { width: 80px; height: 80px; }
+				h1 { font-size: 2rem; margin: 16px 0 8px; }
+				p { color: #aaa; margin: 4px 0; }
+				a { color: #00ADD8; text-decoration: none; }
+				a:hover { text-decoration: underline; }
+			</style>
+		</head>
+		<body>
+			<svg viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg">
+				<rect x="10" y="62" width="80" height="16" rx="8" fill="#8B4513" transform="rotate(-15 50 70)"></rect>
+				<rect x="10" y="62" width="80" height="16" rx="8" fill="#A0522D" transform="rotate(15 50 70)"></rect>
+				<path d="M 50 18 Q 25 42 28 64 Q 32 78 50 86 Q 68 78 72 64 Q 75 42 50 18 Z" fill="#00ADD8" opacity="0.9"></path>
+				<path d="M 50 30 Q 36 50 38 63 Q 41 75 50 80 Q 59 75 62 63 Q 64 50 50 30 Z" fill="#5DC9E2" opacity="0.9"></path>
+			</svg>
+			<h1>takibi</h1>
+			<p>Running on Cloudflare Workers</p>
+			<p>via <a href="https://github.com/syumai/workers" target="_blank" rel="noopener">syumai/workers</a></p>
+		</body>
+	</html>
+}
