@@ -1,45 +1,20 @@
 package pages
 
 import "github.com/poteto0/takibi-docs/templates/styles"
+import "github.com/poteto0/takibi-docs/templates/code"
 
 templ Redirect() {
 	<h1>Redirect</h1>
 	<p class={ styles.Lead() }>takibi provides two redirect methods with distinct security semantics &#8212; safe-by-default internal redirects, and explicit external redirects with an allowlist.</p>
 	<h2>Internal Redirect</h2>
 	<p><code>ctx.Redirect(path)</code> only accepts relative paths. Passing an absolute URL or external host returns an error, preventing open redirect vulnerabilities:</p>
-	<pre>
-		<span class={ styles.PreLabel() }>go</span>
-		<code>
-			app.Get(&#34;/dashboard&#34;, func(ctx MyContext) error &#123;
-			return ctx.Redirect(&#34;/home&#34;)  // safe: relative path
-			&#125;)
-			{ "//" } This will return an error &#8212; absolute URLs are rejected
-			{ "//" } ctx.Redirect(&#34;https://evil.com&#34;)
-		</code>
-	</pre>
+	@code.Redirectinternalgo()
 	<div class={ styles.Callout() }>
 		<code>Redirect</code> enforces relative paths at the framework level. You cannot accidentally redirect to an external host.
 	</div>
 	<h2>External Redirect</h2>
 	<p>For legitimate external redirects (OAuth callbacks, cross-domain flows), use <code>ctx.RedirectExternal(url, allowlist)</code>. The target host must appear in the allowlist:</p>
-	<pre>
-		<span class={ styles.PreLabel() }>go</span>
-		<code>
-			type Bindings struct &#123;
-			AllowedRedirectHosts []string
-			&#125;
-			func main() &#123;
-			bindings := &amp;Bindings&#123;
-			AllowedRedirectHosts: []string&#123;&#34;auth.example.com&#34;&#125;,
-			&#125;
-			app := takibi.New(bindings)
-			app.Get(&#34;/oauth/callback&#34;, func(ctx MyContext) error &#123;
-			next := ctx.Req().QueryBy(&#34;next&#34;)
-			return ctx.RedirectExternal(next, ctx.Env().AllowedRedirectHosts)
-			&#125;)
-			&#125;
-		</code>
-	</pre>
+	@code.Redirectexternalgo()
 	<div class={ styles.Callout(), styles.CalloutWarning() }>
 		If the target host is not in the allowlist, <code>RedirectExternal</code> returns an error. Always restrict your allowlist to known, trusted domains.
 	</div>

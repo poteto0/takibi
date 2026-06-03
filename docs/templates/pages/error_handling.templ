@@ -1,6 +1,7 @@
 package pages
 
 import "github.com/poteto0/takibi-docs/templates/styles"
+import "github.com/poteto0/takibi-docs/templates/code"
 
 templ ErrorHandling() {
 	<h1>Error Handling</h1>
@@ -18,27 +19,8 @@ templ ErrorHandling() {
 	<p>Raw error details are never sent to the client &#8212; safe by default.</p>
 	<h2>Custom Error Handler</h2>
 	<p>Register a global error handler with <code>app.OnError</code>:</p>
-	<pre>
-		<span class={ styles.PreLabel() }>go</span>
-		<code>
-			app.OnError(func(ctx interfaces.IContext[Bindings], err error) error &#123;
-			log.Printf(&#34;handler error: %v&#34;, err)
-			return ctx.Status(http.StatusInternalServerError).Text(&#34;something went wrong&#34;)
-			&#125;)
-		</code>
-	</pre>
+	@code.Errorhandlingcustomgo()
 	<h2>Typed Errors</h2>
 	<p>Use standard Go error types to distinguish error categories:</p>
-	<pre>
-		<span class={ styles.PreLabel() }>go</span>
-		<code>
-			app.OnError(func(ctx interfaces.IContext[Bindings], err error) error &#123;
-			var notFound *NotFoundError
-			{ "if" } errors.As(err, &amp;notFound) &#123;
-			return ctx.Status(404).Text(&#34;not found&#34;)
-			&#125;
-			return ctx.Status(500).Text(&#34;internal error&#34;)
-			&#125;)
-		</code>
-	</pre>
+	@code.Errorhandlingtypedgo()
 }

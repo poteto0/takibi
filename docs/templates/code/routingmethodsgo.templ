@@ -1,0 +1,12 @@
+package code
+
+templ Routingmethodsgo() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><code><span class="nx">app</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s">&#34;/users&#34;</span><span class="p">,</span> <span class="nx">listUsers</span><span class="p">)</span>
+<span class="nx">app</span><span class="p">.</span><span class="nf">Post</span><span class="p">(</span><span class="s">&#34;/users&#34;</span><span class="p">,</span> <span class="nx">createUser</span><span class="p">)</span>
+<span class="nx">app</span><span class="p">.</span><span class="nf">Put</span><span class="p">(</span><span class="s">&#34;/users/:id&#34;</span><span class="p">,</span> <span class="nx">updateUser</span><span class="p">)</span>
+<span class="nx">app</span><span class="p">.</span><span class="nf">Delete</span><span class="p">(</span><span class="s">&#34;/users/:id&#34;</span><span class="p">,</span> <span class="nx">deleteUser</span><span class="p">)</span></code></pre>
+		`,
+	)
+}
