@@ -80,6 +80,8 @@ func main() {
 	// strip whitespace span wrappers to keep each source line on one line
 	htmlStr = wsSpanRe.ReplaceAllString(htmlStr, "$1")
 
+	// escape for templ raw string (backtick terminates the literal)
+	htmlStr = strings.ReplaceAll(htmlStr, "`", "&#96;")
 	// escape for templ
 	htmlStr = strings.ReplaceAll(htmlStr, "{", "&#123;")
 	htmlStr = strings.ReplaceAll(htmlStr, "}", "&#125;")

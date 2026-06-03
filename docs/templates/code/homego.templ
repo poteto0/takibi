@@ -23,9 +23,9 @@ templ Homego() {
 		<span class="k">return</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Text</span><span class="p">(</span><span class="s">&#34;Hello, &#34;</span> <span class="o">+</span> <span class="nx">name</span><span class="p">)</span>
 	<span class="p">&#125;</span><span class="p">)</span>
 
-	<span class="nx">app</span><span class="p">.</span><span class="nf">Fire</span><span class="p">(</span><span class="s">&#34;8000&#34;</span><span class="p">)</span>
-	<span class="err">#</span> <span class="nx">or</span> <span class="nx">cloudflare</span> <span class="nx">workers</span>
-	<span class="err">#</span> <span class="nx">app</span><span class="p">.</span><span class="nf">Fire</span><span class="p">(</span><span class="s">&#34;&#34;</span><span class="p">)</span>
+	<span class="nx">app</span><span class="p">.</span><span class="nf">Fire</span><span class="p">(</span><span class="s">&#34;:8000&#34;</span><span class="p">)</span>
+	<span class="c1">// or cloudflare workers</span>
+	<span class="c1">// app.Fire(&#34;&#34;)</span>
 <span class="p">&#125;</span></code></pre>
 		`,
 	)
