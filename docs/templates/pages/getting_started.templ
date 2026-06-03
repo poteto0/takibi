@@ -5,11 +5,11 @@ import "github.com/poteto0/takibi-docs/templates/code"
 
 templ GettingStarted() {
 	<h1>Getting Started</h1>
-	<p class={ styles.Lead() }>takibi is a lightweight, type-safe web framework for Go, inspired by Hono. It supports standard HTTP servers and Cloudflare Workers via WASM.</p>
+	<p class={ styles.Lead() }>takibi is a lightweight web framework for Go. Start with a standard Go HTTP server — no extra concepts required.</p>
 	<h2>Installation</h2>
 	<pre><span class={ styles.PreLabel() }>shell</span><code>go get github.com/poteto0/takibi</code></pre>
 	<h2>Basic Usage</h2>
-	<p>Define your bindings struct, create an app, add routes, and fire it up:</p>
+	<p>Create an app, register routes, and start the server:</p>
 	@code.Gettingstartedgo()
 	<h2>Run It</h2>
 	<pre>
@@ -17,7 +17,7 @@ templ GettingStarted() {
 		<code>
 			go run main.go
 			curl http://localhost:8000/hello
-			# Hello, World
+			# Hello, World!
 		</code>
 	</pre>
 	<h2>Next Steps</h2>

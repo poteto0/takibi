@@ -18,7 +18,7 @@ templ Layout(title string, active string, content templ.Component) {
 					<span class={ styles.LogoText() }>takibi</span>
 				</a>
 				<nav class={ styles.HeaderNav() }>
-					<a href="/getting-started" class={ "header-nav-link", templ.KV("active", active == "getting-started") }>Getting Started</a>
+					<a href="/getting-started/cloudflare-workers" class={ "header-nav-link", templ.KV("active", active == "getting-started") }>Getting Started</a>
 					<a href="/docs/routing" class={ "header-nav-link", templ.KV("active", active == "docs") }>Docs</a>
 					<a href="https://github.com/poteto0/takibi" target="_blank" rel="noopener" class="header-nav-link">GitHub</a>
 				</nav>
@@ -31,7 +31,7 @@ templ Layout(title string, active string, content templ.Component) {
 								Getting Started
 							</summary>
 							<a href="/getting-started/cloudflare-workers" class={ "sidebar-link", templ.KV("active", active == "cloudflare-workers") }>Cloudflare Workers</a>
-							<a href="/getting-started" class={ "sidebar-link", templ.KV("active", active == "getting-started") }>Getting Started</a>
+							<a href="/getting-started" class={ "sidebar-link", templ.KV("active", active == "getting-started") }>Native Go</a>
 						</details>
 						<details class="sidebar-details" open?={ active == "type-safe-context" || active == "routing" }>
 							<summary class={ styles.SidebarSectionTitle(), "sidebar-section-summary" }>Core Concepts</summary>
