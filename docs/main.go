@@ -30,6 +30,12 @@ func main() {
 		})
 	})
 
+	app.Get("/getting-started/cloudflare-workers", func(ctx MyContext) error {
+		return ctx.Render(&interfaces.RenderConfig{
+			Component: layouts.Layout("Cloudflare Workers", "cloudflare-workers", pages.CloudflareWorker()),
+		})
+	})
+
 	app.Get("/docs/type-safe-context", func(ctx MyContext) error {
 		return ctx.Render(&interfaces.RenderConfig{
 			Component: layouts.Layout("Type-Safe Context", "type-safe-context", pages.TypeSafeContext()),

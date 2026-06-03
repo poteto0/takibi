@@ -4,3 +4,5 @@ build/
 playground/
 docs-tool/assets
 *_templ.go
+node_modules/
+.wrangler/
