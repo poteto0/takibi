@@ -1,6 +1,7 @@
 package pages
 
 import "github.com/poteto0/takibi-docs/templates/styles"
+import "github.com/poteto0/takibi-docs/templates/code"
 
 templ CloudflareWorker() {
 	<h1>Cloudflare Workers</h1>
@@ -8,54 +9,53 @@ templ CloudflareWorker() {
 	<div class={ styles.Callout() }>
 		This documentation site is itself a takibi app deployed on Cloudflare Workers.
 	</div>
+	<h2>Required Dependencies in this page</h2>
+	<ul>
+		<li>
+			<a href="https://github.com/a-h/templ" target="_blank" rel="noopener" style="color:var(--primary);">
+				a-h/templ
+			</a>
+		</li>
+	</ul>
 	<h2>How It Works</h2>
 	<p>takibi uses Go build tags to select the right backend:</p>
 	<ul style="padding-left:20px;margin-top:8px;display:flex;flex-direction:column;gap:6px;">
-		<li>Native build → <code>app.Fire(addr)</code> starts a standard HTTP server</li>
-		<li>WASM build → <code>app.Fire(addr)</code> calls <code>workers.Serve()</code> from <a href="https://github.com/syumai/workers" target="_blank" rel="noopener" style="color:var(--primary);">syumai/workers</a></li>
+		<li>
+			Native build →
+			<code>
+				app.Fire(port)
+			</code>
+			starts a standard HTTP server
+		</li>
+		<li>
+			WASM build →
+			<code>
+				app.Fire("")
+			</code>
+			calls
+			<code>
+				workers.Serve()
+			</code>
+			from
+			<a href="https://github.com/syumai/workers" target="_blank" rel="noopener" style="color:var(--primary);">syumai/workers</a>
+		</li>
 	</ul>
 	<p style="margin-top:12px;">No code changes are needed between the two environments.</p>
-	<h2>Template</h2>
-	<p>The repository includes a ready-to-use template at <code>templates/cloudflare-worker/</code>. Copy it and run:</p>
+	<h2>Create Apps</h2>
 	<pre>
-		<span class={ styles.PreLabel() }>shell</span>
 		<code>
-			go get github.com/poteto0/takibi@latest
+			npm create cloudflare@latest -- --template github.com/poteto0/takibi/_templates/cloudflare-worker
+		</code>
+	</pre>
+	<h3>Initialize Project</h3>
+	<pre>
+		<code>
+			cd my-app
+			go mod init
 			go mod tidy
 		</code>
 	</pre>
-	<h2>Application Code</h2>
-	<pre>
-		<span class={ styles.PreLabel() }>go</span>
-		<code>
-			package main
-			import (
-			&#34;github.com/poteto0/takibi&#34;
-			&#34;github.com/poteto0/takibi/interfaces&#34;
-			)
-			type Bindings struct &#123;&#125;
-			type MyContext = interfaces.IContext[Bindings]
-			func main() &#123;
-			app := takibi.New(&amp;Bindings&#123;&#125;)
-			app.Get(&#34;/&#34;, func(ctx MyContext) error &#123;
-			return ctx.Render(&amp;interfaces.RenderConfig&#123;Component: Index()&#125;)
-			&#125;)
-			{ "//" } address is ignored when built for WASM
-			app.Fire(&#34;&#34;)
-			&#125;
-		</code>
-	</pre>
-	<h2>Build</h2>
-	<p>The template includes a <code>build.sh</code> that handles templ generation, wasm asset generation, and compilation:</p>
-	<pre>
-		<span class={ styles.PreLabel() }>shell</span>
-		<code>
-			templ generate
-			go run github.com/syumai/workers/cmd/workers-assets-gen -mode=go
-			GOOS=js GOARCH=wasm go build -ldflags=&#34;-s -w&#34; -o ./build/app.wasm .
-		</code>
-	</pre>
-	<h2>Develop &amp; Deploy</h2>
+	<h3>Develop &amp; Deploy</h3>
 	<pre>
 		<span class={ styles.PreLabel() }>shell</span>
 		<code>
@@ -64,20 +64,11 @@ templ CloudflareWorker() {
 			pnpm run deploy  { "#" } deploy to Cloudflare
 		</code>
 	</pre>
-	<h2>Workers Bindings</h2>
+	<h2>Application Code</h2>
+	@code.Cloudflareworkergo()
+	<h2>Workers Bindings Like Hono</h2>
 	<p>Add Cloudflare environment bindings (KV, secrets, etc.) to your <code>Bindings</code> struct for type-safe access:</p>
-	<pre>
-		<span class={ styles.PreLabel() }>go</span>
-		<code>
-			type Bindings struct &#123;
-			MyKV   workers.KVNamespace
-			Secret string
-			&#125;
-			app.Get(&#34;/secret&#34;, func(ctx MyContext) error &#123;
-			return ctx.Text(ctx.Env().Secret) { "//" } 100% type-safe
-			&#125;)
-		</code>
-	</pre>
+	@code.Cloudflareworkerbindingsgo()
 	<p>Declare the same bindings in <code>wrangler.jsonc</code>:</p>
 	<pre>
 		<span class={ styles.PreLabel() }>jsonc</span>

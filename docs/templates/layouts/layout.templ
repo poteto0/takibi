@@ -27,9 +27,11 @@ templ Layout(title string, active string, content templ.Component) {
 				if active != "home" {
 					<nav class={ styles.Sidebar(), "sidebar-scroll" }>
 						<details class="sidebar-details" open?={ active == "getting-started" || active == "cloudflare-workers" }>
-							<summary class={ styles.SidebarSectionTitle(), "sidebar-section-summary" }>Introduction</summary>
-							<a href="/getting-started" class={ "sidebar-link", templ.KV("active", active == "getting-started") }>Getting Started</a>
+							<summary class={ styles.SidebarSectionTitle(), "sidebar-section-summary" }>
+								Getting Started
+							</summary>
 							<a href="/getting-started/cloudflare-workers" class={ "sidebar-link", templ.KV("active", active == "cloudflare-workers") }>Cloudflare Workers</a>
+							<a href="/getting-started" class={ "sidebar-link", templ.KV("active", active == "getting-started") }>Getting Started</a>
 						</details>
 						<details class="sidebar-details" open?={ active == "type-safe-context" || active == "routing" }>
 							<summary class={ styles.SidebarSectionTitle(), "sidebar-section-summary" }>Core Concepts</summary>
