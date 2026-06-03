@@ -1,0 +1,11 @@
+package code
+
+templ Cloudflareworkerdevsh() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><span style="position:absolute;top:10px;right:14px;font-size:11px;color:#475569;font-family:sans-serif;text-transform:uppercase;letter-spacing:0.05em;">shell</span><code>pnpm install
+pnpm run dev     <span class="c1"># local dev via wrangler</span>
+pnpm run deploy  <span class="c1"># deploy to Cloudflare</span></code></pre>
+		`,
+	)
+}

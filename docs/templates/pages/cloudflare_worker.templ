@@ -42,39 +42,16 @@ templ CloudflareWorker() {
 	</ul>
 	<p style="margin-top:12px;">No code changes are needed between the two environments.</p>
 	<h2>Create Apps</h2>
-	<pre>
-		<code>
-			npm create cloudflare@latest -- --template github.com/poteto0/takibi/_templates/cloudflare-worker
-		</code>
-	</pre>
+	@code.Cloudflareworkercreateappssh()
 	<h3>Initialize Project</h3>
-	<pre>
-		<code>
-			cd my-app
-			go mod init
-			go mod tidy
-		</code>
-	</pre>
+	@code.Cloudflareworkerinitsh()
 	<h3>Develop &amp; Deploy</h3>
-	<pre>
-		<span class={ styles.PreLabel() }>shell</span>
-		<code>
-			pnpm install
-			pnpm run dev     { "#" } local dev via wrangler
-			pnpm run deploy  { "#" } deploy to Cloudflare
-		</code>
-	</pre>
+	@code.Cloudflareworkerdevsh()
 	<h2>Application Code</h2>
 	@code.Cloudflareworkergo()
 	<h2>Workers Bindings Like Hono</h2>
 	<p>Add Cloudflare environment bindings (KV, secrets, etc.) to your <code>Bindings</code> struct for type-safe access:</p>
 	@code.Cloudflareworkerbindingsgo()
 	<p>Declare the same bindings in <code>wrangler.jsonc</code>:</p>
-	<pre>
-		<span class={ styles.PreLabel() }>jsonc</span>
-		<code>
-			&#34;kv_namespaces&#34;: [&#123; &#34;binding&#34;: &#34;MyKV&#34;, &#34;id&#34;: &#34;&lt;KV_NAMESPACE_ID&gt;&#34; &#125;],
-			&#34;vars&#34;: &#123; &#34;Secret&#34;: &#34;my-secret-value&#34; &#125;
-		</code>
-	</pre>
+	@code.Cloudflareworkerwranglerjsonc()
 }

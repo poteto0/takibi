@@ -16,6 +16,19 @@ import (
 
 var wsSpanRe = regexp.MustCompile(`<span class="w">([^<]*)</span>`)
 
+const labelStyle = `position:absolute;top:10px;right:14px;font-size:11px;color:#475569;font-family:sans-serif;text-transform:uppercase;letter-spacing:0.05em;`
+
+func detectLang(baseName string) (lexerName, label string) {
+	switch {
+	case strings.HasSuffix(baseName, "sh"):
+		return "bash", "shell"
+	case strings.HasSuffix(baseName, "jsonc"):
+		return "json", "jsonc"
+	default:
+		return "go", ""
+	}
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("使用方法: go run main.go <入力ファイルパス> [出力ファイルパス]")
@@ -49,7 +62,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	lexer := lexers.Get("go")
+	baseName := strings.TrimSuffix(filepath.Base(inputFile), filepath.Ext(inputFile))
+	lexerName, label := detectLang(baseName)
+
+	lexer := lexers.Get(lexerName)
 	if lexer == nil {
 		lexer = lexers.Fallback
 	}
@@ -88,15 +104,21 @@ func main() {
 	htmlStr = strings.TrimRight(htmlStr, "\n")
 
 	packageName := filepath.Base(filepath.Dir(outputFile))
-	baseName := strings.TrimSuffix(filepath.Base(outputFile), filepath.Ext(outputFile))
-	funcName := strings.ToUpper(baseName[:1]) + baseName[1:]
+	outBase := strings.TrimSuffix(filepath.Base(outputFile), filepath.Ext(outputFile))
+	funcName := strings.ToUpper(outBase[:1]) + outBase[1:]
 
-	finalContent := fmt.Sprintf(
-		"package %s\n\ntempl %s() {\n\t@templ.Raw(\n\t\t`\n\t\t\t<pre class=\"chroma\"><code>%s</code></pre>\n\t\t`,\n\t)\n}\n",
-		packageName,
-		funcName,
-		htmlStr,
-	)
+	var finalContent string
+	if label != "" {
+		finalContent = fmt.Sprintf(
+			"package %s\n\ntempl %s() {\n\t@templ.Raw(\n\t\t`\n\t\t\t<pre class=\"chroma\"><span style=\"%s\">%s</span><code>%s</code></pre>\n\t\t`,\n\t)\n}\n",
+			packageName, funcName, labelStyle, label, htmlStr,
+		)
+	} else {
+		finalContent = fmt.Sprintf(
+			"package %s\n\ntempl %s() {\n\t@templ.Raw(\n\t\t`\n\t\t\t<pre class=\"chroma\"><code>%s</code></pre>\n\t\t`,\n\t)\n}\n",
+			packageName, funcName, htmlStr,
+		)
+	}
 
 	err = os.MkdirAll(filepath.Dir(outputFile), os.ModePerm)
 	if err != nil {
