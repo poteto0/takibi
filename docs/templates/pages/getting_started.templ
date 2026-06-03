@@ -12,14 +12,7 @@ templ GettingStarted() {
 	<p>Create an app, register routes, and start the server:</p>
 	@code.Gettingstartedgo()
 	<h2>Run It</h2>
-	<pre>
-		<span class={ styles.PreLabel() }>shell</span>
-		<code>
-			go run main.go
-			curl http://localhost:8000/hello
-			# Hello, World!
-		</code>
-	</pre>
+	@code.Gettingstartedsh()
 	<h2>Next Steps</h2>
 	<p>Explore the core concepts and features:</p>
 	<ul style="list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:8px;">

@@ -1,0 +1,11 @@
+package code
+
+templ Cloudflareworkerinitsh() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><span style="position:absolute;top:10px;right:14px;font-size:11px;color:#475569;font-family:sans-serif;text-transform:uppercase;letter-spacing:0.05em;">shell</span><code><span class="nb">cd</span> my-app
+go mod init
+go mod tidy</code></pre>
+		`,
+	)
+}
