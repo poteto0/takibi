@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/poteto0/takibi/constants"
 	"github.com/poteto0/takibi/interfaces"
 )
 
@@ -37,7 +38,9 @@ func QueryBy[T any](c RequestGetter, key string) (T, error) {
 func convert[T any](s string) (T, error) {
 	var result T
 	if s == "" {
-		return result, nil // Return zero value if empty? Or error? Usually zero value is safer but maybe ambiguous.
+		// A missing/empty param must not silently become a zero value:
+		// callers checking only err would otherwise treat e.g. id=0 as valid.
+		return result, constants.ErrParamMissing
 	}
 
 	switch any(result).(type) {

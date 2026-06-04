@@ -14,6 +14,10 @@ var (
 	ErrInvalidPath = errors.New(
 		"invalid path",
 	)
+
+	ErrParamMissing = errors.New(
+		"parameter is missing",
+	)
 )
 
 var (

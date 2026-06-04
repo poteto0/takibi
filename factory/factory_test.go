@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/poteto0/takibi"
+	"github.com/poteto0/takibi/constants"
 	"github.com/poteto0/takibi/interfaces"
 	"github.com/stretchr/testify/assert"
 )
@@ -42,13 +43,20 @@ func TestCreateMiddleware(t *testing.T) {
 func TestParamBy(t *testing.T) {
 	type Bindings struct{}
 
-	t.Run("0 value", func(t *testing.T) {
+	t.Run("missing param returns ErrParamMissing instead of zero value", func(t *testing.T) {
 		ctx := takibi.NewContext[Bindings](nil, nil, nil, nil)
 		ctx.SetParam(map[string]string{"id": ""})
 
 		val, err := ParamBy[int](ctx, "id")
-		assert.NoError(t, err)
-		assert.Equal(t, 0, val) // zero value for int
+		assert.ErrorIs(t, err, constants.ErrParamMissing)
+		assert.Equal(t, 0, val) // still zero value, but caller can detect the miss via err
+	})
+
+	t.Run("absent param key returns ErrParamMissing", func(t *testing.T) {
+		ctx := takibi.NewContext[Bindings](nil, nil, nil, nil)
+
+		_, err := ParamBy[string](ctx, "does-not-exist")
+		assert.ErrorIs(t, err, constants.ErrParamMissing)
 	})
 
 	t.Run("int", func(t *testing.T) {
@@ -168,5 +176,13 @@ func TestQueryBy(t *testing.T) {
 		val, err := QueryBy[bool](ctx, "flag")
 		assert.NoError(t, err)
 		assert.True(t, val)
+	})
+
+	t.Run("missing query returns ErrParamMissing", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		ctx := takibi.NewContext[Bindings](nil, req, nil, nil)
+
+		_, err := QueryBy[int](ctx, "page")
+		assert.ErrorIs(t, err, constants.ErrParamMissing)
 	})
 }
