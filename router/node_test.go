@@ -90,7 +90,7 @@ func TestNode_AddAndFind(t *testing.T) {
 			name:              "root",
 			path:              "/",
 			isNode:            true,
-			expectedPathParam: map[string]string{},
+			expectedPathParam: nil,
 		},
 		{
 			name:   "foo",
@@ -112,7 +112,7 @@ func TestNode_AddAndFind(t *testing.T) {
 			name:              "not found",
 			path:              "/not-found",
 			isNode:            false,
-			expectedPathParam: map[string]string{},
+			expectedPathParam: nil,
 		},
 	}
 
@@ -126,6 +126,36 @@ func TestNode_AddAndFind(t *testing.T) {
 			assert.Equal(t, test.isNode, n != nil)
 		})
 	}
+}
+
+func TestNode_Find_LazyAllocation(t *testing.T) {
+	t.Run("matched static route returns nil middlewares and pathParams", func(t *testing.T) {
+		n := NewNode[any]()
+		err := n.AddMiddleware("/", func(c interfaces.IContext[any], next interfaces.HandlerFunc[any]) error { return nil })
+		assert.Nil(t, err)
+		err = n.Add("/users", func(ctx interfaces.IContext[any]) error { return nil })
+		assert.Nil(t, err)
+
+		// The hot path: a matched route uses the pre-composed handler, so
+		// Find allocates neither the middlewares slice nor the pathParams map.
+		found, middlewares, pathParams := n.Find("/users")
+		assert.NotNil(t, found)
+		assert.NotNil(t, found.ComposedHandler())
+		assert.Nil(t, middlewares)
+		assert.Nil(t, pathParams)
+	})
+
+	t.Run("not found returns prefix middlewares for the 404 handler", func(t *testing.T) {
+		n := NewNode[any]()
+		err := n.AddMiddleware("/", func(c interfaces.IContext[any], next interfaces.HandlerFunc[any]) error { return nil })
+		assert.Nil(t, err)
+		err = n.AddMiddleware("/api", func(c interfaces.IContext[any], next interfaces.HandlerFunc[any]) error { return nil })
+		assert.Nil(t, err)
+
+		found, middlewares, _ := n.Find("/api/missing")
+		assert.Nil(t, found)
+		assert.Len(t, middlewares, 2) // root + api
+	})
 }
 
 func TestNode_Middlewares(t *testing.T) {

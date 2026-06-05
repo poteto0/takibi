@@ -5,8 +5,13 @@ type IRouter[Bindings any] interface {
 	LinearizeTree() map[string][]NodeUnit[Bindings]
 
 	/*
-		find router by method &
-		find node by path
+		find router by method & find node by path.
+
+		On a matched route, middlewares is nil — use INode.ComposedHandler(),
+		which already has the middlewares composed in. middlewares is only
+		populated on the not-found / handler-less paths (the matched-prefix
+		middlewares for a fallback handler). pathParams is nil when the path
+		has no parameters.
 	*/
 	Find(method, path string) (INode[Bindings], []MiddlewareFunc[Bindings], map[string]string)
 
