@@ -119,6 +119,35 @@ func Test_Request_Unmarshall(t *testing.T) {
 		// Assert
 		assert.NoError(t, err)
 	})
+
+	t.Run("content-type with charset parameter is accepted", func(t *testing.T) {
+		// Arrange
+		req := httptest.NewRequest("POST", "http://example.com", bytes.NewBufferString(jsonBody))
+		req.Header.Set("Content-Type", "application/json; charset=utf-8")
+		r := thttp.NewRequest(req, nil)
+
+		// Act
+		err := r.Unmarshall(payload)
+
+		// Assert
+		assert.NoError(t, err)
+	})
+
+	t.Run("chunked body without content-length is unmarshallable", func(t *testing.T) {
+		// Arrange
+		req := httptest.NewRequest("POST", "http://example.com", bytes.NewBufferString(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		// chunked transfer encoding: ContentLength is unknown (-1)
+		req.ContentLength = -1
+
+		r := thttp.NewRequest(req, nil)
+
+		// Act
+		err := r.Unmarshall(payload)
+
+		// Assert
+		assert.NoError(t, err)
+	})
 }
 
 func Test_Request_Unmarshall_BodySizeLimit(t *testing.T) {

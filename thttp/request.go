@@ -2,7 +2,10 @@ package thttp
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
+	"mime"
 	"net/http"
 
 	"github.com/poteto0/takibi/constants"
@@ -48,16 +51,20 @@ func (r *Request) Json() (map[string]any, error) {
 }
 
 func (r *Request) Unmarshall(dest any) error {
-	if r.request.ContentLength == 0 {
-		return fmt.Errorf("request body is empty")
-	}
-
-	if r.ContentType() != "application/json" {
-		return fmt.Errorf("unsupported content type: %s", r.ContentType())
+	contentType := r.ContentType()
+	mediaType, _, err := mime.ParseMediaType(contentType)
+	if err != nil || mediaType != "application/json" {
+		return fmt.Errorf("unsupported content type: %s", contentType)
 	}
 
 	limited := http.MaxBytesReader(nil, r.request.Body, r.maxBodyBytes)
-	return json.NewDecoder(limited).Decode(dest)
+	if err := json.NewDecoder(limited).Decode(dest); err != nil {
+		if errors.Is(err, io.EOF) {
+			return fmt.Errorf("request body is empty")
+		}
+		return err
+	}
+	return nil
 }
 
 func (r *Request) Queries() map[string][]string {
