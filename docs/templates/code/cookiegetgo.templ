@@ -1,0 +1,18 @@
+package code
+
+templ Cookiegetgo() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><code><span class="nx">app</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s">&#34;/me&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">MyContext</span><span class="p">)</span> <span class="kt">error</span> <span class="p">&#123;</span>
+	<span class="nx">c</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">cookie</span><span class="p">.</span><span class="nf">GetCookie</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;session&#34;</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span>
+	<span class="k">if</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">&#123;</span>
+		<span class="k">return</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Status</span><span class="p">(</span><span class="mi">401</span><span class="p">)</span><span class="p">.</span><span class="nf">Text</span><span class="p">(</span><span class="s">&#34;no session&#34;</span><span class="p">)</span>
+	<span class="p">&#125;</span>
+	<span class="k">return</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Text</span><span class="p">(</span><span class="s">&#34;session: &#34;</span> <span class="o">+</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Value</span><span class="p">)</span>
+<span class="p">&#125;</span><span class="p">)</span>
+
+<span class="c1">// read all cookies at once</span>
+<span class="nx">cookies</span> <span class="o">:=</span> <span class="nx">cookie</span><span class="p">.</span><span class="nf">GetCookies</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span></code></pre>
+		`,
+	)
+}

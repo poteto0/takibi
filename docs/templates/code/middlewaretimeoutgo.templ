@@ -1,0 +1,20 @@
+package code
+
+templ Middlewaretimeoutgo() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><code><span class="kn">import</span> <span class="p">(</span>
+	<span class="s">&#34;time&#34;</span>
+	<span class="s">&#34;github.com/poteto0/takibi/middlewares&#34;</span>
+<span class="p">)</span>
+
+<span class="c1">// All routes under /api time out after 5 seconds</span>
+<span class="nx">app</span><span class="p">.</span><span class="nf">Use</span><span class="p">(</span><span class="s">&#34;/api&#34;</span><span class="p">,</span> <span class="nx">middlewares</span><span class="p">.</span><span class="nx">Timeout</span><span class="p">[</span><span class="nx">Bindings</span><span class="p">]</span><span class="p">(</span><span class="mi">5</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">)</span><span class="p">)</span>
+
+<span class="nx">app</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s">&#34;/api/slow&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">MyContext</span><span class="p">)</span> <span class="kt">error</span> <span class="p">&#123;</span>
+	<span class="nx">time</span><span class="p">.</span><span class="nf">Sleep</span><span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">)</span> <span class="c1">// returns ErrRequestTimeout</span>
+	<span class="k">return</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Text</span><span class="p">(</span><span class="s">&#34;done&#34;</span><span class="p">)</span>
+<span class="p">&#125;</span><span class="p">)</span></code></pre>
+		`,
+	)
+}

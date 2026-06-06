@@ -1,0 +1,17 @@
+package code
+
+templ Factoryparamgo() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><code><span class="kn">import</span> <span class="s">&#34;github.com/poteto0/takibi/factory&#34;</span>
+
+<span class="nx">app</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s">&#34;/users/:id&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">MyContext</span><span class="p">)</span> <span class="kt">error</span> <span class="p">&#123;</span>
+	<span class="nx">id</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">factory</span><span class="p">.</span><span class="nx">ParamBy</span><span class="p">[</span><span class="kt">int</span><span class="p">]</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;id&#34;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">&#123;</span>
+		<span class="k">return</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Status</span><span class="p">(</span><span class="mi">400</span><span class="p">)</span><span class="p">.</span><span class="nf">Text</span><span class="p">(</span><span class="s">&#34;invalid id&#34;</span><span class="p">)</span>
+	<span class="p">&#125;</span>
+	<span class="k">return</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Json</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">int</span><span class="p">&#123;</span><span class="s">&#34;id&#34;</span><span class="p">:</span> <span class="nx">id</span><span class="p">&#125;</span><span class="p">)</span>
+<span class="p">&#125;</span><span class="p">)</span></code></pre>
+		`,
+	)
+}
