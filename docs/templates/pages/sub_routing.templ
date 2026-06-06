@@ -1,0 +1,29 @@
+package pages
+
+import "github.com/poteto0/takibi-docs/templates/styles"
+import "github.com/poteto0/takibi-docs/templates/code"
+
+templ SubRouting() {
+	<h1>Sub-Routing</h1>
+	<p class={ styles.Lead() }><code>app.Route</code> mounts a child app under a base path. Routes registered on the child app are prefixed and merged into the parent router, including any middleware attached to those routes.</p>
+	<h2>Mounting a Sub-App</h2>
+	@code.Subroutego()
+	<div class={ styles.Callout() }>
+		Middleware registered on the child app's routes is preserved when mounted. Middleware registered on the parent (via <code>app.Use</code>) applies to all merged routes.
+	</div>
+	<h2>All and On</h2>
+	<p><code>app.All</code> registers a handler for every HTTP method on a single path. <code>app.On</code> registers one handler across multiple methods and paths at once:</p>
+	<pre>
+		<span class={ styles.PreLabel() }>go</span>
+		<code>
+			// match any method
+			app.All(&#34;/ping&#34;, pingHandler)
+			// match selected methods across multiple paths
+			app.On(
+			[]string&#123;&#34;GET&#34;, &#34;POST&#34;&#125;,
+			[]string&#123;&#34;/items&#34;, &#34;/things&#34;&#125;,
+			handler,
+			)
+		</code>
+	</pre>
+}

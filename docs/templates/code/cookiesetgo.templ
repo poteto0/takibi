@@ -1,0 +1,15 @@
+package code
+
+templ Cookiesetgo() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><code><span class="kn">import</span> <span class="s">&#34;github.com/poteto0/takibi/cookie&#34;</span>
+
+<span class="nx">app</span><span class="p">.</span><span class="nf">Post</span><span class="p">(</span><span class="s">&#34;/login&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">MyContext</span><span class="p">)</span> <span class="kt">error</span> <span class="p">&#123;</span>
+	<span class="c1">// DefaultCookieOptions: Secure=true, HttpOnly=true, SameSite=Strict</span>
+	<span class="nx">cookie</span><span class="p">.</span><span class="nf">SetCookie</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;session&#34;</span><span class="p">,</span> <span class="s">&#34;abc123&#34;</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span>
+	<span class="k">return</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Status</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span><span class="p">.</span><span class="nf">Text</span><span class="p">(</span><span class="s">&#34;logged in&#34;</span><span class="p">)</span>
+<span class="p">&#125;</span><span class="p">)</span></code></pre>
+		`,
+	)
+}

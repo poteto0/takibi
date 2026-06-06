@@ -1,0 +1,23 @@
+package code
+
+templ Factorymiddlewarego() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><code><span class="kn">import</span> <span class="s">&#34;github.com/poteto0/takibi/factory&#34;</span>
+
+<span class="nx">auth</span> <span class="o">:=</span> <span class="nx">factory</span><span class="p">.</span><span class="nf">CreateMiddleware</span><span class="p">(</span>
+	<span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">MyContext</span><span class="p">,</span> <span class="nx">next</span> <span class="nx">interfaces</span><span class="p">.</span><span class="nx">HandlerFunc</span><span class="p">[</span><span class="nx">Bindings</span><span class="p">]</span><span class="p">)</span> <span class="nx">interfaces</span><span class="p">.</span><span class="nx">HandlerFunc</span><span class="p">[</span><span class="nx">Bindings</span><span class="p">]</span> <span class="p">&#123;</span>
+		<span class="k">return</span> <span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">MyContext</span><span class="p">)</span> <span class="kt">error</span> <span class="p">&#123;</span>
+			<span class="nx">token</span> <span class="o">:=</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Req</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nf">HeaderBy</span><span class="p">(</span><span class="s">&#34;Authorization&#34;</span><span class="p">)</span>
+			<span class="k">if</span> <span class="nx">token</span> <span class="o">==</span> <span class="s">&#34;&#34;</span> <span class="p">&#123;</span>
+				<span class="k">return</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Status</span><span class="p">(</span><span class="mi">401</span><span class="p">)</span><span class="p">.</span><span class="nf">Text</span><span class="p">(</span><span class="s">&#34;unauthorized&#34;</span><span class="p">)</span>
+			<span class="p">&#125;</span>
+			<span class="k">return</span> <span class="nf">next</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+		<span class="p">&#125;</span>
+	<span class="p">&#125;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="nx">app</span><span class="p">.</span><span class="nf">Use</span><span class="p">(</span><span class="s">&#34;/protected&#34;</span><span class="p">,</span> <span class="nx">auth</span><span class="p">)</span></code></pre>
+		`,
+	)
+}

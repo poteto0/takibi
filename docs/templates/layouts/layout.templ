@@ -26,23 +26,32 @@ templ Layout(title string, active string, content templ.Component) {
 			<div class={ styles.PageWrapper() }>
 				if active != "home" {
 					<nav class={ styles.Sidebar(), "sidebar-scroll" }>
-						<details class="sidebar-details" open?={ active == "getting-started" || active == "cloudflare-workers" }>
+						<details class="sidebar-details" open?={ inSection(active, "getting-started", "cloudflare-workers") }>
 							<summary class={ styles.SidebarSectionTitle(), "sidebar-section-summary" }>
 								Getting Started
 							</summary>
 							<a href="/getting-started/cloudflare-workers" class={ "sidebar-link", templ.KV("active", active == "cloudflare-workers") }>Cloudflare Workers</a>
 							<a href="/getting-started" class={ "sidebar-link", templ.KV("active", active == "getting-started") }>Native Go</a>
 						</details>
-						<details class="sidebar-details" open?={ active == "type-safe-context" || active == "routing" }>
+						<details class="sidebar-details" open?={ inSection(active, "type-safe-context", "routing", "sub-routing") }>
 							<summary class={ styles.SidebarSectionTitle(), "sidebar-section-summary" }>Core Concepts</summary>
 							<a href="/docs/type-safe-context" class={ "sidebar-link", templ.KV("active", active == "type-safe-context") }>Type-Safe Context</a>
 							<a href="/docs/routing" class={ "sidebar-link", templ.KV("active", active == "routing") }>Routing</a>
+							<a href="/docs/sub-routing" class={ "sidebar-link", templ.KV("active", active == "sub-routing") }>Sub-Routing</a>
 						</details>
-						<details class="sidebar-details" open?={ active == "redirect" || active == "error-handling" || active == "request-body" }>
+						<details class="sidebar-details" open?={ inSection(active, "middleware", "redirect", "error-handling", "request-body", "cookie") }>
 							<summary class={ styles.SidebarSectionTitle(), "sidebar-section-summary" }>Features</summary>
+							<a href="/docs/middleware" class={ "sidebar-link", templ.KV("active", active == "middleware") }>Middleware</a>
 							<a href="/docs/redirect" class={ "sidebar-link", templ.KV("active", active == "redirect") }>Redirect</a>
 							<a href="/docs/error-handling" class={ "sidebar-link", templ.KV("active", active == "error-handling") }>Error Handling</a>
 							<a href="/docs/request-body" class={ "sidebar-link", templ.KV("active", active == "request-body") }>Request Body</a>
+							<a href="/docs/cookie" class={ "sidebar-link", templ.KV("active", active == "cookie") }>Cookie</a>
+						</details>
+						<details class="sidebar-details" open?={ inSection(active, "factory", "testing", "blow") }>
+							<summary class={ styles.SidebarSectionTitle(), "sidebar-section-summary" }>Advanced</summary>
+							<a href="/docs/factory" class={ "sidebar-link", templ.KV("active", active == "factory") }>Factory Helpers</a>
+							<a href="/docs/testing" class={ "sidebar-link", templ.KV("active", active == "testing") }>Testing</a>
+							<a href="/docs/blow" class={ "sidebar-link", templ.KV("active", active == "blow") }>Background Tasks</a>
 						</details>
 					</nav>
 				}

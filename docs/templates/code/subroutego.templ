@@ -1,0 +1,23 @@
+package code
+
+templ Subroutego() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><code><span class="c1">// build a sub-app</span>
+<span class="nx">api</span> <span class="o">:=</span> <span class="nx">takibi</span><span class="p">.</span><span class="nx">New</span><span class="p">[</span><span class="nx">Bindings</span><span class="p">]</span><span class="p">(</span><span class="nx">bindings</span><span class="p">)</span>
+<span class="nx">api</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s">&#34;/users&#34;</span><span class="p">,</span> <span class="nx">listUsers</span><span class="p">)</span>
+<span class="nx">api</span><span class="p">.</span><span class="nf">Post</span><span class="p">(</span><span class="s">&#34;/users&#34;</span><span class="p">,</span> <span class="nx">createUser</span><span class="p">)</span>
+<span class="nx">api</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s">&#34;/users/:id&#34;</span><span class="p">,</span> <span class="nx">getUser</span><span class="p">)</span>
+
+<span class="c1">// mount it under /api/v1</span>
+<span class="nx">app</span> <span class="o">:=</span> <span class="nx">takibi</span><span class="p">.</span><span class="nx">New</span><span class="p">[</span><span class="nx">Bindings</span><span class="p">]</span><span class="p">(</span><span class="nx">bindings</span><span class="p">)</span>
+<span class="nx">app</span><span class="p">.</span><span class="nf">Route</span><span class="p">(</span><span class="s">&#34;/api/v1&#34;</span><span class="p">,</span> <span class="nx">api</span><span class="p">)</span>
+
+<span class="c1">// registered routes:</span>
+<span class="c1">//   GET  /api/v1/users</span>
+<span class="c1">//   POST /api/v1/users</span>
+<span class="c1">//   GET  /api/v1/users/:id</span>
+<span class="nx">app</span><span class="p">.</span><span class="nf">Fire</span><span class="p">(</span><span class="s">&#34;:8000&#34;</span><span class="p">)</span></code></pre>
+		`,
+	)
+}

@@ -1,0 +1,59 @@
+package pages
+
+import "github.com/poteto0/takibi-docs/templates/styles"
+import "github.com/poteto0/takibi-docs/templates/code"
+
+templ Blow() {
+	<h1>Background Tasks</h1>
+	<p class={ styles.Lead() }><code>app.Blow</code> registers tasks that run outside the request lifecycle. Tasks can trigger on server start/stop, or run on a cron schedule.</p>
+	<div class={ styles.Callout(), styles.CalloutWarning() }>
+		Blow tasks are not supported on WASM / Cloudflare Workers. Use them only with the native Go server.
+	</div>
+	<h2>Trigger Tasks</h2>
+	<p>Set <code>BlowActionTag</code> to <code>&#34;trigger&#34;</code> and <code>BlowActionTrigger</code> to <code>&#34;start&#34;</code> or <code>&#34;stop&#34;</code> to run code when the server boots or shuts down:</p>
+	@code.Blowtriggergo()
+	<h2>Scheduled Tasks</h2>
+	<p>Set <code>BlowActionTag</code> to <code>&#34;schedule&#34;</code> and provide a cron expression in <code>BlowActionSchedule</code>. The scheduler uses <a href="https://pkg.go.dev/github.com/robfig/cron/v3" target="_blank" rel="noopener">robfig/cron</a> with optional seconds support:</p>
+	@code.Blowschedulego()
+	<h2>BlowTask Reference</h2>
+	<table>
+		<thead>
+			<tr>
+				<th>Field</th>
+				<th>Values</th>
+				<th>Description</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><code>BlowActionTag</code></td>
+				<td><code>&#34;trigger&#34;</code>, <code>&#34;schedule&#34;</code></td>
+				<td>Task type</td>
+			</tr>
+			<tr>
+				<td><code>BlowActionTrigger</code></td>
+				<td><code>&#34;start&#34;</code>, <code>&#34;stop&#34;</code></td>
+				<td>When to run (trigger tasks only)</td>
+			</tr>
+			<tr>
+				<td><code>BlowActionSchedule</code></td>
+				<td>cron expression</td>
+				<td>Schedule (schedule tasks only)</td>
+			</tr>
+			<tr>
+				<td><code>BlowAction</code></td>
+				<td><code>func(IContext[B]) error</code></td>
+				<td>The task function</td>
+			</tr>
+		</tbody>
+	</table>
+	<p>Handle task errors with <code>app.OnBlowError</code>:</p>
+	<pre>
+		<span class={ styles.PreLabel() }>go</span>
+		<code>
+			app.OnBlowError(func(ctx MyContext, err error) &#123;
+			log.Printf(&#34;background task failed: %v&#34;, err)
+			&#125;)
+		</code>
+	</pre>
+}

@@ -1,0 +1,21 @@
+package pages
+
+import "github.com/poteto0/takibi-docs/templates/styles"
+import "github.com/poteto0/takibi-docs/templates/code"
+
+templ Middleware() {
+	<h1>Middleware</h1>
+	<p class={ styles.Lead() }>Middleware wraps handler execution, enabling cross-cutting concerns like CORS, authentication, and timeouts. Use <code>app.Use(path, middleware...)</code> to apply middleware to all routes under a path.</p>
+	<h2>CORS</h2>
+	<p>The built-in CORS middleware handles preflight requests and sets the appropriate response headers. With no arguments it allows all origins (<code>*</code>):</p>
+	@code.Middlewarecorsgo()
+	<div class={ styles.Callout() }>
+		The default config allows <code>GET</code>, <code>POST</code>, <code>HEAD</code>, <code>PUT</code>, <code>DELETE</code>, and <code>PATCH</code>, with a 24-hour preflight cache.
+	</div>
+	<h2>Timeout</h2>
+	<p>The timeout middleware cancels slow handlers and returns <code>constants.ErrRequestTimeout</code> when the deadline is exceeded:</p>
+	@code.Middlewaretimeoutgo()
+	<h2>Custom Middleware</h2>
+	<p>Any function with the signature <code>func(ctx, next) error</code> is a valid middleware. Call <code>next(ctx)</code> to continue the chain, or return early to short-circuit:</p>
+	@code.Middlewarecustomgo()
+}

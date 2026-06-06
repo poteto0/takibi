@@ -1,0 +1,21 @@
+package pages
+
+import "github.com/poteto0/takibi-docs/templates/styles"
+import "github.com/poteto0/takibi-docs/templates/code"
+
+templ Factory() {
+	<h1>Factory Helpers</h1>
+	<p class={ styles.Lead() }>The <code>factory</code> package provides generic helpers for converting path parameters and query strings to typed values, and for composing middleware with a handler-returning signature.</p>
+	<h2>Typed Path Parameters</h2>
+	<p><code>factory.ParamBy[T]</code> reads a path parameter and converts it to the requested type. Supported types: <code>int</code>, <code>int64</code>, <code>float64</code>, <code>bool</code>, <code>string</code>.</p>
+	@code.Factoryparamgo()
+	<h2>Typed Query Parameters</h2>
+	<p><code>factory.QueryBy[T]</code> reads the first value of a query key and converts it to the requested type:</p>
+	@code.Factoryquerygo()
+	<h2>CreateMiddleware</h2>
+	<p><code>factory.CreateMiddleware</code> wraps a function that returns a handler, adapting it to the standard <code>MiddlewareFunc</code> signature. This is useful when you need to inject transformed values into the next handler:</p>
+	@code.Factorymiddlewarego()
+	<div class={ styles.Callout() }>
+		<code>ParamBy</code> and <code>QueryBy</code> return a zero value (not an error) when the key is missing. Check the error only for conversion failures.
+	</div>
+}
