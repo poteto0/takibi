@@ -6,11 +6,13 @@ on:
       - main
     paths:
       - 'docs/**'
+      - '.github/workflows/deploy-docs.yml'
   pull_request:
     branches:
       - main
     paths:
       - 'docs/**'
+      - '.github/workflows/deploy-docs.yml'
 
 env:
   GO_VERSION: "1.26.1"
@@ -31,9 +33,7 @@ jobs:
           cache-dependency-path: docs/go.sum
 
       - name: Setup templ
-        uses: a-h/setup-templ@v0
-        with:
-          version: ${{ env.TEMPL_VERSION }}
+        run: go install github.com/a-h/templ/cmd/templ@${{ env.TEMPL_VERSION }}
 
       - name: Setup just
         uses: extractions/setup-just@v4
@@ -73,9 +73,7 @@ jobs:
           cache-dependency-path: docs/go.sum
 
       - name: Setup templ
-        uses: a-h/setup-templ@v0
-        with:
-          version: ${{ env.TEMPL_VERSION }}
+        run: go install github.com/a-h/templ/cmd/templ@${{ env.TEMPL_VERSION }}
 
       - name: Setup just
         uses: extractions/setup-just@v4
