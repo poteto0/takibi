@@ -56,6 +56,34 @@ func Test_Request_ContentType(t *testing.T) {
 	assert.Equal(t, "application/json", r.ContentType())
 }
 
+func Test_Request_MediaType(t *testing.T) {
+	tests := []struct {
+		name        string
+		contentType string
+		want        string
+	}{
+		{"plain media type", "application/json", "application/json"},
+		{"media type with charset parameter", "application/json; charset=utf-8", "application/json"},
+		{"uppercase is normalized to lowercase", "Application/JSON", "application/json"},
+		{"empty header", "", ""},
+		{"unparsable header", "application/", ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Arrange
+			req := httptest.NewRequest("POST", "http://example.com", nil)
+			if tt.contentType != "" {
+				req.Header.Set("Content-Type", tt.contentType)
+			}
+			r := thttp.NewRequest(req, nil)
+
+			// Act & Assert
+			assert.Equal(t, tt.want, r.MediaType())
+		})
+	}
+}
+
 func Test_Request_Json(t *testing.T) {
 	// Arrange
 	jsonBody := `{"message": "hello"}`

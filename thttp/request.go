@@ -44,6 +44,18 @@ func (r *Request) ContentType() string {
 	return r.request.Header.Get("Content-Type")
 }
 
+// MediaType returns the media type of the Content-Type header with any
+// parameters (such as charset) stripped and the value normalized to
+// lowercase. It returns an empty string when the header is missing or
+// cannot be parsed.
+func (r *Request) MediaType() string {
+	mediaType, _, err := mime.ParseMediaType(r.ContentType())
+	if err != nil {
+		return ""
+	}
+	return mediaType
+}
+
 func (r *Request) Json() (map[string]any, error) {
 	var data map[string]any
 	err := r.Unmarshall(&data)
@@ -51,10 +63,8 @@ func (r *Request) Json() (map[string]any, error) {
 }
 
 func (r *Request) Unmarshall(dest any) error {
-	contentType := r.ContentType()
-	mediaType, _, err := mime.ParseMediaType(contentType)
-	if err != nil || mediaType != "application/json" {
-		return fmt.Errorf("unsupported content type: %s", contentType)
+	if r.MediaType() != "application/json" {
+		return fmt.Errorf("unsupported content type: %s", r.ContentType())
 	}
 
 	limited := http.MaxBytesReader(nil, r.request.Body, r.maxBodyBytes)
