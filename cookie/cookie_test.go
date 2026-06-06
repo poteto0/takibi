@@ -290,4 +290,35 @@ func TestSignedCookie(t *testing.T) {
 		assert.False(t, ok)
 		assert.Nil(t, c)
 	})
+
+	t.Run("fail when secret is too short for SetSignedCookie", func(t *testing.T) {
+		// Arrange
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest("GET", "/", nil)
+		ctx := takibi.NewContext[any](w, r, nil, nil)
+		secret := "short"
+
+		// Act
+		ok := cookie.SetSignedCookie[any](ctx, "name", "takibi", secret, nil)
+
+		// Assert
+		assert.False(t, ok)
+		assert.Empty(t, w.Result().Cookies())
+	})
+
+	t.Run("fail when secret is too short for GetSignedCookie", func(t *testing.T) {
+		// Arrange
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest("GET", "/", nil)
+		ctx := takibi.NewContext[any](w, r, nil, nil)
+		secret := "short"
+		r.AddCookie(&http.Cookie{Name: "name", Value: "somevalue"})
+
+		// Act
+		c, ok := cookie.GetSignedCookie[any](ctx, "name", secret, nil)
+
+		// Assert
+		assert.False(t, ok)
+		assert.Nil(t, c)
+	})
 }

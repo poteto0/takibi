@@ -103,6 +103,25 @@ app.Post("/upload", func(ctx MyContext) error {
 
 `Unmarshall` requires a JSON request body. The `Content-Type` is matched on its media type, so values carrying parameters such as `application/json; charset=utf-8` are accepted.
 
+## Signed Cookies
+
+`cookie.SetSignedCookie` and `cookie.GetSignedCookie` HMAC-sign cookie values using `gorilla/securecookie`. The `secret` must be **at least 32 bytes**; shorter secrets are rejected and the functions return `false`/`nil, false` immediately.
+
+```go
+import "github.com/poteto0/takibi/cookie"
+
+// secret must be >= 32 bytes
+secret := "my-32-byte-or-longer-secret-key!!"
+
+// set
+ok := cookie.SetSignedCookie[Bindings](ctx, "session", userID, secret, nil)
+
+// get (returns decoded value; false if missing, tampered, or wrong secret)
+c, ok := cookie.GetSignedCookie[Bindings](ctx, "session", secret, nil)
+```
+
+Use `constants.MinSignedCookieSecretLen` (32) as the documented minimum when generating secrets.
+
 ## Document
 
 docs link
