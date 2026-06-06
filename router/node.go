@@ -48,12 +48,10 @@ func Compose[Bindings any](
 	return handler
 }
 
-func (n *node[Bindings]) rebuildComposedHandlers() {
-	n.walkAndCompose(nil)
-}
-
-// walkAndCompose is the recursive DFS worker for rebuildComposedHandlers.
-// accumulated holds middlewares collected from ancestor nodes.
+// walkAndCompose recomposes the subtree rooted at n.
+// accumulated holds middlewares collected from ancestor nodes (excluding n).
+// Callers pass the ancestor middlewares so only the affected subtree is
+// rebuilt, instead of re-composing the whole tree on every registration.
 func (n *node[Bindings]) walkAndCompose(accumulated []interfaces.MiddlewareFunc[Bindings]) {
 	full := make([]interfaces.MiddlewareFunc[Bindings], len(accumulated)+len(n.middlewares))
 	copy(full, accumulated)
@@ -93,21 +91,15 @@ func (
 	// if path is just / or empty after trim, it's root
 	if path == "/" || path == "" {
 		currentNode.middlewares = append(currentNode.middlewares, middleware...)
-		n.rebuildComposedHandlers()
+		currentNode.walkAndCompose(nil)
 		return nil
 	}
 
 	rightPath := path[1:]
-	param := ""
+	var accumulated []interfaces.MiddlewareFunc[Bindings]
 
 	for {
-		id := strings.Index(rightPath, "/")
-		if id < 0 {
-			param = rightPath
-		} else {
-			param = rightPath[:id]
-			rightPath = rightPath[(id + 1):]
-		}
+		param, rest := nextSegment(rightPath)
 
 		if child := currentNode.children[param]; child == nil {
 			if hasPathParamPrefix(param) {
@@ -117,15 +109,17 @@ func (
 			currentNode.children[param] = NewNode[Bindings]().(*node[Bindings])
 		}
 
+		accumulated = append(accumulated, currentNode.middlewares...)
 		currentNode = currentNode.children[param].(*node[Bindings])
 
-		if id < 0 {
+		if rest == "" {
 			break
 		}
+		rightPath = rest
 	}
 
 	currentNode.middlewares = append(currentNode.middlewares, middleware...)
-	n.rebuildComposedHandlers()
+	currentNode.walkAndCompose(accumulated)
 	return nil
 }
 
@@ -143,20 +137,14 @@ func (
 			return constants.ErrHandlerAlreadyExists
 		}
 		currentNode.handler = handler
-		n.rebuildComposedHandlers()
+		currentNode.walkAndCompose(nil)
 		return nil
 	}
 
-	param := ""
+	var accumulated []interfaces.MiddlewareFunc[Bindings]
 
 	for {
-		id := strings.Index(rightPath, "/")
-		if id < 0 {
-			param = rightPath
-		} else {
-			param = rightPath[:id]
-			rightPath = rightPath[(id + 1):]
-		}
+		param, rest := nextSegment(rightPath)
 
 		if child := currentNode.children[param]; child == nil {
 			if hasPathParamPrefix(param) {
@@ -166,11 +154,13 @@ func (
 			currentNode.children[param] = NewNode[Bindings]().(*node[Bindings])
 		}
 
+		accumulated = append(accumulated, currentNode.middlewares...)
 		currentNode = currentNode.children[param].(*node[Bindings])
 
-		if id < 0 {
+		if rest == "" {
 			break
 		}
+		rightPath = rest
 	}
 
 	if currentNode.handler != nil {
@@ -178,7 +168,7 @@ func (
 	}
 
 	currentNode.handler = handler
-	n.rebuildComposedHandlers()
+	currentNode.walkAndCompose(accumulated)
 	return nil
 }
 
@@ -193,32 +183,16 @@ func (
 ) {
 	currentNode := n
 	rightPath := path[1:]
-	param := ""
-	pathParams := map[string]string{}
-	var middlewares []interfaces.MiddlewareFunc[Bindings]
+	// pathParams and middlewares are allocated lazily: a matched static route
+	// (the hot path) uses the node's pre-composed handler and needs neither.
+	var pathParams map[string]string
 
-	// Collect root middlewares
-	middlewares = append(middlewares, currentNode.middlewares...)
-
-	if rightPath == "" {
-		return currentNode, middlewares, pathParams
-	}
-
-	for {
-		id := strings.Index(rightPath, "/")
-		if id < 0 {
-			param = rightPath
-		} else {
-			param = rightPath[:id]
-			rightPath = rightPath[(id + 1):]
-		}
+	for rightPath != "" {
+		var param string
+		param, rightPath = nextSegment(rightPath)
 
 		if child := currentNode.children[param]; child != nil {
 			currentNode = child.(*node[Bindings])
-			middlewares = append(middlewares, currentNode.middlewares...)
-			if id < 0 {
-				break
-			}
 			continue
 		}
 
@@ -226,20 +200,59 @@ func (
 		if chParam := currentNode.childParamKey; chParam != "" {
 			if chNode := currentNode.children[chParam]; chNode != nil {
 				currentNode = chNode.(*node[Bindings])
-				middlewares = append(middlewares, currentNode.middlewares...)
+				if pathParams == nil {
+					pathParams = map[string]string{}
+				}
 				pathParams[chParam[1:]] = param
+				continue
 			}
-		} else {
-			// not found
-			return nil, middlewares, pathParams
 		}
 
-		if id < 0 {
-			break
-		}
+		// not found: collect prefix middlewares for the caller's 404 handler.
+		return nil, n.collectMiddlewares(path), pathParams
 	}
 
-	return currentNode, middlewares, pathParams
+	if currentNode.handler == nil {
+		// Matched an intermediate node without a handler. The caller treats
+		// this like not-found, so it still needs the prefix middlewares.
+		return currentNode, n.collectMiddlewares(path), pathParams
+	}
+
+	return currentNode, nil, pathParams
+}
+
+// collectMiddlewares walks path and accumulates the middlewares along the
+// matched prefix, outermost (root) first. It is only used on the cold
+// not-found / handler-less paths, so its allocations never hit matched routes.
+func (n *node[Bindings]) collectMiddlewares(
+	path string,
+) []interfaces.MiddlewareFunc[Bindings] {
+	currentNode := n
+	middlewares := append(
+		[]interfaces.MiddlewareFunc[Bindings]{},
+		currentNode.middlewares...,
+	)
+	rightPath := path[1:]
+
+	for rightPath != "" {
+		var param string
+		param, rightPath = nextSegment(rightPath)
+
+		next := currentNode.children[param]
+		if next == nil {
+			if chParam := currentNode.childParamKey; chParam != "" {
+				next = currentNode.children[chParam]
+			}
+		}
+		if next == nil {
+			break
+		}
+
+		currentNode = next.(*node[Bindings])
+		middlewares = append(middlewares, currentNode.middlewares...)
+	}
+
+	return middlewares
 }
 
 func (
