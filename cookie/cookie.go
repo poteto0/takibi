@@ -60,8 +60,20 @@ func GetCookie[T any](ctx interfaces.IContext[T], name string, opts *CookieOptio
 	return c, true
 }
 
+// newSignedCookieCodec returns a securecookie codec for the given secret, or
+// nil when the secret is shorter than MinSignedCookieSecretLen.
+func newSignedCookieCodec(secret string) *securecookie.SecureCookie {
+	if len(secret) < constants.MinSignedCookieSecretLen {
+		return nil
+	}
+	return securecookie.New([]byte(secret), nil)
+}
+
 func SetSignedCookie[T any](ctx interfaces.IContext[T], name, value, secret string, opts *CookieOptions) bool {
-	s := securecookie.New([]byte(secret), nil)
+	s := newSignedCookieCodec(secret)
+	if s == nil {
+		return false
+	}
 	encoded, err := s.Encode(name, value)
 	if err != nil {
 		return false
@@ -70,18 +82,20 @@ func SetSignedCookie[T any](ctx interfaces.IContext[T], name, value, secret stri
 }
 
 func GetSignedCookie[T any](ctx interfaces.IContext[T], name, secret string, opts *CookieOptions) (*http.Cookie, bool) {
+	s := newSignedCookieCodec(secret)
+	if s == nil {
+		return nil, false
+	}
 	c, ok := GetCookie(ctx, name, opts)
 	if !ok {
 		return nil, false
 	}
 
-	s := securecookie.New([]byte(secret), nil)
 	var value string
 	if err := s.Decode(name, c.Value, &value); err != nil {
 		return nil, false
 	}
 
-	// Return a copy with decoded value
 	decodedCookie := *c
 	decodedCookie.Value = value
 	return &decodedCookie, true
