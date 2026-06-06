@@ -101,6 +101,8 @@ app.Post("/upload", func(ctx MyContext) error {
 
 `takibi.New` uses the default limit (`constants.DefaultMaxBodyBytes` = 10 MiB).
 
+`Unmarshall` requires a JSON request body. The `Content-Type` is matched on its media type, so values carrying parameters such as `application/json; charset=utf-8` are accepted.
+
 ## Document
 
 docs link

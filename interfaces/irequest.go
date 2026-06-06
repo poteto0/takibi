@@ -9,6 +9,9 @@ type IRequest interface {
 	Header() http.Header
 	HeaderBy(key string) string
 	ContentType() string
+	// MediaType returns the Content-Type media type with parameters stripped
+	// and normalized to lowercase, or "" when missing/unparsable
+	MediaType() string
 
 	/* Parameters */
 	// get request body as map
