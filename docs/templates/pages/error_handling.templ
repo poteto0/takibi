@@ -1,0 +1,26 @@
+package pages
+
+import "github.com/poteto0/takibi-docs/templates/styles"
+import "github.com/poteto0/takibi-docs/templates/code"
+
+templ ErrorHandling() {
+	<h1>Error Handling</h1>
+	<p class={ styles.Lead() }>takibi never exposes raw error messages to clients. By default, unhandled errors produce a generic <code>500 Internal Server Error</code> response. Use <code>OnError</code> to customize behavior.</p>
+	<h2>Default Behavior</h2>
+	<p>Without a custom error handler, any error returned from a handler produces:</p>
+	<pre>
+		<span class={ styles.PreLabel() }>http</span>
+		<code>
+			HTTP/1.1 500 Internal Server Error
+			Content-Type: text/plain
+			Internal Server Error
+		</code>
+	</pre>
+	<p>Raw error details are never sent to the client &#8212; safe by default.</p>
+	<h2>Custom Error Handler</h2>
+	<p>Register a global error handler with <code>app.OnError</code>:</p>
+	@code.Errorhandlingcustomgo()
+	<h2>Typed Errors</h2>
+	<p>Use standard Go error types to distinguish error categories:</p>
+	@code.Errorhandlingtypedgo()
+}

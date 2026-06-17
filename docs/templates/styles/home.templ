@@ -1,0 +1,134 @@
+package styles
+
+css Hero() {
+	background: { templ.SafeCSSProperty("linear-gradient(135deg, #1a2332 0%, #243040 50%, #1a2332 100%)") };
+	min-height: { templ.SafeCSSProperty("calc(100vh - 60px)") };
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 60px 24px 80px;
+	text-align: center;
+	position: relative;
+	overflow: hidden;
+}
+
+css HeroLogo() {
+	margin-bottom: 24px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+css LogoTextHero() {
+	font-size: 60px;
+	font-weight: 800;
+	color: #fff;
+	letter-spacing: -2px;
+	display: block;
+	line-height: 1;
+	margin-top: 4px;
+}
+
+css Tagline() {
+	font-size: 16px;
+	color: { templ.SafeCSSProperty("var(--primary-light)") };
+	margin-bottom: 40px;
+	font-weight: 500;
+}
+
+css HeroActions() {
+	display: flex;
+	gap: 16px;
+	flex-wrap: wrap;
+	justify-content: center;
+	margin-bottom: 56px;
+}
+
+css Btn() {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 12px 28px;
+	border-radius: 8px;
+	font-size: 15px;
+	font-weight: 600;
+	text-decoration: none;
+	transition: { templ.SafeCSSProperty("all 0.2s") };
+}
+
+css BtnPrimary() {
+	background: { templ.SafeCSSProperty("var(--primary)") };
+	color: #fff;
+}
+
+css BtnOutline() {
+	border: 1.5px solid #4a6080;
+	color: #94a3b8;
+}
+
+css HeroCode() {
+	background: #0f1923;
+	border: 1px solid #2d3f52;
+	border-radius: 12px;
+	padding: 24px 28px;
+	text-align: left;
+	max-width: 580px;
+	width: 100%;
+	position: relative;
+}
+
+css Dots() {
+	display: flex;
+	gap: 6px;
+	margin-bottom: 14px;
+}
+
+css Dot() {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+}
+
+css DotRed() {
+	background: #ff5f56;
+}
+
+css DotYellow() {
+	background: #ffbd2e;
+}
+
+css DotGreen() {
+	background: #27c93f;
+}
+
+css Features() {
+	background: { templ.SafeCSSProperty("var(--dark-2)") };
+	padding: 80px 24px;
+}
+
+css FeaturesInner() {
+	max-width: 1000px;
+	margin: 0 auto;
+	text-align: center;
+}
+
+css FeatureGrid() {
+	display: grid;
+	grid-template-columns: { templ.SafeCSSProperty("repeat(auto-fit, minmax(220px, 1fr))") };
+	gap: 20px;
+	text-align: left;
+}
+
+css FeatureCard() {
+	background: #1a2332;
+	border: 1px solid #2d3f52;
+	border-radius: 12px;
+	padding: 24px;
+	transition: { templ.SafeCSSProperty("border-color 0.2s") };
+}
+
+css FeatureIcon() {
+	font-size: 24px;
+	margin-bottom: 12px;
+}

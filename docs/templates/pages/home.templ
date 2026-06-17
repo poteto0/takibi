@@ -1,0 +1,61 @@
+package pages
+
+import "github.com/poteto0/takibi-docs/templates/code"
+import "github.com/poteto0/takibi-docs/templates/assets"
+import "github.com/poteto0/takibi-docs/templates/styles"
+
+templ Home() {
+	<section class={ styles.Hero(), "hero" }>
+		<div class={ styles.HeroLogo(), "hero-logo" }>
+			@assets.Logo()
+			<span class={ styles.LogoTextHero() }>takibi</span>
+		</div>
+		<p class={ styles.Tagline() }>
+			Hono Inspired Type-Safe Context Web Framework for Go
+		</p>
+		<h1>
+			Create Web APIs with type-safe bindings &#8212; 
+			deployable on Cloudflare Workers with syumai/workers
+		</h1>
+		<div class={ styles.HeroActions() }>
+			<a href="/getting-started/cloudflare-workers" class={ styles.Btn(), styles.BtnPrimary(), "btn-primary" }>Get Started &#8594;</a>
+			<a href="https://github.com/poteto0/takibi" class={ styles.Btn(), styles.BtnOutline(), "btn-outline" } target="_blank" rel="noopener">GitHub</a>
+		</div>
+		<div class={ styles.HeroCode(), "hero-code" }>
+			<div class={ styles.Dots() }>
+				<div class={ styles.Dot(), styles.DotRed() }></div>
+				<div class={ styles.Dot(), styles.DotYellow() }></div>
+				<div class={ styles.Dot(), styles.DotGreen() }></div>
+			</div>
+			@code.Homego()
+		</div>
+	</section>
+	<section class={ styles.Features(), "features" }>
+		<div class={ styles.FeaturesInner() }>
+			<h2>Why takibi?</h2>
+			<p class="features-subtitle">Inspired by Hono, built for Go</p>
+			<div class={ styles.FeatureGrid() }>
+				<div class={ styles.FeatureCard(), "feature-card" }>
+					<div class={ styles.FeatureIcon() }>🛡️</div>
+					<h3>Type-Safe Context</h3>
+					<p>Bindings are fully generic &#8212; no type assertions, no runtime panics. Your IDE knows exactly what your context holds.</p>
+				</div>
+				<div class={ styles.FeatureCard(), "feature-card" }>
+					<div class={ styles.FeatureIcon() }>🔥</div>
+					<h3>Cloudflare Workers Ready</h3>
+					<p>Compile to WASM and deploy with syumai/workers. Zero cold starts, global edge distribution.</p>
+				</div>
+				<div class={ styles.FeatureCard(), "feature-card" }>
+					<div class={ styles.FeatureIcon() }>🔒</div>
+					<h3>Safe Redirects</h3>
+					<p>Built-in protection against open redirects. External hosts require an explicit allowlist.</p>
+				</div>
+				<div class={ styles.FeatureCard(), "feature-card" }>
+					<div class={ styles.FeatureIcon() }>⚡</div>
+					<h3>Hono-Like API</h3>
+					<p>Familiar routing and middleware patterns. If you know Hono, you already know takibi.</p>
+				</div>
+			</div>
+		</div>
+	</section>
+}

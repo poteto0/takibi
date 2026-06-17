@@ -1,0 +1,57 @@
+package pages
+
+import "github.com/poteto0/takibi-docs/templates/styles"
+import "github.com/poteto0/takibi-docs/templates/code"
+
+templ CloudflareWorker() {
+	<h1>Cloudflare Workers</h1>
+	<p class={ styles.Lead() }>takibi runs on Cloudflare Workers by compiling to WebAssembly. Your application code stays the same — the framework switches backends automatically at build time.</p>
+	<div class={ styles.Callout() }>
+		This documentation site is itself a takibi app deployed on Cloudflare Workers.
+	</div>
+	<h2>Required Dependencies in this page</h2>
+	<ul>
+		<li>
+			<a href="https://github.com/a-h/templ" target="_blank" rel="noopener" style="color:var(--primary);">
+				a-h/templ
+			</a>
+		</li>
+	</ul>
+	<h2>How It Works</h2>
+	<p>takibi uses Go build tags to select the right backend:</p>
+	<ul style="padding-left:20px;margin-top:8px;display:flex;flex-direction:column;gap:6px;">
+		<li>
+			Native build →
+			<code>
+				app.Fire(port)
+			</code>
+			starts a standard HTTP server
+		</li>
+		<li>
+			WASM build →
+			<code>
+				app.Fire("")
+			</code>
+			calls
+			<code>
+				workers.Serve()
+			</code>
+			from
+			<a href="https://github.com/syumai/workers" target="_blank" rel="noopener" style="color:var(--primary);">syumai/workers</a>
+		</li>
+	</ul>
+	<p style="margin-top:12px;">No code changes are needed between the two environments.</p>
+	<h2>Create Apps</h2>
+	@code.Cloudflareworkercreateappssh()
+	<h3>Initialize Project</h3>
+	@code.Cloudflareworkerinitsh()
+	<h3>Develop &amp; Deploy</h3>
+	@code.Cloudflareworkerdevsh()
+	<h2>Application Code</h2>
+	@code.Cloudflareworkergo()
+	<h2>Workers Bindings Like Hono</h2>
+	<p>Add Cloudflare environment bindings (KV, secrets, etc.) to your <code>Bindings</code> struct for type-safe access:</p>
+	@code.Cloudflareworkerbindingsgo()
+	<p>Declare the same bindings in <code>wrangler.jsonc</code>:</p>
+	@code.Cloudflareworkerwranglerjsonc()
+}

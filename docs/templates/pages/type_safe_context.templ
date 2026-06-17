@@ -1,0 +1,21 @@
+package pages
+
+import "github.com/poteto0/takibi-docs/templates/styles"
+import "github.com/poteto0/takibi-docs/templates/code"
+
+templ TypeSafeContext() {
+	<h1>Type-Safe Context</h1>
+	<p class={ styles.Lead() }>takibi&#39;s defining feature. Your application bindings &#8212; environment variables, database clients, configuration &#8212; are typed at compile time and accessible through the context.</p>
+	<h2>The Problem</h2>
+	<p>In typical Go web frameworks, shared state lives in a generic map or requires unsafe type assertions:</p>
+	@code.Typesafecontextbadgo()
+	<h2>The takibi Way</h2>
+	<p>Define a <code>Bindings</code> struct and pass it to <code>takibi.New</code>. Every handler receives a fully typed context:</p>
+	@code.Typesafecontextgo()
+	<div class={ styles.Callout() }>
+		The <code>Env()</code> method returns your <code>Bindings</code> value directly. No casts, no panics.
+	</div>
+	<h2>Cloudflare Workers Bindings</h2>
+	<p>When deploying to Cloudflare Workers, bindings map directly to Workers environment variables and KV namespaces:</p>
+	@code.Typesafecontextcfgo()
+}

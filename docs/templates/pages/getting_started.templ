@@ -1,0 +1,31 @@
+package pages
+
+import "github.com/poteto0/takibi-docs/templates/styles"
+import "github.com/poteto0/takibi-docs/templates/code"
+
+templ GettingStarted() {
+	<h1>Native Go</h1>
+	<p class={ styles.Lead() }>takibi is a lightweight web framework for Go. Start with a standard Go HTTP server — no extra concepts required.</p>
+	<h2>Installation</h2>
+	<pre><span class={ styles.PreLabel() }>shell</span><code>go get github.com/poteto0/takibi</code></pre>
+	<h2>Basic Usage</h2>
+	<p>Create an app, register routes, and start the server:</p>
+	@code.Gettingstartedgo()
+	<h2>Run It</h2>
+	@code.Gettingstartedsh()
+	<h2>Next Steps</h2>
+	<p>Explore the core concepts and features:</p>
+	<ul style="list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+		<li><a href="/docs/type-safe-context" style="color:var(--primary);text-decoration:none;font-size:15px;">&#8594; Type-Safe Context</a></li>
+		<li><a href="/docs/routing" style="color:var(--primary);text-decoration:none;font-size:15px;">&#8594; Routing</a></li>
+		<li><a href="/docs/sub-routing" style="color:var(--primary);text-decoration:none;font-size:15px;">&#8594; Sub-Routing</a></li>
+		<li><a href="/docs/middleware" style="color:var(--primary);text-decoration:none;font-size:15px;">&#8594; Middleware</a></li>
+		<li><a href="/docs/redirect" style="color:var(--primary);text-decoration:none;font-size:15px;">&#8594; Redirect</a></li>
+		<li><a href="/docs/error-handling" style="color:var(--primary);text-decoration:none;font-size:15px;">&#8594; Error Handling</a></li>
+		<li><a href="/docs/request-body" style="color:var(--primary);text-decoration:none;font-size:15px;">&#8594; Request Body Size Limit</a></li>
+		<li><a href="/docs/cookie" style="color:var(--primary);text-decoration:none;font-size:15px;">&#8594; Cookie</a></li>
+		<li><a href="/docs/factory" style="color:var(--primary);text-decoration:none;font-size:15px;">&#8594; Factory Helpers</a></li>
+		<li><a href="/docs/testing" style="color:var(--primary);text-decoration:none;font-size:15px;">&#8594; Testing</a></li>
+		<li><a href="/docs/blow" style="color:var(--primary);text-decoration:none;font-size:15px;">&#8594; Background Tasks</a></li>
+	</ul>
+}

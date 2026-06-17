@@ -1,0 +1,11 @@
+package code
+
+templ Typesafecontextbadgo() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><code><span class="c1">// typical framework — no type safety</span>
+<span class="nx">ctx</span><span class="p">.</span><span class="nf">Set</span><span class="p">(</span><span class="s">&#34;db&#34;</span><span class="p">,</span> <span class="nx">db</span><span class="p">)</span>
+<span class="nx">db</span> <span class="o">:=</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s">&#34;db&#34;</span><span class="p">)</span><span class="p">.</span><span class="p">(</span><span class="o">*</span><span class="nx">sql</span><span class="p">.</span><span class="nx">DB</span><span class="p">)</span> <span class="c1">// panic risk at runtime</span></code></pre>
+		`,
+	)
+}

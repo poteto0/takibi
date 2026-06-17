@@ -1,0 +1,12 @@
+package layouts
+
+import "github.com/poteto0/takibi-docs/templates/styles"
+
+templ Head(title string) {
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<title>{ title } &#8211; takibi</title>
+		@styles.GlobalStyles()
+	</head>
+}

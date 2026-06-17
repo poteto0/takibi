@@ -1,0 +1,12 @@
+package code
+
+templ Errorhandlingcustomgo() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><code><span class="nx">app</span><span class="p">.</span><span class="nf">OnError</span><span class="p">(</span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">interfaces</span><span class="p">.</span><span class="nx">IContext</span><span class="p">[</span><span class="nx">Bindings</span><span class="p">]</span><span class="p">,</span> <span class="nx">err</span> <span class="kt">error</span><span class="p">)</span> <span class="kt">error</span> <span class="p">&#123;</span>
+	<span class="nx">log</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;handler error: %v&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+	<span class="k">return</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Status</span><span class="p">(</span><span class="nx">http</span><span class="p">.</span><span class="nx">StatusInternalServerError</span><span class="p">)</span><span class="p">.</span><span class="nf">Text</span><span class="p">(</span><span class="s">&#34;something went wrong&#34;</span><span class="p">)</span>
+<span class="p">&#125;</span><span class="p">)</span></code></pre>
+		`,
+	)
+}

@@ -1,0 +1,58 @@
+package pages
+
+import "github.com/poteto0/takibi-docs/templates/styles"
+import "github.com/poteto0/takibi-docs/templates/code"
+
+templ Cookie() {
+	<h1>Cookie</h1>
+	<p class={ styles.Lead() }>The <code>cookie</code> package provides helpers for setting, getting, and signing cookies with sensible secure defaults. All helpers require the context, so they work inside any handler.</p>
+	<h2>Set Cookie</h2>
+	<p><code>SetCookie</code> writes a cookie to the response. Passing <code>nil</code> as options uses <code>DefaultCookieOptions</code> — <code>Secure</code>, <code>HttpOnly</code>, and <code>SameSite=Strict</code>:</p>
+	@code.Cookiesetgo()
+	<h2>Get Cookie</h2>
+	<p><code>GetCookie</code> reads a single cookie by name. It returns a boolean second value so the zero-value string case is unambiguous:</p>
+	@code.Cookiegetgo()
+	<h2>Signed Cookies</h2>
+	<p>Signed cookies use HMAC to detect tampering. Use <code>SetSignedCookie</code> / <code>GetSignedCookie</code> with a shared secret:</p>
+	@code.Cookiesignedgo()
+	<div class={ styles.Callout(), styles.CalloutWarning() }>
+		The signing secret must be at least 32 bytes. Shorter secrets are rejected at runtime to prevent weak HMAC keys.
+	</div>
+	<h2>Options Reference</h2>
+	<table>
+		<thead>
+			<tr>
+				<th>Field</th>
+				<th>Default</th>
+				<th>Description</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><code>Secure</code></td>
+				<td><code>true</code></td>
+				<td>HTTPS only</td>
+			</tr>
+			<tr>
+				<td><code>HttpOnly</code></td>
+				<td><code>true</code></td>
+				<td>Not accessible via JS</td>
+			</tr>
+			<tr>
+				<td><code>SameSite</code></td>
+				<td><code>Strict</code></td>
+				<td>No cross-site sending</td>
+			</tr>
+			<tr>
+				<td><code>Path</code></td>
+				<td><code>/</code></td>
+				<td>Cookie scope path</td>
+			</tr>
+			<tr>
+				<td><code>Prefix</code></td>
+				<td><code>&#34;&#34;</code></td>
+				<td><code>&#34;secure&#34;</code> or <code>&#34;host&#34;</code> prefix mode</td>
+			</tr>
+		</tbody>
+	</table>
+}

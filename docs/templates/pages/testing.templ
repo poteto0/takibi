@@ -1,0 +1,50 @@
+package pages
+
+import "github.com/poteto0/takibi-docs/templates/styles"
+import "github.com/poteto0/takibi-docs/templates/code"
+
+templ Testing() {
+	<h1>Testing</h1>
+	<p class={ styles.Lead() }><code>app.Camp</code> simulates HTTP requests against the app without starting a server. It is the recommended way to write fast, dependency-free handler tests.</p>
+	<h2>GET Request</h2>
+	<p>Call <code>Camp(method, path)</code> and inspect the returned <code>ICampResponse</code>:</p>
+	@code.Campbasicgo()
+	<h2>POST with Body and Headers</h2>
+	<p>Pass <code>interfaces.Body</code> and <code>interfaces.Header</code> options to simulate a request with a body or custom headers:</p>
+	@code.Camppostgo()
+	<h2>ICampResponse Reference</h2>
+	<table>
+		<thead>
+			<tr>
+				<th>Method</th>
+				<th>Returns</th>
+				<th>Description</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><code>StatusCode()</code></td>
+				<td><code>int</code></td>
+				<td>HTTP status code</td>
+			</tr>
+			<tr>
+				<td><code>Raw()</code></td>
+				<td><code>*http.Response</code></td>
+				<td>Underlying response</td>
+			</tr>
+			<tr>
+				<td><code>Json()</code></td>
+				<td><code>(map[string]any, error)</code></td>
+				<td>Decode body as JSON map</td>
+			</tr>
+			<tr>
+				<td><code>Unmarshall(v)</code></td>
+				<td><code>error</code></td>
+				<td>Decode body into <code>v</code></td>
+			</tr>
+		</tbody>
+	</table>
+	<div class={ styles.Callout() }>
+		<code>Camp</code> does not start a network listener — it drives <code>ServeHTTP</code> directly via <code>httptest.NewRecorder</code>.
+	</div>
+}

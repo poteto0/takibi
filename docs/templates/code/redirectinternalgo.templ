@@ -1,0 +1,13 @@
+package code
+
+templ Redirectinternalgo() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><code><span class="nx">app</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s">&#34;/dashboard&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">MyContext</span><span class="p">)</span> <span class="kt">error</span> <span class="p">&#123;</span>
+	<span class="k">return</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Redirect</span><span class="p">(</span><span class="s">&#34;/home&#34;</span><span class="p">)</span> <span class="c1">// safe: relative path</span>
+<span class="p">&#125;</span><span class="p">)</span>
+<span class="c1">// This will return an error — absolute URLs are rejected</span>
+<span class="c1">// ctx.Redirect(&#34;https://evil.com&#34;)</span></code></pre>
+		`,
+	)
+}

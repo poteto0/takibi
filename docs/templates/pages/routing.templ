@@ -1,0 +1,20 @@
+package pages
+
+import "github.com/poteto0/takibi-docs/templates/styles"
+import "github.com/poteto0/takibi-docs/templates/code"
+
+templ Routing() {
+	<h1>Routing</h1>
+	<p class={ styles.Lead() }>takibi supports the standard HTTP methods. Routes take a path pattern and a handler function that receives a typed context.</p>
+	<h2>HTTP Methods</h2>
+	@code.Routingmethodsgo()
+	<h2>Path Parameters</h2>
+	<p>Use <code>:name</code> syntax for path parameters, accessed via <code>ctx.Req().PathBy(&#34;name&#34;)</code>:</p>
+	@code.Routingpathgo()
+	<h2>Query Parameters</h2>
+	@code.Routingquerygo()
+	<h2>JSON Response</h2>
+	@code.Routingjsongo()
+	<h2>Status Codes</h2>
+	@code.Routingstatusgo()
+}

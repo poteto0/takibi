@@ -1,0 +1,123 @@
+package styles
+
+// GlobalStyles renders reset/variable/typography/pseudo-selector CSS that cannot
+// be expressed as templ css functions (no property-value pair restriction).
+templ GlobalStyles() {
+	<style>
+		*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+		:root {
+			--primary: #00ADD8;
+			--primary-light: #5DC9E2;
+			--primary-dark: #0090b8;
+			--dark: #1a2332;
+			--dark-2: #243040;
+			--dark-3: #2c3e50;
+			--sidebar-bg: #1e2d3d;
+			--content-bg: #f8fafc;
+			--text: #2c3e50;
+			--text-muted: #64748b;
+			--border: #e2e8f0;
+			--code-bg: #1a2332;
+			--code-text: #e2e8f0;
+		}
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+			color: var(--text);
+			background: var(--content-bg);
+			min-height: 100vh;
+		}
+		h1 { font-size: 36px; font-weight: 700; color: var(--dark-3); margin-bottom: 16px; line-height: 1.2; }
+		h2 { font-size: 24px; font-weight: 600; color: var(--dark-3); margin: 40px 0 16px; padding-top: 8px; border-top: 1px solid var(--border); }
+		h3 { font-size: 18px; font-weight: 600; color: var(--dark-3); margin: 28px 0 12px; }
+		p { font-size: 15px; line-height: 1.75; color: #374151; margin-bottom: 16px; }
+		code {
+			font-family: 'JetBrains Mono', 'Fira Code', Menlo, monospace;
+			font-size: 13px; background: #e8f4f8; color: #0e6b8a;
+			padding: 2px 6px; border-radius: 4px;
+		}
+		pre {
+			background: var(--code-bg); border-radius: 10px; padding: 24px;
+			margin: 20px 0; overflow-x: auto;
+			border: 1px solid #2d3f52; position: relative;
+		}
+		pre code { background: none; color: var(--code-text); font-size: 13.5px; padding: 0; line-height: 1.65; }
+		table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 20px 0; }
+		th { text-align: left; padding: 10px 14px; background: #f1f5f9; color: #475569; font-weight: 600; border-bottom: 2px solid var(--border); }
+		td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+		/* header-logo svg size */
+		.header-logo svg { height: 34px; width: auto; }
+		/* header-nav link states */
+		.header-nav-link { color: #94a3b8; text-decoration: none; font-size: 14px; padding: 6px 12px; border-radius: 6px; transition: color 0.15s, background 0.15s; }
+		.header-nav-link:hover { color: #fff; background: #00ADD815; }
+		.header-nav-link.active { color: var(--primary); background: #00ADD815; }
+		/* sidebar link states */
+		.sidebar-link { display: block; padding: 7px 20px 7px 24px; font-size: 14px; color: #94a3b8; text-decoration: none; border-left: 2px solid transparent; transition: color 0.15s, border-color 0.15s, background 0.15s; line-height: 1.4; }
+		.sidebar-link:hover { color: #e2e8f0; background: #00ADD808; border-left-color: #00ADD830; }
+		.sidebar-link.active { color: var(--primary); border-left-color: var(--primary); background: #00ADD810; font-weight: 500; }
+		/* sidebar scrollbar */
+		.sidebar-scroll::-webkit-scrollbar { width: 4px; }
+		.sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+		.sidebar-scroll::-webkit-scrollbar-thumb { background: #2d3f52; border-radius: 2px; }
+		/* sidebar accordion */
+		.sidebar-details { border-bottom: 1px solid #00ADD810; }
+		.sidebar-details > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; user-select: none; }
+		.sidebar-details > summary::-webkit-details-marker { display: none; }
+		.sidebar-section-summary::after { content: '›'; display: inline-block; margin-right: 16px; color: #475569; font-size: 16px; line-height: 1; transition: transform 0.2s ease; transform: rotate(0deg); }
+		.sidebar-details[open] > .sidebar-section-summary::after { transform: rotate(90deg); }
+		.sidebar-section-summary:hover { color: #94a3b8; }
+		/* btn hover */
+		.btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 16px #00ADD840; }
+		.btn-outline:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-1px); }
+		/* hero pseudo-element + descendant overrides */
+		.hero::before {
+			content: ''; position: absolute; width: 600px; height: 600px;
+			border-radius: 50%;
+			background: radial-gradient(circle, #00ADD820 0%, transparent 70%);
+			top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;
+		}
+		.hero-logo svg { height: 110px; width: auto; filter: drop-shadow(0 4px 24px #00ADD840); }
+		.hero h1 { font-size: 20px; font-weight: 400; color: #94a3b8; margin-bottom: 16px; max-width: 560px; line-height: 1.6; border: none; }
+		.hero-code pre { border: none; padding: 0; margin: 0; background: none; border-radius: 0; }
+		/* features descendant overrides */
+		.features h2 { color: #fff; font-size: 28px; border: none; margin-top: 0; margin-bottom: 8px; padding-top: 0; }
+		.features-subtitle { color: #64748b; font-size: 16px; margin-bottom: 48px; }
+		/* feature-card hover + descendants */
+		.feature-card:hover { border-color: #00ADD840; }
+		.feature-card h3 { color: #e2e8f0; font-size: 15px; font-weight: 600; margin-bottom: 8px; margin-top: 0; }
+		.feature-card p { color: #64748b; font-size: 13px; margin: 0; line-height: 1.6; }
+		/* responsive */
+		@media (max-width: 768px) {
+			.sidebar-scroll { display: none; }
+			.doc-content { margin-left: 0; padding: 32px 20px 60px; }
+		}
+		/* chroma syntax highlighting */
+		pre.chroma {
+			white-space: pre !important;
+			overflow-x: auto;
+			word-break: normal;
+			word-wrap: normal;
+			text-align: left;
+		}
+		pre.chroma code {
+			background: none !important;
+			color: #c9d1d9 !important;
+			padding: 0 !important;
+			border-radius: 0 !important;
+			white-space: pre !important;
+			font-size: 13.5px;
+			line-height: 1.65;
+			font-family: 'JetBrains Mono', 'Fira Code', Menlo, monospace !important;
+		}
+		.chroma .k  { color: #ff7b72; }
+		.chroma .kn { color: #ff7b72; }
+		.chroma .kd { color: #ff7b72; }
+		.chroma .nf { color: #d2a8ff; }
+		.chroma .s  { color: #a5d6ff; }
+		.chroma .o  { color: #ff7b72; }
+		.chroma .c1 { color: #8b949e; font-style: italic; }
+		.chroma .nx { color: #c9d1d9; }
+		.chroma .p  { color: #c9d1d9; }
+		.chroma .nc { color: #ffa657; }
+		.chroma .mi { color: #79c0ff; }
+	</style>
+}

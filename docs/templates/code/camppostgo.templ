@@ -1,0 +1,25 @@
+package code
+
+templ Camppostgo() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><code><span class="kd">func</span> <span class="nf">TestCreateUser</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span> <span class="p">&#123;</span>
+	<span class="nx">app</span> <span class="o">:=</span> <span class="nx">takibi</span><span class="p">.</span><span class="nx">New</span><span class="p">[</span><span class="kt">any</span><span class="p">]</span><span class="p">(</span><span class="kc">nil</span><span class="p">)</span>
+	<span class="nx">app</span><span class="p">.</span><span class="nf">Post</span><span class="p">(</span><span class="s">&#34;/users&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">interfaces</span><span class="p">.</span><span class="nx">IContext</span><span class="p">[</span><span class="kt">any</span><span class="p">]</span><span class="p">)</span> <span class="kt">error</span> <span class="p">&#123;</span>
+		<span class="kd">var</span> <span class="nx">req</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span>
+		<span class="nx">ctx</span><span class="p">.</span><span class="nf">Req</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nf">Unmarshall</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">req</span><span class="p">)</span>
+		<span class="k">return</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Status</span><span class="p">(</span><span class="mi">201</span><span class="p">)</span><span class="p">.</span><span class="nf">Json</span><span class="p">(</span><span class="nx">req</span><span class="p">)</span>
+	<span class="p">&#125;</span><span class="p">)</span>
+
+	<span class="nx">res</span> <span class="o">:=</span> <span class="nx">app</span><span class="p">.</span><span class="nf">Camp</span><span class="p">(</span><span class="s">&#34;POST&#34;</span><span class="p">,</span> <span class="s">&#34;/users&#34;</span><span class="p">,</span>
+		<span class="nx">interfaces</span><span class="p">.</span><span class="nf">Header</span><span class="p">(</span><span class="s">&#34;Content-Type&#34;</span><span class="p">,</span> <span class="s">&#34;application/json&#34;</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">interfaces</span><span class="p">.</span><span class="nf">Body</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span><span class="p">&#123;</span><span class="s">&#34;name&#34;</span><span class="p">:</span> <span class="s">&#34;Alice&#34;</span><span class="p">&#125;</span><span class="p">)</span><span class="p">,</span>
+	<span class="p">)</span>
+
+	<span class="k">if</span> <span class="nx">res</span><span class="p">.</span><span class="nf">StatusCode</span><span class="p">(</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">201</span> <span class="p">&#123;</span>
+		<span class="nx">t</span><span class="p">.</span><span class="nf">Fatalf</span><span class="p">(</span><span class="s">&#34;expected 201, got %d&#34;</span><span class="p">,</span> <span class="nx">res</span><span class="p">.</span><span class="nf">StatusCode</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
+	<span class="p">&#125;</span>
+<span class="p">&#125;</span></code></pre>
+		`,
+	)
+}
