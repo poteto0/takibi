@@ -5,6 +5,7 @@ package takibi
 import (
 	stdContext "context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -303,119 +304,124 @@ func (
 	return nil
 }
 
+func chainHandlers[Bindings any](handlers []interfaces.HandlerFunc[Bindings]) interfaces.HandlerFunc[Bindings] {
+	nonNil := handlers[:0:0]
+	for _, h := range handlers {
+		if h != nil {
+			nonNil = append(nonNil, h)
+		}
+	}
+	if len(nonNil) == 0 {
+		return nil
+	}
+	return func(c interfaces.IContext[Bindings]) error {
+		for _, h := range nonNil {
+			if err := h(c); err != nil {
+				if errors.Is(err, constants.ErrStop) {
+					return nil
+				}
+				return err
+			}
+		}
+		return nil
+	}
+}
+
 func (
 	t *takibi[Bindings],
 ) Get(
 	path string,
-	handler interfaces.HandlerFunc[Bindings],
+	handlers ...interfaces.HandlerFunc[Bindings],
 ) error {
-	return t.router.Get(path, handler)
+	return t.router.Get(path, chainHandlers(handlers))
 }
 
 func (
 	t *takibi[Bindings],
 ) Post(
 	path string,
-	handler interfaces.HandlerFunc[Bindings],
+	handlers ...interfaces.HandlerFunc[Bindings],
 ) error {
-	return t.router.Post(path, handler)
+	return t.router.Post(path, chainHandlers(handlers))
 }
 
 func (
 	t *takibi[Bindings],
 ) Put(
 	path string,
-	handler interfaces.HandlerFunc[Bindings],
+	handlers ...interfaces.HandlerFunc[Bindings],
 ) error {
-	return t.router.Put(path, handler)
+	return t.router.Put(path, chainHandlers(handlers))
 }
 
 func (
 	t *takibi[Bindings],
 ) Patch(
 	path string,
-	handler interfaces.HandlerFunc[Bindings],
+	handlers ...interfaces.HandlerFunc[Bindings],
 ) error {
-	return t.router.Patch(path, handler)
+	return t.router.Patch(path, chainHandlers(handlers))
 }
 
 func (
 	t *takibi[Bindings],
 ) Delete(
 	path string,
-	handler interfaces.HandlerFunc[Bindings],
+	handlers ...interfaces.HandlerFunc[Bindings],
 ) error {
-	return t.router.Delete(path, handler)
+	return t.router.Delete(path, chainHandlers(handlers))
 }
 
 func (
 	t *takibi[Bindings],
 ) Head(
 	path string,
-	handler interfaces.HandlerFunc[Bindings],
+	handlers ...interfaces.HandlerFunc[Bindings],
 ) error {
-	return t.router.Head(path, handler)
+	return t.router.Head(path, chainHandlers(handlers))
 }
 
 func (
 	t *takibi[Bindings],
 ) Options(
 	path string,
-	handler interfaces.HandlerFunc[Bindings],
+	handlers ...interfaces.HandlerFunc[Bindings],
 ) error {
-	return t.router.Options(path, handler)
+	return t.router.Options(path, chainHandlers(handlers))
 }
 
 func (
 	t *takibi[Bindings],
 ) Trace(
 	path string,
-	handler interfaces.HandlerFunc[Bindings],
+	handlers ...interfaces.HandlerFunc[Bindings],
 ) error {
-	return t.router.Trace(path, handler)
+	return t.router.Trace(path, chainHandlers(handlers))
 }
 
 func (
 	t *takibi[Bindings],
 ) Connect(
 	path string,
-	handler interfaces.HandlerFunc[Bindings],
+	handlers ...interfaces.HandlerFunc[Bindings],
 ) error {
-	return t.router.Connect(path, handler)
+	return t.router.Connect(path, chainHandlers(handlers))
 }
 
 func (
 	t *takibi[Bindings],
 ) All(
 	path string,
-	handler interfaces.HandlerFunc[Bindings],
+	handlers ...interfaces.HandlerFunc[Bindings],
 ) error {
-	if err := t.router.Get(path, handler); err != nil {
-		return err
-	}
-	if err := t.router.Post(path, handler); err != nil {
-		return err
-	}
-	if err := t.router.Put(path, handler); err != nil {
-		return err
-	}
-	if err := t.router.Patch(path, handler); err != nil {
-		return err
-	}
-	if err := t.router.Delete(path, handler); err != nil {
-		return err
-	}
-	if err := t.router.Head(path, handler); err != nil {
-		return err
-	}
-	if err := t.router.Options(path, handler); err != nil {
-		return err
-	}
-	if err := t.router.Trace(path, handler); err != nil {
-		return err
-	}
-	if err := t.router.Connect(path, handler); err != nil {
-		return err
+	h := chainHandlers(handlers)
+	for _, add := range []func(string, interfaces.HandlerFunc[Bindings]) error{
+		t.router.Get, t.router.Post, t.router.Put, t.router.Patch,
+		t.router.Delete, t.router.Head, t.router.Options, t.router.Trace, t.router.Connect,
+	} {
+		if err := add(path, h); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -425,49 +431,13 @@ func (
 ) On(
 	methods,
 	paths []string,
-	handler interfaces.HandlerFunc[Bindings],
+	handlers ...interfaces.HandlerFunc[Bindings],
 ) error {
+	h := chainHandlers(handlers)
 	for _, method := range methods {
 		for _, path := range paths {
-			switch method {
-			case http.MethodGet:
-				if err := t.Get(path, handler); err != nil {
-					return err
-				}
-			case http.MethodPost:
-				if err := t.Post(path, handler); err != nil {
-					return err
-				}
-			case http.MethodPut:
-				if err := t.Put(path, handler); err != nil {
-					return err
-				}
-			case http.MethodPatch:
-				if err := t.Patch(path, handler); err != nil {
-					return err
-				}
-			case http.MethodDelete:
-				if err := t.Delete(path, handler); err != nil {
-					return err
-				}
-			case http.MethodHead:
-				if err := t.Head(path, handler); err != nil {
-					return err
-				}
-			case http.MethodOptions:
-				if err := t.Options(path, handler); err != nil {
-					return err
-				}
-			case http.MethodTrace:
-				if err := t.Trace(path, handler); err != nil {
-					return err
-				}
-			case http.MethodConnect:
-				if err := t.Connect(path, handler); err != nil {
-					return err
-				}
-			default:
-				return fmt.Errorf("invalid method: %s", method)
+			if err := t.router.Add(method, path, h); err != nil {
+				return err
 			}
 		}
 	}

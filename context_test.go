@@ -293,3 +293,43 @@ func TestContext_Rq(t *testing.T) {
 
 	assert.Equal(t, req, ctx.Req().Raw())
 }
+
+func TestContext_Validated(t *testing.T) {
+	type PostForm struct {
+		Body string
+	}
+
+	t.Run("SetValidated and Validated round-trip", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		w := httptest.NewRecorder()
+		ctx := NewContext[any](w, req, nil, nil)
+
+		data := PostForm{Body: "hello"}
+		ctx.SetValidated("form", data)
+
+		v, ok := ctx.Validated("form")
+		assert.True(t, ok)
+		assert.Equal(t, data, v.(PostForm))
+	})
+
+	t.Run("Validated returns false for unknown target", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		w := httptest.NewRecorder()
+		ctx := NewContext[any](w, req, nil, nil)
+
+		_, ok := ctx.Validated("form")
+		assert.False(t, ok)
+	})
+
+	t.Run("Reset clears validated data", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/", nil)
+		w := httptest.NewRecorder()
+		ctx := NewContext[any](w, req, nil, nil)
+
+		ctx.SetValidated("form", PostForm{Body: "hello"})
+
+		ctx.Reset(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/", nil))
+		_, ok := ctx.Validated("form")
+		assert.False(t, ok)
+	})
+}

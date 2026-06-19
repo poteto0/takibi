@@ -55,4 +55,8 @@ type IContext[Bindings any] interface {
 	Param() map[string]string
 	ParamBy(key string) string
 	SetParam(params map[string]string)
+
+	// Validated data store — keyed by target name (e.g. "form", "json", "query")
+	SetValidated(target string, value any)
+	Validated(target string) (any, bool)
 }
