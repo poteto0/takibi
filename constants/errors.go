@@ -18,6 +18,10 @@ var (
 	ErrParamMissing = errors.New(
 		"parameter is missing",
 	)
+
+	ErrNoHandler = errors.New(
+		"at least one handler is required",
+	)
 )
 
 var (

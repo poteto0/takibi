@@ -17,6 +17,7 @@ const (
 	TargetForm  = "form"
 	TargetJson  = "json"
 	TargetQuery = "query"
+	TargetParam = "param"
 )
 
 func newValidator[Bindings any, In any, T any](
@@ -68,6 +69,32 @@ func Query[Bindings any, T any](
 ) interfaces.HandlerFunc[Bindings] {
 	return newValidator(TargetQuery, func(c interfaces.IContext[Bindings]) (map[string]string, error) {
 		return c.Req().Query(), nil
+	}, fn)
+}
+
+// Unmarshall returns a HandlerFunc that decodes the JSON request body into a
+// value of type T and passes it to fn. This is the typical typed-body pattern:
+// fn receives a fully populated T rather than a map. The returned value is
+// stored under TargetJson ("json").
+func Unmarshall[Bindings any, T any](
+	fn func(T, interfaces.IContext[Bindings]) (T, error),
+) interfaces.HandlerFunc[Bindings] {
+	return newValidator(TargetJson, func(c interfaces.IContext[Bindings]) (T, error) {
+		var dest T
+		if err := c.Req().Unmarshall(&dest); err != nil {
+			return dest, err
+		}
+		return dest, nil
+	}, fn)
+}
+
+// Param returns a HandlerFunc that passes the request's path parameters to
+// fn. The returned value is stored under TargetParam ("param").
+func Param[Bindings any, T any](
+	fn func(map[string]string, interfaces.IContext[Bindings]) (T, error),
+) interfaces.HandlerFunc[Bindings] {
+	return newValidator(TargetParam, func(c interfaces.IContext[Bindings]) (map[string]string, error) {
+		return c.Param(), nil
 	}, fn)
 }
 
