@@ -1,0 +1,34 @@
+package code
+
+templ Validatorformfilego() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><code><span class="nx">app</span><span class="p">.</span><span class="nf">Post</span><span class="p">(</span><span class="s">&#34;/upload&#34;</span><span class="p">,</span>
+	<span class="nx">validator</span><span class="p">.</span><span class="nf">FormFile</span><span class="p">(</span><span class="kd">func</span><span class="p">(</span><span class="nx">form</span> <span class="o">*</span><span class="nx">multipart</span><span class="p">.</span><span class="nx">Form</span><span class="p">,</span> <span class="nx">c</span> <span class="nx">MyContext</span><span class="p">)</span> <span class="p">(</span><span class="nx">Upload</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">&#123;</span>
+		<span class="nx">files</span> <span class="o">:=</span> <span class="nx">form</span><span class="p">.</span><span class="nx">File</span><span class="p">[</span><span class="s">&#34;avatar&#34;</span><span class="p">]</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nx">files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">&#123;</span>
+			<span class="nx">c</span><span class="p">.</span><span class="nf">Status</span><span class="p">(</span><span class="mi">422</span><span class="p">)</span><span class="p">.</span><span class="nf">Text</span><span class="p">(</span><span class="s">&#34;avatar required&#34;</span><span class="p">)</span>
+			<span class="k">return</span> <span class="nx">Upload</span><span class="p">&#123;</span><span class="p">&#125;</span><span class="p">,</span> <span class="nx">validator</span><span class="p">.</span><span class="nx">ErrStop</span>
+		<span class="p">&#125;</span>
+
+		<span class="nx">f</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="p">.</span><span class="nf">Open</span><span class="p">(</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">&#123;</span>
+			<span class="k">return</span> <span class="nx">Upload</span><span class="p">&#123;</span><span class="p">&#125;</span><span class="p">,</span> <span class="nx">err</span> <span class="c1">// flows to app.OnError</span>
+		<span class="p">&#125;</span>
+		<span class="k">defer</span> <span class="nx">f</span><span class="p">.</span><span class="nf">Close</span><span class="p">(</span><span class="p">)</span>
+
+		<span class="c1">// form.Value holds the text fields, form.File the uploaded files.</span>
+		<span class="c1">// Parsing is done fully in memory, so it behaves the same on wasm.</span>
+		<span class="k">return</span> <span class="nx">Upload</span><span class="p">&#123;</span>
+			<span class="nx">Title</span><span class="p">:</span>    <span class="nx">form</span><span class="p">.</span><span class="nx">Value</span><span class="p">[</span><span class="s">&#34;title&#34;</span><span class="p">]</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="p">,</span>
+			<span class="nx">Filename</span><span class="p">:</span> <span class="nx">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="p">.</span><span class="nx">Filename</span><span class="p">,</span>
+		<span class="p">&#125;</span><span class="p">,</span> <span class="kc">nil</span>
+	<span class="p">&#125;</span><span class="p">)</span><span class="p">,</span>
+	<span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="nx">MyContext</span><span class="p">)</span> <span class="kt">error</span> <span class="p">&#123;</span>
+		<span class="nx">up</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">validator</span><span class="p">.</span><span class="nx">Valid</span><span class="p">[</span><span class="nx">Upload</span><span class="p">]</span><span class="p">(</span><span class="nx">c</span><span class="p">,</span> <span class="nx">validator</span><span class="p">.</span><span class="nx">TargetFormFile</span><span class="p">)</span>
+		<span class="k">return</span> <span class="nx">c</span><span class="p">.</span><span class="nf">Status</span><span class="p">(</span><span class="mi">201</span><span class="p">)</span><span class="p">.</span><span class="nf">Text</span><span class="p">(</span><span class="nx">up</span><span class="p">.</span><span class="nx">Filename</span><span class="p">)</span>
+	<span class="p">&#125;</span><span class="p">,</span>
+<span class="p">)</span></code></pre>
+		`,
+	)
+}

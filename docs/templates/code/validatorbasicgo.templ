@@ -1,0 +1,18 @@
+package code
+
+templ Validatorbasicgo() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><code><span class="nx">app</span><span class="p">.</span><span class="nf">Post</span><span class="p">(</span><span class="s">&#34;/posts&#34;</span><span class="p">,</span>
+	<span class="nx">validator</span><span class="p">.</span><span class="nf">Form</span><span class="p">(</span><span class="kd">func</span><span class="p">(</span><span class="nx">v</span> <span class="nx">url</span><span class="p">.</span><span class="nx">Values</span><span class="p">,</span> <span class="nx">c</span> <span class="nx">MyContext</span><span class="p">)</span> <span class="p">(</span><span class="nx">PostForm</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">&#123;</span>
+		<span class="k">return</span> <span class="nx">PostForm</span><span class="p">&#123;</span><span class="nx">Body</span><span class="p">:</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s">&#34;body&#34;</span><span class="p">)</span><span class="p">&#125;</span><span class="p">,</span> <span class="kc">nil</span>
+	<span class="p">&#125;</span><span class="p">)</span><span class="p">,</span>
+	<span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="nx">MyContext</span><span class="p">)</span> <span class="kt">error</span> <span class="p">&#123;</span>
+		<span class="c1">// the value returned by the validator is stored under TargetForm</span>
+		<span class="nx">form</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">validator</span><span class="p">.</span><span class="nx">Valid</span><span class="p">[</span><span class="nx">PostForm</span><span class="p">]</span><span class="p">(</span><span class="nx">c</span><span class="p">,</span> <span class="nx">validator</span><span class="p">.</span><span class="nx">TargetForm</span><span class="p">)</span>
+		<span class="k">return</span> <span class="nx">c</span><span class="p">.</span><span class="nf">Status</span><span class="p">(</span><span class="mi">201</span><span class="p">)</span><span class="p">.</span><span class="nf">Text</span><span class="p">(</span><span class="nx">form</span><span class="p">.</span><span class="nx">Body</span><span class="p">)</span>
+	<span class="p">&#125;</span><span class="p">,</span>
+<span class="p">)</span></code></pre>
+		`,
+	)
+}

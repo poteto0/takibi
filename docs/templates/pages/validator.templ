@@ -1,0 +1,68 @@
+package pages
+
+import "github.com/poteto0/takibi-docs/templates/styles"
+import "github.com/poteto0/takibi-docs/templates/code"
+
+templ Validator() {
+	<h1>Validator</h1>
+	<p class={ styles.Lead() }>The <code>validator</code> package provides type-safe handlers that parse a request, validate it, and store the result in the context for the next handler to read. Validators are just regular handlers, so you place them before your route handler.</p>
+	<h2>Basic Usage</h2>
+	<p>A validator factory (<code>Form</code>, <code>Json</code>, <code>Query</code>, <code>Unmarshall</code>, <code>FormFile</code>) takes a function that receives the parsed input and returns the value you want to expose. That value is stored under a target key and retrieved later with <code>validator.Valid[T]</code>:</p>
+	@code.Validatorbasicgo()
+	<div class={ styles.Callout() }>
+		<code>validator.Valid[T]</code> returns <code>(T, ok)</code>. Once a validator has run successfully the value is always present, so the happy path can safely ignore <code>ok</code> with <code>_</code>. The <code>ok</code> guard exists to catch a wrong type parameter or target key.
+	</div>
+	<h2>Reporting Validation Errors</h2>
+	<p>There are two ways to reject a request, and you can mix them within one validator:</p>
+	<ul>
+		<li><strong>Inline + <code>ErrStop</code></strong> — write the response yourself and return <code>validator.ErrStop</code>. The chain halts and the error handler is <em>not</em> invoked.</li>
+		<li><strong>Return a normal <code>error</code></strong> — it flows to <code>app.OnError</code>, letting you render every validation failure in one central place. This is usually the more convenient default.</li>
+	</ul>
+	@code.Validatorerrorgo()
+	<h2>Typed JSON Bodies</h2>
+	<p><code>Unmarshall</code> decodes the JSON body straight into your struct, so the validator function receives a fully typed value instead of a <code>map</code>. The result is stored under <code>TargetJson</code>:</p>
+	@code.Validatorunmarshallgo()
+	<h2>File Uploads</h2>
+	<p><code>FormFile</code> parses a <code>multipart/form-data</code> body and hands your function the parsed <code>*multipart.Form</code>, where <code>form.Value</code> holds the text fields and <code>form.File</code> holds the uploaded files. The result is stored under <code>TargetFormFile</code>:</p>
+	@code.Validatorformfilego()
+	<div class={ styles.Callout() }>
+		The multipart form is parsed entirely in memory, so <code>FormFile</code> behaves identically on native and Cloudflare Workers (wasm) builds — the wasm runtime has no filesystem to spill large uploads to.
+	</div>
+	<h2>Target Keys</h2>
+	<table>
+		<thead>
+			<tr>
+				<th>Factory</th>
+				<th>Input passed to fn</th>
+				<th>Target key</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><code>validator.Form</code></td>
+				<td><code>url.Values</code></td>
+				<td><code>TargetForm</code> ("form")</td>
+			</tr>
+			<tr>
+				<td><code>validator.FormFile</code></td>
+				<td><code>*multipart.Form</code></td>
+				<td><code>TargetFormFile</code> ("formFile")</td>
+			</tr>
+			<tr>
+				<td><code>validator.Json</code></td>
+				<td><code>map[string]any</code></td>
+				<td><code>TargetJson</code> ("json")</td>
+			</tr>
+			<tr>
+				<td><code>validator.Unmarshall</code></td>
+				<td><code>T</code> (decoded struct)</td>
+				<td><code>TargetJson</code> ("json")</td>
+			</tr>
+			<tr>
+				<td><code>validator.Query</code></td>
+				<td><code>map[string]string</code></td>
+				<td><code>TargetQuery</code> ("query")</td>
+			</tr>
+		</tbody>
+	</table>
+}
