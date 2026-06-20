@@ -39,6 +39,7 @@ func main() {
 	app.Get("/docs/redirect", docPage("Redirect", "redirect", pages.Redirect()))
 	app.Get("/docs/error-handling", docPage("Error Handling", "error-handling", pages.ErrorHandling()))
 	app.Get("/docs/request-body", docPage("Request Body", "request-body", pages.RequestBody()))
+	app.Get("/docs/validator", docPage("Validator", "validator", pages.Validator()))
 	app.Get("/docs/cookie", docPage("Cookie", "cookie", pages.Cookie()))
 
 	app.Get("/docs/factory", docPage("Factory Helpers", "factory", pages.Factory()))

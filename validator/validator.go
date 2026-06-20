@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"mime/multipart"
 	"net/url"
 
 	"github.com/poteto0/takibi/constants"
@@ -14,10 +15,16 @@ var ErrStop = constants.ErrStop
 
 // Target keys used by the built-in validator factories.
 const (
-	TargetForm  = "form"
-	TargetJson  = "json"
-	TargetQuery = "query"
+	TargetForm     = "form"
+	TargetFormFile = "formFile"
+	TargetJson     = "json"
+	TargetQuery    = "query"
 )
+
+// formFileMaxMemory is the in-memory threshold for ParseMultipartForm. Setting
+// it to the default body limit keeps the whole form in memory instead of
+// spilling to temp files, so FormFile behaves the same on wasm (no filesystem).
+const formFileMaxMemory = constants.DefaultMaxBodyBytes
 
 func newValidator[Bindings any, In any, T any](
 	key string,
@@ -48,6 +55,24 @@ func Form[Bindings any, T any](
 			return nil, err
 		}
 		return c.Req().Raw().Form, nil
+	}, fn)
+}
+
+// FormFile returns a HandlerFunc that parses a multipart/form-data request body
+// and passes the parsed *multipart.Form (both Value and File maps) to fn. The
+// returned value is stored under TargetFormFile ("formFile").
+//
+// The form is parsed entirely in memory (see formFileMaxMemory) so behaviour is
+// identical on native and wasm builds.
+func FormFile[Bindings any, T any](
+	fn func(*multipart.Form, interfaces.IContext[Bindings]) (T, error),
+) interfaces.HandlerFunc[Bindings] {
+	return newValidator(TargetFormFile, func(c interfaces.IContext[Bindings]) (*multipart.Form, error) {
+		raw := c.Req().Raw()
+		if err := raw.ParseMultipartForm(formFileMaxMemory); err != nil {
+			return nil, err
+		}
+		return raw.MultipartForm, nil
 	}, fn)
 }
 

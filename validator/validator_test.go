@@ -1,7 +1,10 @@
 package validator_test
 
 import (
+	"bytes"
 	"errors"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -274,6 +277,144 @@ func TestUnmarshall_DecodeErrorReachesErrorHandler(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(`{invalid json`))
 	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	app.ServeHTTP(w, req)
+
+	assert.True(t, called)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+type Upload struct {
+	Title    string
+	Filename string
+	Content  string
+}
+
+// buildMultipart creates a multipart/form-data body with one value field and
+// one file field, returning the body and its Content-Type header.
+func buildMultipart(t *testing.T, field, value, fileField, filename, content string) (*bytes.Buffer, string) {
+	t.Helper()
+	body := &bytes.Buffer{}
+	w := multipart.NewWriter(body)
+	if err := w.WriteField(field, value); err != nil {
+		t.Fatal(err)
+	}
+	fw, err := w.CreateFormFile(fileField, filename)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := fw.Write([]byte(content)); err != nil {
+		t.Fatal(err)
+	}
+	if err := w.Close(); err != nil {
+		t.Fatal(err)
+	}
+	return body, w.FormDataContentType()
+}
+
+func TestFormFile_StoresValidatedData(t *testing.T) {
+	called := false
+
+	app := takibi.New(&Bindings{})
+	app.Post("/upload",
+		validator.FormFile(func(form *multipart.Form, c MyContext) (Upload, error) {
+			fhs := form.File["avatar"]
+			if len(fhs) == 0 {
+				c.Status(http.StatusUnprocessableEntity).Text("avatar required")
+				return Upload{}, validator.ErrStop
+			}
+			f, err := fhs[0].Open()
+			if err != nil {
+				return Upload{}, err
+			}
+			defer f.Close()
+			content, err := io.ReadAll(f)
+			if err != nil {
+				return Upload{}, err
+			}
+			return Upload{
+				Title:    form.Value["title"][0],
+				Filename: fhs[0].Filename,
+				Content:  string(content),
+			}, nil
+		}),
+		func(c MyContext) error {
+			called = true
+			up, ok := validator.Valid[Upload](c, validator.TargetFormFile)
+			assert.True(t, ok)
+			assert.Equal(t, "hello", up.Title)
+			assert.Equal(t, "a.txt", up.Filename)
+			assert.Equal(t, "file-body", up.Content)
+			return c.Status(http.StatusCreated).Text("created")
+		},
+	)
+
+	body, contentType := buildMultipart(t, "title", "hello", "avatar", "a.txt", "file-body")
+	req := httptest.NewRequest(http.MethodPost, "/upload", body)
+	req.Header.Set("Content-Type", contentType)
+	w := httptest.NewRecorder()
+
+	app.ServeHTTP(w, req)
+
+	assert.True(t, called)
+	assert.Equal(t, http.StatusCreated, w.Code)
+}
+
+func TestFormFile_ErrStopHaltsChain(t *testing.T) {
+	nextCalled := false
+
+	app := takibi.New(&Bindings{})
+	app.Post("/upload",
+		validator.FormFile(func(form *multipart.Form, c MyContext) (Upload, error) {
+			if len(form.File["avatar"]) == 0 {
+				c.Status(http.StatusUnprocessableEntity).Text("avatar required")
+				return Upload{}, validator.ErrStop
+			}
+			return Upload{}, nil
+		}),
+		func(c MyContext) error {
+			nextCalled = true
+			return c.Status(http.StatusCreated).Text("created")
+		},
+	)
+
+	// multipart body with no file field
+	body := &bytes.Buffer{}
+	mw := multipart.NewWriter(body)
+	_ = mw.WriteField("title", "x")
+	_ = mw.Close()
+	req := httptest.NewRequest(http.MethodPost, "/upload", body)
+	req.Header.Set("Content-Type", mw.FormDataContentType())
+	w := httptest.NewRecorder()
+
+	app.ServeHTTP(w, req)
+
+	assert.False(t, nextCalled)
+	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	assert.Equal(t, "avatar required", w.Body.String())
+}
+
+func TestFormFile_ParseErrorReachesErrorHandler(t *testing.T) {
+	called := false
+
+	app := takibi.New(&Bindings{})
+	app.OnError(func(c MyContext, err error) error {
+		called = true
+		return c.Status(http.StatusBadRequest).Text("parse failed")
+	})
+	app.Post("/upload",
+		validator.FormFile(func(form *multipart.Form, c MyContext) (Upload, error) {
+			return Upload{}, nil
+		}),
+		func(c MyContext) error {
+			return c.Text("unreachable")
+		},
+	)
+
+	// Declares multipart but body is not a valid multipart payload.
+	req := httptest.NewRequest(http.MethodPost, "/upload", strings.NewReader("not-multipart"))
+	req.Header.Set("Content-Type", "multipart/form-data; boundary=xxx")
 	w := httptest.NewRecorder()
 
 	app.ServeHTTP(w, req)

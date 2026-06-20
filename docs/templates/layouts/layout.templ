@@ -39,12 +39,13 @@ templ Layout(title string, active string, content templ.Component) {
 							<a href="/docs/routing" class={ "sidebar-link", templ.KV("active", active == "routing") }>Routing</a>
 							<a href="/docs/sub-routing" class={ "sidebar-link", templ.KV("active", active == "sub-routing") }>Sub-Routing</a>
 						</details>
-						<details class="sidebar-details" open?={ inSection(active, "middleware", "redirect", "error-handling", "request-body", "cookie") }>
+						<details class="sidebar-details" open?={ inSection(active, "middleware", "redirect", "error-handling", "request-body", "validator", "cookie") }>
 							<summary class={ styles.SidebarSectionTitle(), "sidebar-section-summary" }>Features</summary>
 							<a href="/docs/middleware" class={ "sidebar-link", templ.KV("active", active == "middleware") }>Middleware</a>
 							<a href="/docs/redirect" class={ "sidebar-link", templ.KV("active", active == "redirect") }>Redirect</a>
 							<a href="/docs/error-handling" class={ "sidebar-link", templ.KV("active", active == "error-handling") }>Error Handling</a>
 							<a href="/docs/request-body" class={ "sidebar-link", templ.KV("active", active == "request-body") }>Request Body</a>
+							<a href="/docs/validator" class={ "sidebar-link", templ.KV("active", active == "validator") }>Validator</a>
 							<a href="/docs/cookie" class={ "sidebar-link", templ.KV("active", active == "cookie") }>Cookie</a>
 						</details>
 						<details class="sidebar-details" open?={ inSection(active, "factory", "testing", "blow") }>

@@ -1,0 +1,26 @@
+package code
+
+templ Validatorunmarshallgo() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><code><span class="kd">type</span> <span class="nx">User</span> <span class="kd">struct</span> <span class="p">&#123;</span>
+	<span class="nx">Name</span> <span class="kt">string</span> <span class="s">&#96;</span><span class="s">json:&#34;name&#34;</span><span class="s">&#96;</span>
+	<span class="nx">Age</span>  <span class="kt">int</span>    <span class="s">&#96;</span><span class="s">json:&#34;age&#34;</span><span class="s">&#96;</span>
+<span class="p">&#125;</span>
+
+<span class="nx">app</span><span class="p">.</span><span class="nf">Post</span><span class="p">(</span><span class="s">&#34;/users&#34;</span><span class="p">,</span>
+	<span class="nx">validator</span><span class="p">.</span><span class="nf">Unmarshall</span><span class="p">(</span><span class="kd">func</span><span class="p">(</span><span class="nx">u</span> <span class="nx">User</span><span class="p">,</span> <span class="nx">c</span> <span class="nx">MyContext</span><span class="p">)</span> <span class="p">(</span><span class="nx">User</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">&#123;</span>
+		<span class="k">if</span> <span class="nx">u</span><span class="p">.</span><span class="nx">Name</span> <span class="o">==</span> <span class="s">&#34;&#34;</span> <span class="p">&#123;</span>
+			<span class="k">return</span> <span class="nx">User</span><span class="p">&#123;</span><span class="p">&#125;</span><span class="p">,</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="s">&#34;name required&#34;</span><span class="p">)</span>
+		<span class="p">&#125;</span>
+		<span class="k">return</span> <span class="nx">u</span><span class="p">,</span> <span class="kc">nil</span>
+	<span class="p">&#125;</span><span class="p">)</span><span class="p">,</span>
+	<span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="nx">MyContext</span><span class="p">)</span> <span class="kt">error</span> <span class="p">&#123;</span>
+		<span class="c1">// typed body is stored under TargetJson</span>
+		<span class="nx">u</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">validator</span><span class="p">.</span><span class="nx">Valid</span><span class="p">[</span><span class="nx">User</span><span class="p">]</span><span class="p">(</span><span class="nx">c</span><span class="p">,</span> <span class="nx">validator</span><span class="p">.</span><span class="nx">TargetJson</span><span class="p">)</span>
+		<span class="k">return</span> <span class="nx">c</span><span class="p">.</span><span class="nf">Status</span><span class="p">(</span><span class="mi">201</span><span class="p">)</span><span class="p">.</span><span class="nf">Json</span><span class="p">(</span><span class="nx">u</span><span class="p">)</span>
+	<span class="p">&#125;</span><span class="p">,</span>
+<span class="p">)</span></code></pre>
+		`,
+	)
+}
