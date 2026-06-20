@@ -145,33 +145,6 @@ func TestUnmarshall_ErrStopHaltsChain(t *testing.T) {
 	assert.Equal(t, "name required", w.Body.String())
 }
 
-func TestParam_StoresValidatedParam(t *testing.T) {
-	app := takibi.New(&Bindings{})
-	app.Get("/users/:id",
-		validator.Param(func(p map[string]string, c MyContext) (string, error) {
-			id := p["id"]
-			if id == "" {
-				c.Status(http.StatusUnprocessableEntity).Text("id required")
-				return "", validator.ErrStop
-			}
-			return id, nil
-		}),
-		func(c MyContext) error {
-			id, ok := validator.Valid[string](c, validator.TargetParam)
-			assert.True(t, ok)
-			return c.Text("user " + id)
-		},
-	)
-
-	req := httptest.NewRequest(http.MethodGet, "/users/42", nil)
-	w := httptest.NewRecorder()
-
-	app.ServeHTTP(w, req)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, "user 42", w.Body.String())
-}
-
 func TestJson_StoresValidatedData(t *testing.T) {
 	app := takibi.New(&Bindings{})
 	app.Post("/json",

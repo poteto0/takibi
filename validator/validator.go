@@ -17,7 +17,6 @@ const (
 	TargetForm  = "form"
 	TargetJson  = "json"
 	TargetQuery = "query"
-	TargetParam = "param"
 )
 
 func newValidator[Bindings any, In any, T any](
@@ -85,16 +84,6 @@ func Unmarshall[Bindings any, T any](
 			return dest, err
 		}
 		return dest, nil
-	}, fn)
-}
-
-// Param returns a HandlerFunc that passes the request's path parameters to
-// fn. The returned value is stored under TargetParam ("param").
-func Param[Bindings any, T any](
-	fn func(map[string]string, interfaces.IContext[Bindings]) (T, error),
-) interfaces.HandlerFunc[Bindings] {
-	return newValidator(TargetParam, func(c interfaces.IContext[Bindings]) (map[string]string, error) {
-		return c.Param(), nil
 	}, fn)
 }
 
