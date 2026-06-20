@@ -24,12 +24,13 @@ func toContextOption(opt *interfaces.TakibiOption) contextOption {
 }
 
 type context[Bindings any] struct {
-	env          *Bindings
-	request      interfaces.IRequest
-	response     http.ResponseWriter
-	statusCode   int
-	pathParams   map[string]string
-	maxBodyBytes int64
+	env           *Bindings
+	request       interfaces.IRequest
+	response      http.ResponseWriter
+	statusCode    int
+	pathParams    map[string]string
+	maxBodyBytes  int64
+	validatedData map[string]any
 }
 
 func NewContext[Bindings any](w http.ResponseWriter, r *http.Request, bindings *Bindings, opt *interfaces.TakibiOption) interfaces.IContext[Bindings] {
@@ -57,6 +58,19 @@ func (c *context[Bindings]) Reset(w http.ResponseWriter, r *http.Request) {
 	c.response = w
 	c.statusCode = http.StatusOK
 	clear(c.pathParams)
+	c.validatedData = nil
+}
+
+func (c *context[Bindings]) SetValidated(target string, value any) {
+	if c.validatedData == nil {
+		c.validatedData = make(map[string]any)
+	}
+	c.validatedData[target] = value
+}
+
+func (c *context[Bindings]) Validated(target string) (any, bool) {
+	v, ok := c.validatedData[target]
+	return v, ok
 }
 
 func (c *context[Bindings]) Status(code int) interfaces.IContext[Bindings] {

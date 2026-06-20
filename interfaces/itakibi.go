@@ -50,7 +50,7 @@ type ITakibi[Bindings any] interface {
 		Trim Suffix "/"
 		EX: "/users/" -> "/users"
 	*/
-	Get(path string, handler HandlerFunc[Bindings]) error
+	Get(path string, handlers ...HandlerFunc[Bindings]) error
 
 	/*
 		Register POST method Route
@@ -58,7 +58,7 @@ type ITakibi[Bindings any] interface {
 		Trim Suffix "/"
 		EX: "/users/" -> "/users"
 	*/
-	Post(path string, handler HandlerFunc[Bindings]) error
+	Post(path string, handlers ...HandlerFunc[Bindings]) error
 
 	/*
 		Register PUT method Route
@@ -66,7 +66,7 @@ type ITakibi[Bindings any] interface {
 		Trim Suffix "/"
 		EX: "/users/" -> "/users"
 	*/
-	Put(path string, handler HandlerFunc[Bindings]) error
+	Put(path string, handlers ...HandlerFunc[Bindings]) error
 
 	/*
 		Register PATCH method Route
@@ -74,7 +74,7 @@ type ITakibi[Bindings any] interface {
 		Trim Suffix "/"
 		EX: "/users/" -> "/users"
 	*/
-	Patch(path string, handler HandlerFunc[Bindings]) error
+	Patch(path string, handlers ...HandlerFunc[Bindings]) error
 
 	/*
 		Register DELETE method Route
@@ -82,7 +82,7 @@ type ITakibi[Bindings any] interface {
 		Trim Suffix "/"
 		EX: "/users/" -> "/users"
 	*/
-	Delete(path string, handler HandlerFunc[Bindings]) error
+	Delete(path string, handlers ...HandlerFunc[Bindings]) error
 
 	/*
 		Register HEAD method Route
@@ -90,7 +90,7 @@ type ITakibi[Bindings any] interface {
 		Trim Suffix "/"
 		EX: "/users/" -> "/users"
 	*/
-	Head(path string, handler HandlerFunc[Bindings]) error
+	Head(path string, handlers ...HandlerFunc[Bindings]) error
 
 	/*
 		Register OPTIONS method Route
@@ -98,7 +98,7 @@ type ITakibi[Bindings any] interface {
 		Trim Suffix "/"
 		EX: "/users/" -> "/users"
 	*/
-	Options(path string, handler HandlerFunc[Bindings]) error
+	Options(path string, handlers ...HandlerFunc[Bindings]) error
 
 	/*
 		Register TRACE method Route
@@ -106,7 +106,7 @@ type ITakibi[Bindings any] interface {
 		Trim Suffix "/"
 		EX: "/users/" -> "/users"
 	*/
-	Trace(path string, handler HandlerFunc[Bindings]) error
+	Trace(path string, handlers ...HandlerFunc[Bindings]) error
 
 	/*
 		Register CONNECT method Route
@@ -114,7 +114,7 @@ type ITakibi[Bindings any] interface {
 		Trim Suffix "/"
 		EX: "/users/" -> "/users"
 	*/
-	Connect(path string, handler HandlerFunc[Bindings]) error
+	Connect(path string, handlers ...HandlerFunc[Bindings]) error
 
 	/*
 		Register All method Route at once
@@ -122,7 +122,7 @@ type ITakibi[Bindings any] interface {
 		Trim Suffix "/"
 		EX: "/users/" -> "/users"
 	*/
-	All(path string, handler HandlerFunc[Bindings]) error
+	All(path string, handlers ...HandlerFunc[Bindings]) error
 
 	/*
 		Register multiple method & path Route at once
@@ -130,7 +130,7 @@ type ITakibi[Bindings any] interface {
 		Trim Suffix "/"
 		EX: "/users/" -> "/users"
 	*/
-	On(methods, paths []string, handler HandlerFunc[Bindings]) error
+	On(methods, paths []string, handlers ...HandlerFunc[Bindings]) error
 
 	// Blow registers task
 	//	- ! it is not supported for wasm

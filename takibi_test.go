@@ -498,3 +498,34 @@ func TestTakibi_ServeHTTP(t *testing.T) {
 		assert.Equal(t, "user 123", rec.Body.String())
 	})
 }
+
+func TestTakibi_NoHandler(t *testing.T) {
+	app := newNilApp()
+
+	methods := []struct {
+		name string
+		fn   func(string, ...interfaces.HandlerFunc[any]) error
+	}{
+		{"Get", app.Get},
+		{"Post", app.Post},
+		{"Put", app.Put},
+		{"Patch", app.Patch},
+		{"Delete", app.Delete},
+		{"Head", app.Head},
+		{"Options", app.Options},
+		{"Trace", app.Trace},
+		{"Connect", app.Connect},
+		{"All", app.All},
+	}
+	for _, m := range methods {
+		t.Run(m.name+" returns error with no handler", func(t *testing.T) {
+			err := m.fn("/empty/" + m.name)
+			assert.Error(t, err)
+		})
+	}
+
+	t.Run("On returns error with no handler", func(t *testing.T) {
+		err := app.On([]string{http.MethodGet}, []string{"/empty/on"})
+		assert.Error(t, err)
+	})
+}

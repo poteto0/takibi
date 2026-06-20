@@ -18,6 +18,10 @@ var (
 	ErrParamMissing = errors.New(
 		"parameter is missing",
 	)
+
+	ErrNoHandler = errors.New(
+		"at least one handler is required",
+	)
 )
 
 var (
@@ -25,3 +29,8 @@ var (
 		"request timeout",
 	)
 )
+
+// ErrStop is a sentinel that a handler chain element returns to halt further
+// handlers without triggering the framework error handler. The response must
+// be written by the returning handler before returning ErrStop.
+var ErrStop = errors.New("handler: stop")
