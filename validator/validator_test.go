@@ -148,6 +148,103 @@ func TestUnmarshall_ErrStopHaltsChain(t *testing.T) {
 	assert.Equal(t, "name required", w.Body.String())
 }
 
+type SignUp struct {
+	Name string `form:"name"`
+	Age  int    `form:"age"`
+}
+
+func TestUnmarshallForm_StoresValidatedData(t *testing.T) {
+	called := false
+
+	app := takibi.New(&Bindings{})
+	app.Post("/signup",
+		validator.UnmarshallForm(func(in SignUp, c MyContext) (SignUp, error) {
+			if in.Name == "" {
+				c.Status(http.StatusUnprocessableEntity).Text("name required")
+				return SignUp{}, validator.ErrStop
+			}
+			return in, nil
+		}),
+		func(c MyContext) error {
+			called = true
+			in, ok := validator.Valid[SignUp](c, validator.TargetForm)
+			assert.True(t, ok)
+			assert.Equal(t, "alice", in.Name)
+			assert.Equal(t, 30, in.Age)
+			return c.Status(http.StatusCreated).Text("ok")
+		},
+	)
+
+	form := url.Values{"name": {"alice"}, "age": {"30"}}
+	req := httptest.NewRequest(http.MethodPost, "/signup", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	app.ServeHTTP(w, req)
+
+	assert.True(t, called)
+	assert.Equal(t, http.StatusCreated, w.Code)
+}
+
+func TestUnmarshallForm_ErrStopHaltsChain(t *testing.T) {
+	nextCalled := false
+
+	app := takibi.New(&Bindings{})
+	app.Post("/signup",
+		validator.UnmarshallForm(func(in SignUp, c MyContext) (SignUp, error) {
+			if in.Name == "" {
+				c.Status(http.StatusUnprocessableEntity).Text("name required")
+				return SignUp{}, validator.ErrStop
+			}
+			return in, nil
+		}),
+		func(c MyContext) error {
+			nextCalled = true
+			return c.Status(http.StatusCreated).Text("ok")
+		},
+	)
+
+	form := url.Values{"age": {"30"}}
+	req := httptest.NewRequest(http.MethodPost, "/signup", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	app.ServeHTTP(w, req)
+
+	assert.False(t, nextCalled)
+	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	assert.Equal(t, "name required", w.Body.String())
+}
+
+func TestUnmarshallForm_DecodeErrorReachesErrorHandler(t *testing.T) {
+	called := false
+
+	app := takibi.New(&Bindings{})
+	app.OnError(func(c MyContext, err error) error {
+		called = true
+		return c.Status(http.StatusBadRequest).Text("decode failed")
+	})
+	app.Post("/signup",
+		validator.UnmarshallForm(func(in SignUp, c MyContext) (SignUp, error) {
+			return in, nil
+		}),
+		func(c MyContext) error {
+			return c.Status(http.StatusCreated).Text("ok")
+		},
+	)
+
+	// age is not a number -> conversion error bubbles to OnError
+	form := url.Values{"name": {"alice"}, "age": {"abc"}}
+	req := httptest.NewRequest(http.MethodPost, "/signup", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	app.ServeHTTP(w, req)
+
+	assert.True(t, called)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
 func TestJson_StoresValidatedData(t *testing.T) {
 	app := takibi.New(&Bindings{})
 	app.Post("/json",

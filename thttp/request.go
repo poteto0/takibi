@@ -7,6 +7,9 @@ import (
 	"io"
 	"mime"
 	"net/http"
+	"net/url"
+	"reflect"
+	"strconv"
 
 	"github.com/poteto0/takibi/constants"
 )
@@ -73,6 +76,95 @@ func (r *Request) Unmarshall(dest any) error {
 			return fmt.Errorf("request body is empty")
 		}
 		return err
+	}
+	return nil
+}
+
+// UnmarshallForm binds form values into dest using the `form` struct tag,
+// converting string values to each field's scalar type. urlencoded and
+// multipart/form-data (Value fields) bodies are supported; file parts are
+// out of scope (use validator.FormFile). Missing or empty fields are left as
+// their zero value, so required-field checks belong in the caller.
+func (r *Request) UnmarshallForm(dest any) error {
+	switch r.MediaType() {
+	case "application/x-www-form-urlencoded":
+		if err := r.request.ParseForm(); err != nil {
+			return err
+		}
+	case "multipart/form-data":
+		if err := r.request.ParseMultipartForm(r.maxBodyBytes); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("unsupported content type: %s", r.ContentType())
+	}
+	return bindForm(r.request.Form, dest)
+}
+
+// bindForm maps form values onto the exported fields of the struct pointed to
+// by dest. Field keys come from the `form` tag (falling back to the field
+// name); a tag of "-" skips the field.
+func bindForm(values url.Values, dest any) error {
+	rv := reflect.ValueOf(dest)
+	if rv.Kind() != reflect.Pointer || rv.IsNil() {
+		return fmt.Errorf("dest must be a non-nil pointer to a struct")
+	}
+	elem := rv.Elem()
+	if elem.Kind() != reflect.Struct {
+		return fmt.Errorf("dest must be a pointer to a struct")
+	}
+
+	elemType := elem.Type()
+	for i := 0; i < elemType.NumField(); i++ {
+		field := elem.Field(i)
+		if !field.CanSet() {
+			continue
+		}
+
+		key := elemType.Field(i).Tag.Get("form")
+		if key == "-" {
+			continue
+		}
+		if key == "" {
+			key = elemType.Field(i).Name
+		}
+
+		raw := values.Get(key)
+		if raw == "" {
+			continue
+		}
+		if err := setFormField(field, raw); err != nil {
+			return fmt.Errorf("field %s: %w", elemType.Field(i).Name, err)
+		}
+	}
+	return nil
+}
+
+// setFormField converts raw and assigns it to a scalar struct field.
+func setFormField(field reflect.Value, raw string) error {
+	switch field.Kind() {
+	case reflect.String:
+		field.SetString(raw)
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		i, err := strconv.ParseInt(raw, 10, 64)
+		if err != nil {
+			return err
+		}
+		field.SetInt(i)
+	case reflect.Float32, reflect.Float64:
+		f, err := strconv.ParseFloat(raw, 64)
+		if err != nil {
+			return err
+		}
+		field.SetFloat(f)
+	case reflect.Bool:
+		b, err := strconv.ParseBool(raw)
+		if err != nil {
+			return err
+		}
+		field.SetBool(b)
+	default:
+		return fmt.Errorf("unsupported type")
 	}
 	return nil
 }

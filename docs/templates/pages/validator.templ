@@ -7,7 +7,7 @@ templ Validator() {
 	<h1>Validator</h1>
 	<p class={ styles.Lead() }>The <code>validator</code> package provides type-safe handlers that parse a request, validate it, and store the result in the context for the next handler to read. Validators are just regular handlers, so you place them before your route handler.</p>
 	<h2>Basic Usage</h2>
-	<p>A validator factory (<code>Form</code>, <code>Json</code>, <code>Query</code>, <code>Unmarshall</code>, <code>FormFile</code>) takes a function that receives the parsed input and returns the value you want to expose. That value is stored under a target key and retrieved later with <code>validator.Valid[T]</code>:</p>
+	<p>A validator factory (<code>Form</code>, <code>Json</code>, <code>Query</code>, <code>Unmarshall</code>, <code>UnmarshallForm</code>, <code>FormFile</code>) takes a function that receives the parsed input and returns the value you want to expose. That value is stored under a target key and retrieved later with <code>validator.Valid[T]</code>:</p>
 	@code.Validatorbasicgo()
 	<div class={ styles.Callout() }>
 		<code>validator.Valid[T]</code> returns <code>(T, ok)</code>. Once a validator has run successfully the value is always present, so the happy path can safely ignore <code>ok</code> with <code>_</code>. The <code>ok</code> guard exists to catch a wrong type parameter or target key.
@@ -22,6 +22,12 @@ templ Validator() {
 	<h2>Typed JSON Bodies</h2>
 	<p><code>Unmarshall</code> decodes the JSON body straight into your struct, so the validator function receives a fully typed value instead of a <code>map</code>. The result is stored under <code>TargetJson</code>:</p>
 	@code.Validatorunmarshallgo()
+	<h2>Typed Form Bodies</h2>
+	<p><code>UnmarshallForm</code> is the form counterpart of <code>Unmarshall</code>: it binds an <code>application/x-www-form-urlencoded</code> or <code>multipart/form-data</code> body into your struct by <code>form</code> tag, converting <code>string</code> values into each field's scalar type (<code>int</code>, <code>bool</code>, <code>float64</code>, …). Missing or empty fields are left as their zero value, so required-field checks belong in your function. The result is stored under <code>TargetForm</code>:</p>
+	@code.Validatorunmarshallformgo()
+	<div class={ styles.Callout() }>
+		Use <code>UnmarshallForm</code> to bind typed text fields, and the lower-level <code>Form</code> (raw <code>url.Values</code>) when you need full control. Uploaded files are out of scope here — reach for <code>FormFile</code> below.
+	</div>
 	<h2>File Uploads</h2>
 	<p><code>FormFile</code> parses a <code>multipart/form-data</code> body and hands your function the parsed <code>*multipart.Form</code>, where <code>form.Value</code> holds the text fields and <code>form.File</code> holds the uploaded files. The result is stored under <code>TargetFormFile</code>:</p>
 	@code.Validatorformfilego()
@@ -57,6 +63,11 @@ templ Validator() {
 				<td><code>validator.Unmarshall</code></td>
 				<td><code>T</code> (decoded struct)</td>
 				<td><code>TargetJson</code> ("json")</td>
+			</tr>
+			<tr>
+				<td><code>validator.UnmarshallForm</code></td>
+				<td><code>T</code> (bound struct)</td>
+				<td><code>TargetForm</code> ("form")</td>
 			</tr>
 			<tr>
 				<td><code>validator.Query</code></td>

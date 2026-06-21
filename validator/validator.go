@@ -112,6 +112,23 @@ func Unmarshall[Bindings any, T any](
 	}, fn)
 }
 
+// UnmarshallForm returns a HandlerFunc that binds the form request body
+// (urlencoded or multipart Value fields) into a value of type T via `form`
+// struct tags and passes it to fn. This is the typed-form counterpart of
+// Unmarshall: fn receives a fully populated T rather than url.Values. The
+// returned value is stored under TargetForm ("form").
+func UnmarshallForm[Bindings any, T any](
+	fn func(T, interfaces.IContext[Bindings]) (T, error),
+) interfaces.HandlerFunc[Bindings] {
+	return newValidator(TargetForm, func(c interfaces.IContext[Bindings]) (T, error) {
+		var dest T
+		if err := c.Req().UnmarshallForm(&dest); err != nil {
+			return dest, err
+		}
+		return dest, nil
+	}, fn)
+}
+
 // Valid retrieves the validated value stored under target and type-asserts it
 // to T. Returns the zero value and false when the key is absent or the type
 // does not match.
