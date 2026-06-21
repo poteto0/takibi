@@ -1,0 +1,35 @@
+package code
+
+templ Validatorfilefieldgo() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><code><span class="nx">app</span><span class="p">.</span><span class="nf">Post</span><span class="p">(</span><span class="s">&#34;/cats/:id/avatar&#34;</span><span class="p">,</span>
+	<span class="c1">// Validate the &#34;avatar&#34; file part: required, at most 5 MiB, and an image.</span>
+	<span class="c1">// AllowedTypes is checked against the *sniffed* content type (the first 512</span>
+	<span class="c1">// bytes), not the client-declared Content-Type header, so it can&#39;t be spoofed.</span>
+	<span class="nx">validator</span><span class="p">.</span><span class="nx">FileField</span><span class="p">[</span><span class="nx">Bindings</span><span class="p">]</span><span class="p">(</span><span class="nx">validator</span><span class="p">.</span><span class="nx">FileConstraint</span><span class="p">&#123;</span>
+		<span class="nx">Field</span><span class="p">:</span>        <span class="s">&#34;avatar&#34;</span><span class="p">,</span>
+		<span class="nx">Required</span><span class="p">:</span>     <span class="kc">true</span><span class="p">,</span>
+		<span class="nx">MaxBytes</span><span class="p">:</span>     <span class="mi">5</span> <span class="o">&lt;&lt;</span> <span class="mi">20</span><span class="p">,</span>
+		<span class="nx">AllowedTypes</span><span class="p">:</span> <span class="p">[</span><span class="p">]</span><span class="kt">string</span><span class="p">&#123;</span><span class="s">&#34;image/png&#34;</span><span class="p">,</span> <span class="s">&#34;image/jpeg&#34;</span><span class="p">,</span> <span class="s">&#34;image/webp&#34;</span><span class="p">&#125;</span><span class="p">,</span>
+	<span class="p">&#125;</span><span class="p">)</span><span class="p">,</span>
+	<span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="nx">MyContext</span><span class="p">)</span> <span class="kt">error</span> <span class="p">&#123;</span>
+		<span class="nx">file</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">validator</span><span class="p">.</span><span class="nx">Valid</span><span class="p">[</span><span class="nx">validator</span><span class="p">.</span><span class="nx">UploadedFile</span><span class="p">]</span><span class="p">(</span><span class="nx">c</span><span class="p">,</span> <span class="nx">validator</span><span class="p">.</span><span class="nx">TargetFormFile</span><span class="p">)</span>
+
+		<span class="c1">// Stream the file straight to storage — no need to read it into memory.</span>
+		<span class="nx">f</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">file</span><span class="p">.</span><span class="nf">Open</span><span class="p">(</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">&#123;</span>
+			<span class="k">return</span> <span class="nx">err</span>
+		<span class="p">&#125;</span>
+		<span class="k">defer</span> <span class="nx">f</span><span class="p">.</span><span class="nf">Close</span><span class="p">(</span><span class="p">)</span>
+
+		<span class="nx">key</span> <span class="o">:=</span> <span class="nx">uuid</span><span class="p">.</span><span class="nf">NewString</span><span class="p">(</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">blob</span><span class="p">.</span><span class="nf">UploadImage</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nf">Env</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nx">BUCKET</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">f</span><span class="p">,</span> <span class="nx">file</span><span class="p">.</span><span class="nx">ContentType</span><span class="p">)</span><span class="p">;</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">&#123;</span>
+			<span class="k">return</span> <span class="nx">err</span>
+		<span class="p">&#125;</span>
+		<span class="k">return</span> <span class="nx">c</span><span class="p">.</span><span class="nf">Status</span><span class="p">(</span><span class="mi">201</span><span class="p">)</span><span class="p">.</span><span class="nf">Json</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span><span class="p">&#123;</span><span class="s">&#34;status&#34;</span><span class="p">:</span> <span class="s">&#34;updated&#34;</span><span class="p">&#125;</span><span class="p">)</span>
+	<span class="p">&#125;</span><span class="p">,</span>
+<span class="p">)</span></code></pre>
+		`,
+	)
+}
