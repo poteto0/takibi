@@ -520,6 +520,201 @@ func TestFormFile_ParseErrorReachesErrorHandler(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
+// pngBytes returns a minimal byte slice whose signature makes
+// http.DetectContentType report "image/png".
+func pngBytes() string {
+	return string([]byte{0x89, 'P', 'N', 'G', 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0})
+}
+
+func TestFileField_StoresValidatedFile(t *testing.T) {
+	called := false
+
+	app := takibi.New(&Bindings{})
+	app.Post("/upload",
+		validator.FileField[Bindings](validator.FileConstraint{
+			Field:        "avatar",
+			Required:     true,
+			MaxBytes:     1 << 20,
+			AllowedTypes: []string{"image/png"},
+		}),
+		func(c MyContext) error {
+			called = true
+			file, ok := validator.Valid[validator.UploadedFile](c, validator.TargetFormFile)
+			assert.True(t, ok)
+			assert.Equal(t, "avatar", file.Field)
+			assert.Equal(t, "a.png", file.Filename)
+			assert.Equal(t, "image/png", file.ContentType)
+			assert.Equal(t, int64(len(pngBytes())), file.Size)
+
+			f, err := file.Open()
+			assert.NoError(t, err)
+			defer f.Close()
+			content, _ := io.ReadAll(f)
+			assert.Equal(t, pngBytes(), string(content))
+			return c.Status(http.StatusCreated).Text("created")
+		},
+	)
+
+	body, contentType := buildMultipart(t, "title", "hello", "avatar", "a.png", pngBytes())
+	req := httptest.NewRequest(http.MethodPost, "/upload", body)
+	req.Header.Set("Content-Type", contentType)
+	w := httptest.NewRecorder()
+
+	app.ServeHTTP(w, req)
+
+	assert.True(t, called)
+	assert.Equal(t, http.StatusCreated, w.Code)
+}
+
+func TestFileField_RequiredMissing_ReturnsFileError(t *testing.T) {
+	var captured error
+
+	app := takibi.New(&Bindings{})
+	app.OnError(func(c MyContext, err error) error {
+		captured = err
+		return c.Status(http.StatusUnprocessableEntity).Text("err")
+	})
+	app.Post("/upload",
+		validator.FileField[Bindings](validator.FileConstraint{Field: "avatar", Required: true}),
+		func(c MyContext) error { return c.Text("unreachable") },
+	)
+
+	// multipart body with no file field
+	body := &bytes.Buffer{}
+	mw := multipart.NewWriter(body)
+	_ = mw.WriteField("title", "x")
+	_ = mw.Close()
+	req := httptest.NewRequest(http.MethodPost, "/upload", body)
+	req.Header.Set("Content-Type", mw.FormDataContentType())
+	w := httptest.NewRecorder()
+
+	app.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	var fe *validator.FileError
+	assert.True(t, errors.As(captured, &fe))
+	assert.Equal(t, "avatar", fe.Field)
+	assert.Equal(t, validator.FileErrRequired, fe.Reason)
+}
+
+func TestFileField_TooLarge_ReturnsFileError(t *testing.T) {
+	var captured error
+
+	app := takibi.New(&Bindings{})
+	app.OnError(func(c MyContext, err error) error {
+		captured = err
+		return c.Status(http.StatusRequestEntityTooLarge).Text("err")
+	})
+	app.Post("/upload",
+		validator.FileField[Bindings](validator.FileConstraint{Field: "avatar", MaxBytes: 4}),
+		func(c MyContext) error { return c.Text("unreachable") },
+	)
+
+	body, contentType := buildMultipart(t, "title", "x", "avatar", "a.png", pngBytes())
+	req := httptest.NewRequest(http.MethodPost, "/upload", body)
+	req.Header.Set("Content-Type", contentType)
+	w := httptest.NewRecorder()
+
+	app.ServeHTTP(w, req)
+
+	var fe *validator.FileError
+	assert.True(t, errors.As(captured, &fe))
+	assert.Equal(t, validator.FileErrTooLarge, fe.Reason)
+}
+
+func TestFileField_UnsupportedType_ReturnsFileError(t *testing.T) {
+	var captured error
+
+	app := takibi.New(&Bindings{})
+	app.OnError(func(c MyContext, err error) error {
+		captured = err
+		return c.Status(http.StatusUnsupportedMediaType).Text("err")
+	})
+	app.Post("/upload",
+		validator.FileField[Bindings](validator.FileConstraint{
+			Field:        "avatar",
+			AllowedTypes: []string{"image/png"},
+		}),
+		func(c MyContext) error { return c.Text("unreachable") },
+	)
+
+	// plain text content sniffs to text/plain, not image/png — even though the
+	// client declares it as image/png the validator rejects it.
+	body, contentType := buildMultipart(t, "title", "x", "avatar", "a.png", "just text content")
+	req := httptest.NewRequest(http.MethodPost, "/upload", body)
+	req.Header.Set("Content-Type", contentType)
+	w := httptest.NewRecorder()
+
+	app.ServeHTTP(w, req)
+
+	var fe *validator.FileError
+	assert.True(t, errors.As(captured, &fe))
+	assert.Equal(t, validator.FileErrUnsupportedType, fe.Reason)
+}
+
+func TestFileField_OptionalAbsent_StoresZeroValue(t *testing.T) {
+	called := false
+
+	app := takibi.New(&Bindings{})
+	app.Post("/upload",
+		validator.FileField[Bindings](validator.FileConstraint{Field: "avatar"}),
+		func(c MyContext) error {
+			called = true
+			file, ok := validator.Valid[validator.UploadedFile](c, validator.TargetFormFile)
+			assert.True(t, ok)
+			assert.Equal(t, validator.UploadedFile{}, file)
+			return c.Status(http.StatusOK).Text("ok")
+		},
+	)
+
+	body := &bytes.Buffer{}
+	mw := multipart.NewWriter(body)
+	_ = mw.WriteField("title", "x")
+	_ = mw.Close()
+	req := httptest.NewRequest(http.MethodPost, "/upload", body)
+	req.Header.Set("Content-Type", mw.FormDataContentType())
+	w := httptest.NewRecorder()
+
+	app.ServeHTTP(w, req)
+
+	assert.True(t, called)
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestFile_CombinesFileAndTextFields(t *testing.T) {
+	type Avatar struct {
+		Title    string
+		Filename string
+	}
+	called := false
+
+	app := takibi.New(&Bindings{})
+	app.Post("/upload",
+		validator.File(validator.FileConstraint{Field: "avatar", Required: true},
+			func(file validator.UploadedFile, form *multipart.Form, c MyContext) (Avatar, error) {
+				return Avatar{Title: form.Value["title"][0], Filename: file.Filename}, nil
+			}),
+		func(c MyContext) error {
+			called = true
+			a, ok := validator.Valid[Avatar](c, validator.TargetFormFile)
+			assert.True(t, ok)
+			assert.Equal(t, "hello", a.Title)
+			assert.Equal(t, "a.png", a.Filename)
+			return c.Status(http.StatusCreated).Text("created")
+		},
+	)
+
+	body, contentType := buildMultipart(t, "title", "hello", "avatar", "a.png", pngBytes())
+	req := httptest.NewRequest(http.MethodPost, "/upload", body)
+	req.Header.Set("Content-Type", contentType)
+	w := httptest.NewRecorder()
+
+	app.ServeHTTP(w, req)
+
+	assert.True(t, called)
+	assert.Equal(t, http.StatusCreated, w.Code)
+}
+
 func TestValid_ReturnsZeroWhenMissing(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	w := httptest.NewRecorder()

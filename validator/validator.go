@@ -1,8 +1,13 @@
 package validator
 
 import (
+	"fmt"
+	"io"
+	"mime"
 	"mime/multipart"
+	"net/http"
 	"net/url"
+	"slices"
 
 	"github.com/poteto0/takibi/constants"
 	"github.com/poteto0/takibi/interfaces"
@@ -74,6 +79,159 @@ func FormFile[Bindings any, T any](
 		}
 		return raw.MultipartForm, nil
 	}, fn)
+}
+
+// Reasons reported by FileError.
+const (
+	FileErrRequired        = "required"
+	FileErrTooLarge        = "too_large"
+	FileErrUnsupportedType = "unsupported_type"
+)
+
+// sniffLen is the number of leading bytes http.DetectContentType inspects.
+const sniffLen = 512
+
+// FileConstraint declares the validation rules applied to a single uploaded
+// file field by File and FileField.
+type FileConstraint struct {
+	Field        string   // multipart field name (required)
+	Required     bool     // reject when the field carries no file part
+	MaxBytes     int64    // reject files larger than this; 0 disables the check
+	AllowedTypes []string // permitted (sniffed) Content-Types; empty allows any
+}
+
+// UploadedFile is a validated file part. The handler opens it via Open and is
+// responsible for closing the returned multipart.File.
+type UploadedFile struct {
+	Field       string
+	Filename    string
+	ContentType string // content type detected by sniffing the file's bytes
+	Size        int64
+	Header      *multipart.FileHeader
+}
+
+// Open opens the underlying multipart file for reading. The caller must Close
+// the returned file. It returns an error when the file is absent (zero value).
+func (u UploadedFile) Open() (multipart.File, error) {
+	if u.Header == nil {
+		return nil, fmt.Errorf("no file to open for field %q", u.Field)
+	}
+	return u.Header.Open()
+}
+
+// FileError is returned by File/FileField when an uploaded file violates a
+// FileConstraint. It flows to app.OnError so the application can render its own
+// error response. Reason is one of the FileErr* constants.
+type FileError struct {
+	Field  string
+	Reason string
+}
+
+func (e *FileError) Error() string {
+	return fmt.Sprintf("file %q: %s", e.Field, e.Reason)
+}
+
+// fileInput carries the validated file and the parsed form to the File fn.
+type fileInput struct {
+	file UploadedFile
+	form *multipart.Form
+}
+
+// File parses a multipart/form-data body, validates the file field named by c
+// against its constraints, then passes the validated UploadedFile and the full
+// *multipart.Form (for the text Value fields) to fn. The returned value is
+// stored under TargetFormFile ("formFile").
+//
+// A constraint violation returns a *FileError (flowing to app.OnError) rather
+// than writing a response, so the application controls the error format.
+func File[Bindings any, T any](
+	c FileConstraint,
+	fn func(UploadedFile, *multipart.Form, interfaces.IContext[Bindings]) (T, error),
+) interfaces.HandlerFunc[Bindings] {
+	return newValidator(TargetFormFile, func(ctx interfaces.IContext[Bindings]) (fileInput, error) {
+		raw := ctx.Req().Raw()
+		if err := raw.ParseMultipartForm(formFileMaxMemory); err != nil {
+			return fileInput{}, err
+		}
+		form := raw.MultipartForm
+		file, err := validateFile(form, c)
+		if err != nil {
+			return fileInput{}, err
+		}
+		return fileInput{file: file, form: form}, nil
+	}, func(in fileInput, ctx interfaces.IContext[Bindings]) (T, error) {
+		return fn(in.file, in.form, ctx)
+	})
+}
+
+// FileField is the no-fn shortcut over File: it validates the named file field
+// and stores the resulting UploadedFile under TargetFormFile ("formFile"),
+// ready to retrieve with Valid[UploadedFile]. Use File when you also need the
+// form's text fields.
+func FileField[Bindings any](c FileConstraint) interfaces.HandlerFunc[Bindings] {
+	return File(c, func(file UploadedFile, _ *multipart.Form, _ interfaces.IContext[Bindings]) (UploadedFile, error) {
+		return file, nil
+	})
+}
+
+// validateFile checks the file part named by c against its constraints. When
+// the field is optional and absent it returns the zero UploadedFile with no
+// error; a present file is validated for size and (sniffed) content type.
+func validateFile(form *multipart.Form, c FileConstraint) (UploadedFile, error) {
+	var headers []*multipart.FileHeader
+	if form != nil {
+		headers = form.File[c.Field]
+	}
+	if len(headers) == 0 {
+		if c.Required {
+			return UploadedFile{}, &FileError{Field: c.Field, Reason: FileErrRequired}
+		}
+		return UploadedFile{}, nil
+	}
+
+	fh := headers[0]
+	if c.MaxBytes > 0 && fh.Size > c.MaxBytes {
+		return UploadedFile{}, &FileError{Field: c.Field, Reason: FileErrTooLarge}
+	}
+
+	contentType, err := sniffContentType(fh)
+	if err != nil {
+		return UploadedFile{}, err
+	}
+	if len(c.AllowedTypes) > 0 && !slices.Contains(c.AllowedTypes, contentType) {
+		return UploadedFile{}, &FileError{Field: c.Field, Reason: FileErrUnsupportedType}
+	}
+
+	return UploadedFile{
+		Field:       c.Field,
+		Filename:    fh.Filename,
+		ContentType: contentType,
+		Size:        fh.Size,
+		Header:      fh,
+	}, nil
+}
+
+// sniffContentType detects the content type from the file's leading bytes
+// instead of trusting the client-declared Content-Type header. Any media-type
+// parameters (e.g. "; charset=utf-8") are stripped so the value compares
+// cleanly against FileConstraint.AllowedTypes.
+func sniffContentType(fh *multipart.FileHeader) (string, error) {
+	f, err := fh.Open()
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	buf := make([]byte, sniffLen)
+	n, err := io.ReadFull(f, buf)
+	if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
+		return "", err
+	}
+	detected := http.DetectContentType(buf[:n])
+	if mediaType, _, err := mime.ParseMediaType(detected); err == nil {
+		return mediaType, nil
+	}
+	return detected, nil
 }
 
 // Json returns a HandlerFunc that reads the JSON request body and passes

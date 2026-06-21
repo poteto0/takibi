@@ -34,6 +34,12 @@ templ Validator() {
 	<div class={ styles.Callout() }>
 		The multipart form is parsed entirely in memory, so <code>FormFile</code> behaves identically on native and Cloudflare Workers (wasm) builds — the wasm runtime has no filesystem to spill large uploads to.
 	</div>
+	<h2>Validated File Uploads</h2>
+	<p><code>FileField</code> builds on <code>FormFile</code> to cover the common case of accepting a single file under known constraints. You declare a <code>FileConstraint</code> (field name, <code>Required</code>, <code>MaxBytes</code>, <code>AllowedTypes</code>) and it runs the required / size / content-type checks on your behalf, storing a validated <code>UploadedFile</code> under <code>TargetFormFile</code>. The handler keeps only the domain logic — open the file and stream it on:</p>
+	@code.Validatorfilefieldgo()
+	<div class={ styles.Callout() }>
+		<code>AllowedTypes</code> is matched against the content type <em>sniffed</em> from the file's leading bytes (via <code>http.DetectContentType</code>), not the client-supplied <code>Content-Type</code> header, so a renamed or mislabelled upload is still rejected. A constraint violation returns a <code>*validator.FileError</code> (with <code>Field</code> and <code>Reason</code>: <code>FileErrRequired</code>, <code>FileErrTooLarge</code>, or <code>FileErrUnsupportedType</code>) which flows to <code>app.OnError</code> — render it however your API formats errors. Use <code>validator.File</code> (the <code>fn</code> form) when you also need the form's text fields alongside the file.
+	</div>
 	<h2>Target Keys</h2>
 	<table>
 		<thead>
@@ -52,6 +58,16 @@ templ Validator() {
 			<tr>
 				<td><code>validator.FormFile</code></td>
 				<td><code>*multipart.Form</code></td>
+				<td><code>TargetFormFile</code> ("formFile")</td>
+			</tr>
+			<tr>
+				<td><code>validator.File</code></td>
+				<td><code>UploadedFile</code>, <code>*multipart.Form</code></td>
+				<td><code>TargetFormFile</code> ("formFile")</td>
+			</tr>
+			<tr>
+				<td><code>validator.FileField</code></td>
+				<td>— (stores <code>UploadedFile</code>)</td>
 				<td><code>TargetFormFile</code> ("formFile")</td>
 			</tr>
 			<tr>
