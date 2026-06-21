@@ -1,0 +1,35 @@
+package code
+
+templ Validatorfileerrorgo() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><code><span class="nx">app</span><span class="p">.</span><span class="nf">Post</span><span class="p">(</span><span class="s">&#34;/cats/:id/avatar&#34;</span><span class="p">,</span>
+	<span class="nx">validator</span><span class="p">.</span><span class="nx">FileField</span><span class="p">[</span><span class="nx">Bindings</span><span class="p">]</span><span class="p">(</span>
+		<span class="nx">validator</span><span class="p">.</span><span class="nx">FileConstraint</span><span class="p">&#123;</span>
+			<span class="nx">Field</span><span class="p">:</span>        <span class="s">&#34;avatar&#34;</span><span class="p">,</span>
+			<span class="nx">Required</span><span class="p">:</span>     <span class="kc">true</span><span class="p">,</span>
+			<span class="nx">MaxBytes</span><span class="p">:</span>     <span class="mi">5</span> <span class="o">&lt;&lt;</span> <span class="mi">20</span><span class="p">,</span>
+			<span class="nx">AllowedTypes</span><span class="p">:</span> <span class="p">[</span><span class="p">]</span><span class="kt">string</span><span class="p">&#123;</span><span class="s">&#34;image/png&#34;</span><span class="p">,</span> <span class="s">&#34;image/jpeg&#34;</span><span class="p">&#125;</span><span class="p">,</span>
+		<span class="p">&#125;</span><span class="p">,</span>
+		<span class="c1">// Override the default *FileError handling. The handler receives the</span>
+		<span class="c1">// violation and the context, so you can render the response yourself.</span>
+		<span class="nx">validator</span><span class="p">.</span><span class="nf">WithFileError</span><span class="p">(</span><span class="kd">func</span><span class="p">(</span><span class="nx">fe</span> <span class="o">*</span><span class="nx">validator</span><span class="p">.</span><span class="nx">FileError</span><span class="p">,</span> <span class="nx">c</span> <span class="nx">MyContext</span><span class="p">)</span> <span class="kt">error</span> <span class="p">&#123;</span>
+			<span class="nx">status</span> <span class="o">:=</span> <span class="nx">http</span><span class="p">.</span><span class="nx">StatusUnprocessableEntity</span>
+			<span class="k">if</span> <span class="nx">fe</span><span class="p">.</span><span class="nx">Reason</span> <span class="o">==</span> <span class="nx">validator</span><span class="p">.</span><span class="nx">FileErrTooLarge</span> <span class="p">&#123;</span>
+				<span class="nx">status</span> <span class="p">=</span> <span class="nx">http</span><span class="p">.</span><span class="nx">StatusRequestEntityTooLarge</span>
+			<span class="p">&#125;</span>
+			<span class="nx">c</span><span class="p">.</span><span class="nf">Status</span><span class="p">(</span><span class="nx">status</span><span class="p">)</span><span class="p">.</span><span class="nf">Json</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span><span class="p">&#123;</span>
+				<span class="s">&#34;field&#34;</span><span class="p">:</span>  <span class="nx">fe</span><span class="p">.</span><span class="nx">Field</span><span class="p">,</span>
+				<span class="s">&#34;reason&#34;</span><span class="p">:</span> <span class="nx">fe</span><span class="p">.</span><span class="nx">Reason</span><span class="p">,</span>
+			<span class="p">&#125;</span><span class="p">)</span>
+			<span class="k">return</span> <span class="nx">validator</span><span class="p">.</span><span class="nx">ErrStop</span> <span class="c1">// response already written; halt the chain</span>
+		<span class="p">&#125;</span><span class="p">)</span><span class="p">,</span>
+	<span class="p">)</span><span class="p">,</span>
+	<span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="nx">MyContext</span><span class="p">)</span> <span class="kt">error</span> <span class="p">&#123;</span>
+		<span class="nx">file</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">validator</span><span class="p">.</span><span class="nx">Valid</span><span class="p">[</span><span class="nx">validator</span><span class="p">.</span><span class="nx">UploadedFile</span><span class="p">]</span><span class="p">(</span><span class="nx">c</span><span class="p">,</span> <span class="nx">validator</span><span class="p">.</span><span class="nx">TargetFormFile</span><span class="p">)</span>
+		<span class="k">return</span> <span class="nx">c</span><span class="p">.</span><span class="nf">Status</span><span class="p">(</span><span class="mi">201</span><span class="p">)</span><span class="p">.</span><span class="nf">Json</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span><span class="p">&#123;</span><span class="s">&#34;file&#34;</span><span class="p">:</span> <span class="nx">file</span><span class="p">.</span><span class="nx">Filename</span><span class="p">&#125;</span><span class="p">)</span>
+	<span class="p">&#125;</span><span class="p">,</span>
+<span class="p">)</span></code></pre>
+		`,
+	)
+}

@@ -652,6 +652,80 @@ func TestFileField_UnsupportedType_ReturnsFileError(t *testing.T) {
 	assert.Equal(t, validator.FileErrUnsupportedType, fe.Reason)
 }
 
+// A custom error handler passed to FileField is invoked on a constraint
+// violation instead of the default *FileError. It receives the FileError and
+// the context, and may write its own response and return ErrStop.
+func TestFileField_CustomErrorHandler_OverridesDefault(t *testing.T) {
+	var gotReason string
+	nextCalled := false
+
+	app := takibi.New(&Bindings{})
+	app.Post("/upload",
+		validator.FileField[Bindings](
+			validator.FileConstraint{Field: "avatar", Required: true},
+			validator.WithFileError(func(fe *validator.FileError, c MyContext) error {
+				gotReason = fe.Reason
+				c.Status(http.StatusBadRequest).Text("custom: " + fe.Reason)
+				return validator.ErrStop
+			}),
+		),
+		func(c MyContext) error {
+			nextCalled = true
+			return c.Text("unreachable")
+		},
+	)
+
+	// multipart body with no file field
+	body := &bytes.Buffer{}
+	mw := multipart.NewWriter(body)
+	_ = mw.WriteField("title", "x")
+	_ = mw.Close()
+	req := httptest.NewRequest(http.MethodPost, "/upload", body)
+	req.Header.Set("Content-Type", mw.FormDataContentType())
+	w := httptest.NewRecorder()
+
+	app.ServeHTTP(w, req)
+
+	assert.False(t, nextCalled)
+	assert.Equal(t, validator.FileErrRequired, gotReason)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Equal(t, "custom: required", w.Body.String())
+}
+
+// File also accepts a custom error handler, which can transform the FileError
+// into an arbitrary error that flows to app.OnError.
+func TestFile_CustomErrorHandler_TransformsError(t *testing.T) {
+	var captured error
+
+	app := takibi.New(&Bindings{})
+	app.OnError(func(c MyContext, err error) error {
+		captured = err
+		return c.Status(http.StatusBadRequest).Text("err")
+	})
+	app.Post("/upload",
+		validator.File(
+			validator.FileConstraint{Field: "avatar", MaxBytes: 4},
+			func(file validator.UploadedFile, form *multipart.Form, c MyContext) (validator.UploadedFile, error) {
+				return file, nil
+			},
+			validator.WithFileError(func(fe *validator.FileError, c MyContext) error {
+				return errors.New("converted: " + fe.Reason)
+			}),
+		),
+		func(c MyContext) error { return c.Text("unreachable") },
+	)
+
+	body, contentType := buildMultipart(t, "title", "x", "avatar", "a.png", pngBytes())
+	req := httptest.NewRequest(http.MethodPost, "/upload", body)
+	req.Header.Set("Content-Type", contentType)
+	w := httptest.NewRecorder()
+
+	app.ServeHTTP(w, req)
+
+	assert.EqualError(t, captured, "converted: too_large")
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
 func TestFileField_OptionalAbsent_StoresZeroValue(t *testing.T) {
 	called := false
 
