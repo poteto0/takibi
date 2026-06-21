@@ -20,6 +20,9 @@ type IRequest interface {
 	// Unmarshall request body to dest
 	Unmarshall(dest any) error
 
+	// UnmarshallForm binds form values (urlencoded / multipart) into dest by `form` tag
+	UnmarshallForm(dest any) error
+
 	// get query parameters as map
 	Queries() map[string][]string
 

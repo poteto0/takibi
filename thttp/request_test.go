@@ -3,8 +3,11 @@ package thttp_test
 import (
 	"bytes"
 	"errors"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/poteto0/takibi/thttp"
@@ -207,6 +210,185 @@ func Test_Request_Unmarshall_BodySizeLimit(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, "hi", payload.Message)
+	})
+}
+
+func Test_Request_UnmarshallForm(t *testing.T) {
+	type SignUp struct {
+		Name    string  `form:"name"`
+		Age     int     `form:"age"`
+		Big     int64   `form:"big"`
+		Score   float64 `form:"score"`
+		Admin   bool    `form:"admin"`
+		Untaged string  // resolved by field name
+		Skip    string  `form:"-"`
+		hidden  string  // unexported, must be skipped without panic
+	}
+
+	t.Run("urlencoded body binds typed fields", func(t *testing.T) {
+		// Arrange
+		form := url.Values{
+			"name":    {"alice"},
+			"age":     {"30"},
+			"big":     {"9999999999"},
+			"score":   {"9.5"},
+			"admin":   {"true"},
+			"Untaged": {"raw"},
+			"-":       {"ignored"},
+		}
+		req := httptest.NewRequest("POST", "http://example.com", strings.NewReader(form.Encode()))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		r := thttp.NewRequest(req, nil)
+
+		// Act
+		var in SignUp
+		err := r.UnmarshallForm(&in)
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, "alice", in.Name)
+		assert.Equal(t, 30, in.Age)
+		assert.Equal(t, int64(9999999999), in.Big)
+		assert.Equal(t, 9.5, in.Score)
+		assert.True(t, in.Admin)
+		assert.Equal(t, "raw", in.Untaged)
+		assert.Equal(t, "", in.Skip)
+		assert.Equal(t, "", in.hidden)
+	})
+
+	t.Run("multipart/form-data value fields bind", func(t *testing.T) {
+		// Arrange
+		body := &bytes.Buffer{}
+		w := multipart.NewWriter(body)
+		_ = w.WriteField("name", "bob")
+		_ = w.WriteField("age", "42")
+		_ = w.Close()
+		req := httptest.NewRequest("POST", "http://example.com", body)
+		req.Header.Set("Content-Type", w.FormDataContentType())
+		r := thttp.NewRequest(req, nil)
+
+		// Act
+		var in SignUp
+		err := r.UnmarshallForm(&in)
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, "bob", in.Name)
+		assert.Equal(t, 42, in.Age)
+	})
+
+	t.Run("missing or empty fields stay zero without error", func(t *testing.T) {
+		// Arrange
+		form := url.Values{"name": {"alice"}, "age": {""}}
+		req := httptest.NewRequest("POST", "http://example.com", strings.NewReader(form.Encode()))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		r := thttp.NewRequest(req, nil)
+
+		// Act
+		var in SignUp
+		err := r.UnmarshallForm(&in)
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, "alice", in.Name)
+		assert.Equal(t, 0, in.Age)
+	})
+
+	t.Run("unsupported content-type is error", func(t *testing.T) {
+		// Arrange
+		req := httptest.NewRequest("POST", "http://example.com", strings.NewReader("name=alice"))
+		req.Header.Set("Content-Type", "application/json")
+		r := thttp.NewRequest(req, nil)
+
+		// Act
+		err := r.UnmarshallForm(&SignUp{})
+
+		// Assert
+		assert.Error(t, err)
+	})
+
+	t.Run("conversion failure is error", func(t *testing.T) {
+		cases := map[string]url.Values{
+			"int":   {"age": {"abc"}},
+			"int64": {"big": {"x"}},
+			"float": {"score": {"x"}},
+			"bool":  {"admin": {"notabool"}},
+		}
+		for name, form := range cases {
+			t.Run(name, func(t *testing.T) {
+				req := httptest.NewRequest("POST", "http://example.com", strings.NewReader(form.Encode()))
+				req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+				r := thttp.NewRequest(req, nil)
+
+				err := r.UnmarshallForm(&SignUp{})
+
+				assert.Error(t, err)
+			})
+		}
+	})
+
+	t.Run("malformed urlencoded body is error", func(t *testing.T) {
+		// Arrange: invalid percent-encoding makes ParseForm fail
+		req := httptest.NewRequest("POST", "http://example.com", strings.NewReader("name=%zz"))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		r := thttp.NewRequest(req, nil)
+
+		// Act
+		err := r.UnmarshallForm(&SignUp{})
+
+		// Assert
+		assert.Error(t, err)
+	})
+
+	t.Run("malformed multipart body is error", func(t *testing.T) {
+		// Arrange: multipart content-type but body is not a valid multipart payload
+		req := httptest.NewRequest("POST", "http://example.com", strings.NewReader("not-multipart"))
+		req.Header.Set("Content-Type", "multipart/form-data; boundary=xxx")
+		r := thttp.NewRequest(req, nil)
+
+		// Act
+		err := r.UnmarshallForm(&SignUp{})
+
+		// Assert
+		assert.Error(t, err)
+	})
+
+	t.Run("non-pointer dest is error", func(t *testing.T) {
+		req := httptest.NewRequest("POST", "http://example.com", strings.NewReader("name=alice"))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		r := thttp.NewRequest(req, nil)
+
+		assert.Error(t, r.UnmarshallForm(SignUp{}))
+	})
+
+	t.Run("nil pointer dest is error", func(t *testing.T) {
+		req := httptest.NewRequest("POST", "http://example.com", strings.NewReader("name=alice"))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		r := thttp.NewRequest(req, nil)
+
+		var p *SignUp
+		assert.Error(t, r.UnmarshallForm(p))
+	})
+
+	t.Run("pointer to non-struct is error", func(t *testing.T) {
+		req := httptest.NewRequest("POST", "http://example.com", strings.NewReader("name=alice"))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		r := thttp.NewRequest(req, nil)
+
+		n := 0
+		assert.Error(t, r.UnmarshallForm(&n))
+	})
+
+	t.Run("unsupported field type with value is error", func(t *testing.T) {
+		type Bad struct {
+			Tags []string `form:"tags"`
+		}
+		form := url.Values{"tags": {"a"}}
+		req := httptest.NewRequest("POST", "http://example.com", strings.NewReader(form.Encode()))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		r := thttp.NewRequest(req, nil)
+
+		assert.Error(t, r.UnmarshallForm(&Bad{}))
 	})
 }
 
