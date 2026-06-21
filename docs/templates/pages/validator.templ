@@ -38,7 +38,13 @@ templ Validator() {
 	<p><code>FileField</code> builds on <code>FormFile</code> to cover the common case of accepting a single file under known constraints. You declare a <code>FileConstraint</code> (field name, <code>Required</code>, <code>MaxBytes</code>, <code>AllowedTypes</code>) and it runs the required / size / content-type checks on your behalf, storing a validated <code>UploadedFile</code> under <code>TargetFormFile</code>. The handler keeps only the domain logic — open the file and stream it on:</p>
 	@code.Validatorfilefieldgo()
 	<div class={ styles.Callout() }>
-		<code>AllowedTypes</code> is matched against the content type <em>sniffed</em> from the file's leading bytes (via <code>http.DetectContentType</code>), not the client-supplied <code>Content-Type</code> header, so a renamed or mislabelled upload is still rejected. A constraint violation returns a <code>*validator.FileError</code> (with <code>Field</code> and <code>Reason</code>: <code>FileErrRequired</code>, <code>FileErrTooLarge</code>, or <code>FileErrUnsupportedType</code>) which flows to <code>app.OnError</code> — render it however your API formats errors. Use <code>validator.File</code> (the <code>fn</code> form) when you also need the form's text fields alongside the file.
+		<code>AllowedTypes</code> is matched against the content type <em>sniffed</em> from the file's leading bytes (via <code>http.DetectContentType</code>), not the client-supplied <code>Content-Type</code> header, so a renamed or mislabelled upload is still rejected. By default a constraint violation returns a <code>*validator.FileError</code> (with <code>Field</code> and <code>Reason</code>: <code>FileErrRequired</code>, <code>FileErrTooLarge</code>, or <code>FileErrUnsupportedType</code>) which flows to <code>app.OnError</code> — render it however your API formats errors. Use <code>validator.File</code> (the <code>fn</code> form) when you also need the form's text fields alongside the file.
+	</div>
+	<h2>Customizing File Validation Errors</h2>
+	<p>When you want a violation handled where it happens rather than centrally in <code>app.OnError</code>, pass <code>validator.WithFileError</code> to <code>FileField</code> or <code>File</code>. The handler receives the <code>*FileError</code> and the context, so it can branch on <code>Reason</code>, write its own response and return <code>validator.ErrStop</code>, or transform the violation into any other <code>error</code>. Without it the default behaviour (return the raw <code>*FileError</code> to <code>app.OnError</code>) is unchanged:</p>
+	@code.Validatorfileerrorgo()
+	<div class={ styles.Callout() }>
+		<code>WithFileError</code> only runs for <code>*FileError</code> constraint violations. Parse failures and I/O errors (e.g. a malformed multipart body) still flow straight to <code>app.OnError</code>.
 	</div>
 	<h2>Target Keys</h2>
 	<table>

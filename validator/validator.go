@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -137,6 +138,31 @@ type fileInput struct {
 	form *multipart.Form
 }
 
+// FileErrorHandler maps a constraint violation to a response. It receives the
+// *FileError describing the violation and the request context, and returns the
+// error that drives the handler chain: return ErrStop after writing a response,
+// or return any error to flow to app.OnError.
+type FileErrorHandler[Bindings any] func(*FileError, interfaces.IContext[Bindings]) error
+
+// fileOptions collects the configurable behaviour of File/FileField.
+type fileOptions[Bindings any] struct {
+	onError FileErrorHandler[Bindings]
+}
+
+// FileOption customizes File/FileField. Build one with WithFileError.
+type FileOption[Bindings any] func(*fileOptions[Bindings])
+
+// WithFileError overrides the default constraint-violation handling. Without it
+// File/FileField return the raw *FileError to app.OnError; with it the handler
+// decides the response (e.g. write a body and return ErrStop, or transform the
+// error). The handler only runs for *FileError violations — parse and I/O
+// errors still flow straight to app.OnError.
+func WithFileError[Bindings any](h FileErrorHandler[Bindings]) FileOption[Bindings] {
+	return func(o *fileOptions[Bindings]) {
+		o.onError = h
+	}
+}
+
 // File parses a multipart/form-data body, validates the file field named by c
 // against its constraints, then passes the validated UploadedFile and the full
 // *multipart.Form (for the text Value fields) to fn. The returned value is
@@ -147,7 +173,12 @@ type fileInput struct {
 func File[Bindings any, T any](
 	c FileConstraint,
 	fn func(UploadedFile, *multipart.Form, interfaces.IContext[Bindings]) (T, error),
+	opts ...FileOption[Bindings],
 ) interfaces.HandlerFunc[Bindings] {
+	var o fileOptions[Bindings]
+	for _, opt := range opts {
+		opt(&o)
+	}
 	return newValidator(TargetFormFile, func(ctx interfaces.IContext[Bindings]) (fileInput, error) {
 		raw := ctx.Req().Raw()
 		if err := raw.ParseMultipartForm(formFileMaxMemory); err != nil {
@@ -156,6 +187,10 @@ func File[Bindings any, T any](
 		form := raw.MultipartForm
 		file, err := validateFile(form, c)
 		if err != nil {
+			var fe *FileError
+			if o.onError != nil && errors.As(err, &fe) {
+				return fileInput{}, o.onError(fe, ctx)
+			}
 			return fileInput{}, err
 		}
 		return fileInput{file: file, form: form}, nil
@@ -168,10 +203,10 @@ func File[Bindings any, T any](
 // and stores the resulting UploadedFile under TargetFormFile ("formFile"),
 // ready to retrieve with Valid[UploadedFile]. Use File when you also need the
 // form's text fields.
-func FileField[Bindings any](c FileConstraint) interfaces.HandlerFunc[Bindings] {
+func FileField[Bindings any](c FileConstraint, opts ...FileOption[Bindings]) interfaces.HandlerFunc[Bindings] {
 	return File(c, func(file UploadedFile, _ *multipart.Form, _ interfaces.IContext[Bindings]) (UploadedFile, error) {
 		return file, nil
-	})
+	}, opts...)
 }
 
 // validateFile checks the file part named by c against its constraints. When
