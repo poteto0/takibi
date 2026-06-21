@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -186,7 +187,8 @@ func File[Bindings any, T any](
 		form := raw.MultipartForm
 		file, err := validateFile(form, c)
 		if err != nil {
-			if fe, ok := err.(*FileError); ok && o.onError != nil {
+			var fe *FileError
+			if o.onError != nil && errors.As(err, &fe) {
 				return fileInput{}, o.onError(fe, ctx)
 			}
 			return fileInput{}, err
