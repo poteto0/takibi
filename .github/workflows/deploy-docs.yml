@@ -41,7 +41,7 @@ jobs:
           just-version: ${{ env.JUST_VERSION }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           package_json_file: docs/package.json
 
@@ -83,7 +83,7 @@ jobs:
           just-version: ${{ env.JUST_VERSION }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           package_json_file: docs/package.json
 
