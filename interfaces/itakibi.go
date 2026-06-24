@@ -25,7 +25,8 @@ type ITakibi[Bindings any] interface {
 
 	OnError(handler ErrorHandlerFunc[Bindings])
 
-	//	- ! it is not supported for wasm
+	// OnBlowError sets the handler invoked when a Blow task returns an error.
+	//	- on wasm: applies to "schedule" tasks dispatched by Cron Triggers.
 	OnBlowError(handler BlowErrorHandlerFunc[Bindings])
 
 	Use(path string, middleware ...MiddlewareFunc[Bindings]) error
@@ -133,7 +134,11 @@ type ITakibi[Bindings any] interface {
 	On(methods, paths []string, handlers ...HandlerFunc[Bindings]) error
 
 	// Blow registers task
-	//	- ! it is not supported for wasm
+	//	- on native go: "trigger" (start/stop) and "schedule" tasks via robfig/cron.
+	//	- on wasm: only "schedule" tasks, dispatched by Cloudflare Cron Triggers.
+	//	  The firing schedule is defined by wrangler.jsonc `triggers.crons`, and
+	//	  BlowActionSchedule must exactly match a configured cron expression.
+	//	  "trigger" (start/stop) tasks are not supported on wasm.
 	Blow(tasks ...BlowTask[Bindings])
 
 	// Camp simulates a request without starting the server

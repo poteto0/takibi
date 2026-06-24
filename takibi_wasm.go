@@ -12,14 +12,17 @@ import (
 	"github.com/poteto0/takibi/interfaces"
 	"github.com/poteto0/takibi/router"
 	"github.com/syumai/workers"
+	"github.com/syumai/workers/cloudflare/cron"
 )
 
 type takibi[Bindings any] struct {
-	env          *Bindings
-	cache        sync.Pool
-	router       interfaces.IRouter[Bindings]
-	errorHandler interfaces.ErrorHandlerFunc[Bindings]
-	option       interfaces.TakibiOption
+	env              *Bindings
+	cache            sync.Pool
+	router           interfaces.IRouter[Bindings]
+	errorHandler     interfaces.ErrorHandlerFunc[Bindings]
+	blowErrorHandler interfaces.BlowErrorHandlerFunc[Bindings]
+	tasks            []interfaces.BlowTask[Bindings]
+	option           interfaces.TakibiOption
 
 	ctx    stdContext.Context
 	cancel stdContext.CancelFunc
@@ -42,6 +45,9 @@ func NewWithOption[Bindings any](bindings *Bindings, opt interfaces.TakibiOption
 		errorHandler: func(ctx interfaces.IContext[Bindings], err error) error {
 			return ctx.Status(http.StatusInternalServerError).Text(err.Error())
 		},
+		blowErrorHandler: func(c interfaces.IContext[Bindings], err error) {
+			fmt.Println(err.Error())
+		},
 		ctx:    ctx,
 		cancel: cancel,
 		option: opt,
@@ -53,13 +59,47 @@ func (
 ) Fire(
 	addr string,
 ) error {
-	workers.Serve(t)
+	workers.ServeNonBlock(t)
+	t.startTasks()
+	workers.Ready()
+	<-workers.Done()
 	return nil
 }
 
+// startTasks registers a single Cron Trigger dispatcher when at least one
+// "schedule" task is registered. On Cloudflare Workers the actual firing
+// schedule is defined by wrangler.jsonc `triggers.crons`; each fired event's
+// cron expression is matched against BlowActionSchedule.
 func (
 	t *takibi[Bindings],
 ) startTasks() {
+	var scheduleTasks []interfaces.BlowTask[Bindings]
+	for _, task := range t.tasks {
+		if task.BlowActionTag == interfaces.BlowTagSchedule {
+			scheduleTasks = append(scheduleTasks, task)
+		}
+	}
+	if len(scheduleTasks) == 0 {
+		return
+	}
+
+	cron.ScheduleTaskNonBlock(func(ctx stdContext.Context) error {
+		event, _ := cron.NewEvent(ctx)
+		r, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
+		c := NewContext(nil, r, t.env, &t.option)
+		for _, task := range scheduleTasks {
+			// When BlowActionSchedule is set, only run for the matching
+			// fired cron expression. An empty schedule runs on every event.
+			if task.BlowActionSchedule != "" && event != nil &&
+				task.BlowActionSchedule != event.Cron {
+				continue
+			}
+			if err := task.BlowAction(c); err != nil {
+				t.blowErrorHandler(c, err)
+			}
+		}
+		return nil
+	})
 }
 
 func (
@@ -151,7 +191,7 @@ func (
 ) OnBlowError(
 	handler interfaces.BlowErrorHandlerFunc[Bindings],
 ) {
-	fmt.Println("it is not supported for wasm")
+	t.blowErrorHandler = handler
 }
 
 func (
@@ -197,7 +237,7 @@ func (
 ) Blow(
 	tasks ...interfaces.BlowTask[Bindings],
 ) {
-	fmt.Println("it is not supported for wasm")
+	t.tasks = append(t.tasks, tasks...)
 }
 
 func (
