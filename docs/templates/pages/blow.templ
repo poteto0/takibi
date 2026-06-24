@@ -7,7 +7,7 @@ templ Blow() {
 	<h1>Background Tasks</h1>
 	<p class={ styles.Lead() }><code>app.Blow</code> registers tasks that run outside the request lifecycle. Tasks can trigger on server start/stop, or run on a cron schedule.</p>
 	<div class={ styles.Callout(), styles.CalloutWarning() }>
-		Blow tasks are not supported on WASM / Cloudflare Workers. Use them only with the native Go server.
+		On WASM / Cloudflare Workers only <code>&#34;schedule&#34;</code> tasks are supported, dispatched by Cloudflare Cron Triggers. <code>&#34;trigger&#34;</code> (start/stop) tasks remain native-only because Workers are stateless.
 	</div>
 	<h2>Trigger Tasks</h2>
 	<p>Set <code>BlowActionTag</code> to <code>&#34;trigger&#34;</code> and <code>BlowActionTrigger</code> to <code>&#34;start&#34;</code> or <code>&#34;stop&#34;</code> to run code when the server boots or shuts down:</p>
@@ -15,6 +15,17 @@ templ Blow() {
 	<h2>Scheduled Tasks</h2>
 	<p>Set <code>BlowActionTag</code> to <code>&#34;schedule&#34;</code> and provide a cron expression in <code>BlowActionSchedule</code>. The scheduler uses <a href="https://pkg.go.dev/github.com/robfig/cron/v3" target="_blank" rel="noopener">robfig/cron</a> with optional seconds support:</p>
 	@code.Blowschedulego()
+	<h2>On Cloudflare Workers (WASM)</h2>
+	<p>When built for WASM, scheduled tasks are dispatched by <a href="https://developers.cloudflare.com/workers/configuration/cron-triggers/" target="_blank" rel="noopener">Cloudflare Cron Triggers</a> instead of <code>robfig/cron</code>. The firing schedule is defined in <code>wrangler.jsonc</code>:</p>
+	<pre>
+		<span class={ styles.PreLabel() }>jsonc</span>
+		<code>
+			&#34;triggers&#34;: &#123;
+			&nbsp;&nbsp;&#34;crons&#34;: [&#34;*/5 * * * *&#34;]
+			&#125;
+		</code>
+	</pre>
+	<p><code>BlowActionSchedule</code> must <strong>exactly match</strong> a cron expression listed in <code>triggers.crons</code> (standard 5-field cron, no seconds). The dispatcher runs every schedule task whose <code>BlowActionSchedule</code> equals the fired event&#39;s cron expression; leave it empty to run on every trigger.</p>
 	<h2>BlowTask Reference</h2>
 	<table>
 		<thead>

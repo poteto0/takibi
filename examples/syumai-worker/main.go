@@ -5,7 +5,6 @@ import (
 
 	"github.com/poteto0/takibi"
 	"github.com/poteto0/takibi/interfaces"
-	"github.com/syumai/workers"
 )
 
 type Bindings struct {
@@ -25,8 +24,12 @@ func main() {
 
 	app := takibi.New(bindings)
 
-	app.OnError(func(ctx interfaces.IContext[Bindings], err error) error {
+	app.OnError(func(ctx MyContext, err error) error {
 		return ctx.Status(500).Text("internal-server-error")
+	})
+
+	app.OnBlowError(func(ctx MyContext, err error) {
+		fmt.Println("scheduled task failed:", err.Error())
 	})
 
 	app.Get("/hello", func(ctx MyContext) error {
@@ -37,5 +40,21 @@ func main() {
 		})
 	})
 
-	workers.Serve(app)
+	// Scheduled task dispatched by Cloudflare Cron Triggers.
+	// BlowActionSchedule must exactly match an entry in wrangler.jsonc
+	// `triggers.crons` (standard 5-field cron, no seconds).
+	app.Blow(interfaces.BlowTask[Bindings]{
+		BlowActionTag:      "schedule",
+		BlowActionSchedule: "*/5 * * * *",
+		BlowAction: func(ctx MyContext) error {
+			fmt.Println("cron fired:", ctx.Env().Foo)
+			return nil
+		},
+	})
+
+	// Fire wires HTTP handlers and Cron Triggers, then blocks until done.
+	// The addr argument is ignored on WASM.
+	if err := app.Fire(""); err != nil {
+		panic(err)
+	}
 }

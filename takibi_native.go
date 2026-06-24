@@ -89,7 +89,7 @@ func (
 	t *takibi[Bindings],
 ) startTasks() {
 	for _, task := range t.tasks {
-		if task.BlowActionTag == "trigger" && task.BlowActionTrigger == "start" {
+		if task.BlowActionTag == interfaces.BlowTagTrigger && task.BlowActionTrigger == interfaces.BlowTriggerStart {
 			r, _ := http.NewRequestWithContext(t.ctx, "GET", "/", nil)
 			c := NewContext(nil, r, t.env, &t.option)
 			go func(task interfaces.BlowTask[Bindings]) {
@@ -99,7 +99,7 @@ func (
 			}(task)
 		}
 
-		if task.BlowActionTag == "schedule" && task.BlowActionSchedule != "" {
+		if task.BlowActionTag == interfaces.BlowTagSchedule && task.BlowActionSchedule != "" {
 			if t.cron == nil {
 				t.cron = cron.New(cron.WithSeconds())
 			}
@@ -148,7 +148,7 @@ func (
 	// execute stop tasks
 	var wg sync.WaitGroup
 	for _, task := range t.tasks {
-		if task.BlowActionTag == "trigger" && task.BlowActionTrigger == "stop" {
+		if task.BlowActionTag == interfaces.BlowTagTrigger && task.BlowActionTrigger == interfaces.BlowTriggerStop {
 			wg.Add(1)
 			go func(task interfaces.BlowTask[Bindings]) {
 				defer wg.Done()
