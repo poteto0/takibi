@@ -205,6 +205,26 @@ func TestTakibi_Router(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.StatusCode())
 	})
 
+	t.Run("middleware in sub-app is applied via Route", func(t *testing.T) {
+		called := false
+		mw := func(c interfaces.IContext[any], next interfaces.HandlerFunc[any]) error {
+			called = true
+			return next(c)
+		}
+
+		subApp := newNilApp()
+		subApp.Use("/", mw)
+		subApp.Get("/hello", handler)
+
+		app := newNilApp()
+		err := app.Route("/api", subApp)
+		assert.Nil(t, err)
+
+		resp := app.Camp("GET", "/api/hello")
+		assert.Equal(t, http.StatusOK, resp.StatusCode())
+		assert.True(t, called, "sub-app middleware should have been called")
+	})
+
 	t.Run("return error if duplicate when Route", func(t *testing.T) {
 		// Arrange
 		app1 := newNilApp()

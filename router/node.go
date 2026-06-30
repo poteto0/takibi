@@ -260,7 +260,7 @@ func (
 ) Linearize() []interfaces.NodeUnit[Bindings] {
 	visited := make(map[string]struct{})
 	results := []interfaces.NodeUnit[Bindings]{}
-	n.dfs(n, "", &visited, &results)
+	n.dfs(n, "", nil, &visited, &results)
 	return results
 }
 
@@ -269,6 +269,7 @@ func (
 ) dfs(
 	curr *node[Bindings],
 	path string,
+	accumulated []interfaces.MiddlewareFunc[Bindings],
 	visited *map[string]struct{},
 	results *[]interfaces.NodeUnit[Bindings],
 ) {
@@ -281,17 +282,20 @@ func (
 	}
 	(*visited)[path] = struct{}{}
 
+	all := make([]interfaces.MiddlewareFunc[Bindings], len(accumulated)+len(curr.middlewares))
+	copy(all, accumulated)
+	copy(all[len(accumulated):], curr.middlewares)
+
 	if curr.handler != nil {
 		*results = append(*results, interfaces.NodeUnit[Bindings]{
 			Path:       path,
 			Handler:    curr.handler,
-			Middleware: curr.middlewares,
+			Middleware: all,
 		})
 	}
 
 	for key, child := range curr.children {
-		childNode := child.(*node[Bindings])
 		nextPath := path + "/" + key
-		n.dfs(childNode, nextPath, visited, results)
+		n.dfs(child.(*node[Bindings]), nextPath, all, visited, results)
 	}
 }

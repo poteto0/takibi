@@ -284,6 +284,32 @@ func TestNode_ComposedHandler(t *testing.T) {
 
 func TestNode_Linearize(t *testing.T) {
 	emptyHandler := func(ctx interfaces.IContext[any]) error { return nil }
+	mw := func(c interfaces.IContext[any], next interfaces.HandlerFunc[any]) error { return nil }
+
+	t.Run("ancestor middleware is included in child NodeUnit", func(t *testing.T) {
+		n := NewNode[any]()
+		n.AddMiddleware("/", mw)
+		n.Add("/hello", emptyHandler)
+
+		units := n.Linearize()
+
+		assert.Len(t, units, 1)
+		assert.Equal(t, "/hello", units[0].Path)
+		assert.Len(t, units[0].Middleware, 1, "root middleware should be inherited by /hello NodeUnit")
+	})
+
+	t.Run("multiple levels of ancestor middleware are all included", func(t *testing.T) {
+		n := NewNode[any]()
+		mw2 := func(c interfaces.IContext[any], next interfaces.HandlerFunc[any]) error { return nil }
+		n.AddMiddleware("/", mw)
+		n.AddMiddleware("/api", mw2)
+		n.Add("/api/users", emptyHandler)
+
+		units := n.Linearize()
+
+		assert.Len(t, units, 1)
+		assert.Len(t, units[0].Middleware, 2, "both root and /api middlewares should be in NodeUnit")
+	})
 
 	t.Run("Linearize all nodes", func(t *testing.T) {
 		// Arrange
