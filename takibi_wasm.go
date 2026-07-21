@@ -112,17 +112,6 @@ func (
 
 func (
 	t *takibi[Bindings],
-) stopTasks(ctx stdContext.Context) {
-}
-
-func (
-	t *takibi[Bindings],
-) setupServer() error {
-	return nil
-}
-
-func (
-	t *takibi[Bindings],
 ) ServeHTTP(
 	w http.ResponseWriter,
 	r *http.Request,

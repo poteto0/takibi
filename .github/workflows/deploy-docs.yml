@@ -15,7 +15,6 @@ on:
       - '.github/workflows/deploy-docs.yml'
 
 env:
-  GO_VERSION: "1.26.1"
   TEMPL_VERSION: "v0.3.1020"
   JUST_VERSION: "1.45.0"
 
@@ -28,7 +27,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: docs/go.mod
           cache: true
           cache-dependency-path: docs/go.sum
 
@@ -70,7 +69,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: docs/go.mod
           cache: true
           cache-dependency-path: docs/go.sum
 
