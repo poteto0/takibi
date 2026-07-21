@@ -44,6 +44,10 @@ just -l
 
 - develop with tdd
 - always update docs(`/docs`), if api changed.
+- build tags: `*_wasm.go` must carry `//go:build wasm`, `*_native.go` must carry `//go:build !wasm`.
+  Go implies the constraint from the `_wasm` filename suffix but **not** from `_native`,
+  so a `*_native.go` without the explicit tag is silently compiled into the wasm build too.
+  Verify both targets with `just build-wasm` and `just lint-wasm`.
 
 ## docs
 

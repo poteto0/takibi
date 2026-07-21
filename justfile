@@ -6,6 +6,12 @@ ut:
 lint:
   golangci-lint run -c .golangci.yaml
 
+build-wasm:
+  GOOS=js GOARCH=wasm go build ./...
+
+lint-wasm:
+  GOOS=js GOARCH=wasm GOLANGCI_LINT_CACHE="$HOME/.cache/golangci-lint-wasm" golangci-lint run -c .golangci.yaml
+
 fmt:
   go fmt ./...
   templ fmt .
@@ -13,7 +19,7 @@ fmt:
 bench:
   go test -bench=. -benchmem -run='^$' ./...
 
-ci: ut lint fmt
+ci: ut lint lint-wasm build-wasm fmt
 
 gen:
   templ generate
