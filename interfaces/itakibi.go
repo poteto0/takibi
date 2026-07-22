@@ -43,8 +43,12 @@ type ITakibi[Bindings any] interface {
 	//
 	// then, GET /api/users will return "users"
 	//
+	//	- the sub app's error handler set by OnError is inherited: errors from
+	//	  its handlers go to it, and an error it returns falls through to the
+	//	  parent's error handler.
 	//	- ! the sub app's Bindings are discarded: ctx.Env() always returns
 	//	  the parent's Bindings, so pass every binding to the parent app.
+	//	- ! the sub app's Blow tasks and OnBlowError handler are not merged.
 	Route(basePath string, app ITakibi[Bindings]) error
 
 	/* add node */

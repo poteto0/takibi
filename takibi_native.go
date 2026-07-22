@@ -19,9 +19,10 @@ import (
 )
 
 type takibi[Bindings any] struct {
-	env              *Bindings
-	cache            sync.Pool
-	router           interfaces.IRouter[Bindings]
+	env    *Bindings
+	cache  sync.Pool
+	router interfaces.IRouter[Bindings]
+	// errorHandler is nil until OnError sets one, see handleError
 	errorHandler     interfaces.ErrorHandlerFunc[Bindings]
 	blowErrorHandler interfaces.BlowErrorHandlerFunc[Bindings]
 	tasks            []interfaces.BlowTask[Bindings]
@@ -33,6 +34,11 @@ type takibi[Bindings any] struct {
 	fireMutex sync.RWMutex
 	Server    http.Server
 	Listener  net.Listener
+}
+
+// defaultErrorHandler is used until OnError installs one.
+func defaultErrorHandler[Bindings any](ctx interfaces.IContext[Bindings], err error) error {
+	return ctx.Status(http.StatusInternalServerError).Text("Internal Server Error")
 }
 
 func New[Bindings any](bindings *Bindings) interfaces.ITakibi[Bindings] {
@@ -49,9 +55,6 @@ func NewWithOption[Bindings any](bindings *Bindings, opt interfaces.TakibiOption
 	return &takibi[Bindings]{
 		env:    bindings,
 		router: router.New[Bindings](),
-		errorHandler: func(ctx interfaces.IContext[Bindings], err error) error {
-			return ctx.Status(http.StatusInternalServerError).Text("Internal Server Error")
-		},
 		blowErrorHandler: func(c interfaces.IContext[Bindings], err error) {
 			fmt.Println(err.Error())
 		},
@@ -221,7 +224,7 @@ func (
 	}
 
 	if err := handler(ctx); err != nil {
-		if err := t.errorHandler(ctx, err); err != nil {
+		if err := t.handleError(ctx, err); err != nil {
 			// fallback
 			ctx.Response().WriteHeader(http.StatusInternalServerError)
 		}
@@ -278,29 +281,6 @@ func (
 	t *takibi[Bindings],
 ) Router() interfaces.IRouter[Bindings] {
 	return t.router
-}
-
-func (
-	t *takibi[Bindings],
-) Route(
-	basePath string,
-	app interfaces.ITakibi[Bindings],
-) error {
-	linearRoutes := app.Router().LinearizeTree()
-	for _, method := range router.SupportedHttpMethod {
-		for _, route := range linearRoutes[method] {
-			fullPath := basePath + route.Path
-
-			if err := t.router.Add(method, fullPath, route.Handler); err != nil {
-				return err
-			}
-
-			if err := t.router.Use(fullPath, route.Middleware...); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }
 
 func (

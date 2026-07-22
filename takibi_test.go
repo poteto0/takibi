@@ -2,6 +2,7 @@ package takibi
 
 import (
 	stdContext "context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -242,6 +243,61 @@ func TestTakibi_Router(t *testing.T) {
 		body, err := io.ReadAll(parent.Camp("GET", "/api/who").Raw().Body)
 		assert.Nil(t, err)
 		assert.Equal(t, "parent", string(body))
+	})
+
+	t.Run("errorHandler of sub-app is inherited via Route", func(t *testing.T) {
+		respondWith := func(prefix string) interfaces.ErrorHandlerFunc[any] {
+			return func(c interfaces.IContext[any], err error) error {
+				return c.Status(http.StatusTeapot).Text(prefix + err.Error())
+			}
+		}
+
+		tests := []struct {
+			name       string
+			subOnError interfaces.ErrorHandlerFunc[any]
+			wantBody   string
+		}{
+			{
+				name:       "sub-app errorHandler handles the error",
+				subOnError: respondWith("sub: "),
+				wantBody:   "sub: boom",
+			},
+			{
+				name:       "parent errorHandler is used when sub-app has no OnError",
+				subOnError: nil,
+				wantBody:   "parent: boom",
+			},
+			{
+				name: "error returned by sub-app errorHandler falls back to the parent",
+				subOnError: func(c interfaces.IContext[any], err error) error {
+					return errors.New("sub handler failed")
+				},
+				wantBody: "parent: sub handler failed",
+			},
+		}
+
+		for _, test := range tests {
+			t.Run(test.name, func(t *testing.T) {
+				sub := newNilApp()
+				if test.subOnError != nil {
+					sub.OnError(test.subOnError)
+				}
+				sub.Get("/boom", func(c interfaces.IContext[any]) error {
+					return errors.New("boom")
+				})
+
+				parent := newNilApp()
+				parent.OnError(respondWith("parent: "))
+				assert.Nil(t, parent.Route("/api", sub))
+
+				resp := parent.Camp("GET", "/api/boom")
+				assert.Equal(t, http.StatusTeapot, resp.StatusCode())
+
+				body, err := io.ReadAll(resp.Raw().Body)
+				assert.Nil(t, err)
+				assert.Equal(t, test.wantBody, string(body))
+			})
+		}
 	})
 
 	t.Run("return error if duplicate when Route", func(t *testing.T) {

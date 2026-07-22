@@ -5,7 +5,45 @@ import (
 
 	"github.com/poteto0/takibi/constants"
 	"github.com/poteto0/takibi/interfaces"
+	"github.com/poteto0/takibi/router"
 )
+
+func (
+	t *takibi[Bindings],
+) Route(
+	basePath string,
+	app interfaces.ITakibi[Bindings],
+) error {
+	// a sub app that never called OnError has no handler of its own to inherit
+	var subErrorHandler interfaces.ErrorHandlerFunc[Bindings]
+	if sub, ok := app.(*takibi[Bindings]); ok {
+		subErrorHandler = sub.errorHandler
+	}
+
+	linearRoutes := app.Router().LinearizeTree()
+	for _, method := range router.SupportedHttpMethod {
+		for _, route := range linearRoutes[method] {
+			fullPath := basePath + route.Path
+
+			handler := route.Handler
+			if subErrorHandler != nil {
+				handler = wrapWithErrorHandler(handler, subErrorHandler)
+			}
+
+			if err := t.router.Add(method, fullPath, handler); err != nil {
+				return err
+			}
+
+			if len(route.Middleware) == 0 {
+				continue
+			}
+			if err := t.router.Use(fullPath, route.Middleware...); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
 
 // register chains the handlers and delegates to add. It returns
 // constants.ErrNoHandler when no handler is provided.
