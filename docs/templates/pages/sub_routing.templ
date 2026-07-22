@@ -11,8 +11,11 @@ templ SubRouting() {
 	<div class={ styles.Callout() }>
 		Middleware registered on the child app's routes is preserved when mounted. Middleware registered on the parent (via <code>app.Use</code>) applies to all merged routes.
 	</div>
+	<div class={ styles.Callout() }>
+		An error handler registered on the child app via <code>app.OnError</code> is inherited: errors returned by the child app's handlers are handled by it instead of the parent's. If that handler itself returns an error, the error falls through to the parent's error handler. A child app that never calls <code>OnError</code> simply uses the parent's.
+	</div>
 	<div class={ styles.Callout(), styles.CalloutWarning() }>
-		The child app's <code>Bindings</code> are discarded. <code>ctx.Env()</code> returns the parent's <code>Bindings</code> even inside handlers registered on the child app, so pass every binding to the parent app.
+		The child app's <code>Bindings</code> are discarded. <code>ctx.Env()</code> returns the parent's <code>Bindings</code> even inside handlers registered on the child app, so pass every binding to the parent app. Blow tasks registered on the child app (and the <code>OnBlowError</code> handler) are not merged either.
 	</div>
 	<h2>All and On</h2>
 	<p><code>app.All</code> registers a handler for every HTTP method on a single path. <code>app.On</code> registers one handler across multiple methods and paths at once:</p>
