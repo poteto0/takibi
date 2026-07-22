@@ -24,6 +24,7 @@ type takibi[Bindings any] struct {
 	router           interfaces.IRouter[Bindings]
 	errorHandler     interfaces.ErrorHandlerFunc[Bindings]
 	blowErrorHandler interfaces.BlowErrorHandlerFunc[Bindings]
+	envResolver      interfaces.EnvResolverFunc[Bindings]
 	tasks            []interfaces.BlowTask[Bindings]
 	cron             *cron.Cron
 	option           interfaces.TakibiOption
@@ -47,8 +48,9 @@ func NewWithOption[Bindings any](bindings *Bindings, opt interfaces.TakibiOption
 	ctx, cancel := stdContext.WithCancel(stdContext.Background())
 
 	return &takibi[Bindings]{
-		env:    bindings,
-		router: router.New[Bindings](),
+		env:         bindings,
+		envResolver: defaultEnvResolver(bindings),
+		router:      router.New[Bindings](),
 		errorHandler: func(ctx interfaces.IContext[Bindings], err error) error {
 			return ctx.Status(http.StatusInternalServerError).Text("Internal Server Error")
 		},
@@ -91,7 +93,7 @@ func (
 	for _, task := range t.tasks {
 		if task.BlowActionTag == interfaces.BlowTagTrigger && task.BlowActionTrigger == interfaces.BlowTriggerStart {
 			r, _ := http.NewRequestWithContext(t.ctx, "GET", "/", nil)
-			c := NewContext(nil, r, t.env, &t.option)
+			c := t.newTaskContext(r)
 			go func(task interfaces.BlowTask[Bindings]) {
 				if err := task.BlowAction(c); err != nil {
 					t.blowErrorHandler(c, err)
@@ -105,7 +107,7 @@ func (
 			}
 			_, _ = t.cron.AddFunc(task.BlowActionSchedule, func() {
 				r, _ := http.NewRequestWithContext(t.ctx, "GET", "/", nil)
-				c := NewContext(nil, r, t.env, &t.option)
+				c := t.newTaskContext(r)
 				if err := task.BlowAction(c); err != nil {
 					t.blowErrorHandler(c, err)
 				}
@@ -153,7 +155,7 @@ func (
 			go func(task interfaces.BlowTask[Bindings]) {
 				defer wg.Done()
 				r, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
-				c := NewContext(nil, r, t.env, &t.option)
+				c := t.newTaskContext(r)
 				if err := task.BlowAction(c); err != nil {
 					t.blowErrorHandler(c, err)
 				}
@@ -227,20 +229,6 @@ func (
 		}
 		return
 	}
-}
-
-func (
-	t *takibi[Bindings],
-) initializeContext(
-	w http.ResponseWriter,
-	r *http.Request,
-) interfaces.IContext[Bindings] {
-	if ctx, ok := t.cache.Get().(interfaces.IContext[Bindings]); ok {
-		ctx.Reset(w, r)
-		return ctx
-	}
-
-	return NewContext(w, r, t.Env(), &t.option)
 }
 
 func (

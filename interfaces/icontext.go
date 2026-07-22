@@ -6,6 +6,13 @@ import (
 
 type IContext[Bindings any] interface {
 	Env() *Bindings
+
+	// SetEnv replaces the Bindings exposed by Env.
+	// It is called once per request when an EnvResolverFunc is registered
+	// via ITakibi.OnEnv, so a pooled context never carries the previous
+	// request's env.
+	SetEnv(env *Bindings)
+
 	Req() IRequest
 	Response() http.ResponseWriter
 	Reset(w http.ResponseWriter, r *http.Request)

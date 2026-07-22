@@ -21,6 +21,7 @@ type takibi[Bindings any] struct {
 	router           interfaces.IRouter[Bindings]
 	errorHandler     interfaces.ErrorHandlerFunc[Bindings]
 	blowErrorHandler interfaces.BlowErrorHandlerFunc[Bindings]
+	envResolver      interfaces.EnvResolverFunc[Bindings]
 	tasks            []interfaces.BlowTask[Bindings]
 	option           interfaces.TakibiOption
 
@@ -40,8 +41,9 @@ func NewWithOption[Bindings any](bindings *Bindings, opt interfaces.TakibiOption
 	ctx, cancel := stdContext.WithCancel(stdContext.Background())
 
 	return &takibi[Bindings]{
-		env:    bindings,
-		router: router.New[Bindings](),
+		env:         bindings,
+		envResolver: defaultEnvResolver(bindings),
+		router:      router.New[Bindings](),
 		errorHandler: func(ctx interfaces.IContext[Bindings], err error) error {
 			return ctx.Status(http.StatusInternalServerError).Text(err.Error())
 		},
@@ -86,7 +88,7 @@ func (
 	cron.ScheduleTaskNonBlock(func(ctx stdContext.Context) error {
 		event, _ := cron.NewEvent(ctx)
 		r, _ := http.NewRequestWithContext(ctx, "GET", "/", nil)
-		c := NewContext(nil, r, t.env, &t.option)
+		c := t.newTaskContext(r)
 		for _, task := range scheduleTasks {
 			// When BlowActionSchedule is set, only run for the matching
 			// fired cron expression. An empty schedule runs on every event.
@@ -145,20 +147,6 @@ func (
 		}
 		return
 	}
-}
-
-func (
-	t *takibi[Bindings],
-) initializeContext(
-	w http.ResponseWriter,
-	r *http.Request,
-) interfaces.IContext[Bindings] {
-	if ctx, ok := t.cache.Get().(interfaces.IContext[Bindings]); ok {
-		ctx.Reset(w, r)
-		return ctx
-	}
-
-	return NewContext(w, r, t.Env(), &t.option)
 }
 
 func (

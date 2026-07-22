@@ -49,6 +49,10 @@ func (c *context[Bindings]) Env() *Bindings {
 	return c.env
 }
 
+func (c *context[Bindings]) SetEnv(env *Bindings) {
+	c.env = env
+}
+
 func (c *context[Bindings]) Response() http.ResponseWriter {
 	return c.response
 }
