@@ -3,6 +3,7 @@ package takibi
 import (
 	stdContext "context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -223,6 +224,24 @@ func TestTakibi_Router(t *testing.T) {
 		resp := app.Camp("GET", "/api/hello")
 		assert.Equal(t, http.StatusOK, resp.StatusCode())
 		assert.True(t, called, "sub-app middleware should have been called")
+	})
+
+	t.Run("sub-app Bindings are discarded, parent's are used", func(t *testing.T) {
+		type probeBindings struct {
+			Name string
+		}
+
+		sub := New(&probeBindings{Name: "sub"})
+		sub.Get("/who", func(c interfaces.IContext[probeBindings]) error {
+			return c.Text(c.Env().Name)
+		})
+
+		parent := New(&probeBindings{Name: "parent"})
+		assert.Nil(t, parent.Route("/api", sub))
+
+		body, err := io.ReadAll(parent.Camp("GET", "/api/who").Raw().Body)
+		assert.Nil(t, err)
+		assert.Equal(t, "parent", string(body))
 	})
 
 	t.Run("return error if duplicate when Route", func(t *testing.T) {

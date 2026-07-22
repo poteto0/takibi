@@ -42,6 +42,9 @@ type ITakibi[Bindings any] interface {
 	//  app.Route("/api", api)
 	//
 	// then, GET /api/users will return "users"
+	//
+	//	- ! the sub app's Bindings are discarded: ctx.Env() always returns
+	//	  the parent's Bindings, so pass every binding to the parent app.
 	Route(basePath string, app ITakibi[Bindings]) error
 
 	/* add node */
