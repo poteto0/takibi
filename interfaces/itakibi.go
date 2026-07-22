@@ -25,6 +25,15 @@ type ITakibi[Bindings any] interface {
 
 	OnError(handler ErrorHandlerFunc[Bindings])
 
+	// OnEnv registers a resolver invoked once per request to build the
+	// Bindings returned by ctx.Env(). Without it, every request shares the
+	// Bindings passed to New.
+	//
+	//  app.OnEnv(func(r *http.Request) *Bindings {
+	//   return &Bindings{ApiKey: os.Getenv("API_KEY")}
+	//  })
+	OnEnv(resolver EnvResolverFunc[Bindings])
+
 	// OnBlowError sets the handler invoked when a Blow task returns an error.
 	//	- on wasm: applies to "schedule" tasks dispatched by Cron Triggers.
 	OnBlowError(handler BlowErrorHandlerFunc[Bindings])
@@ -43,8 +52,9 @@ type ITakibi[Bindings any] interface {
 	//
 	// then, GET /api/users will return "users"
 	//
-	//	- ! the sub app's Bindings are discarded: ctx.Env() always returns
-	//	  the parent's Bindings, so pass every binding to the parent app.
+	//	- ! the sub app's Bindings and its OnEnv resolver are discarded:
+	//	  ctx.Env() always returns the parent's Bindings, so pass every
+	//	  binding to the parent app.
 	Route(basePath string, app ITakibi[Bindings]) error
 
 	/* add node */

@@ -1,0 +1,16 @@
+package code
+
+templ Cloudflareenvonenvgo() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><code><span class="c1">// OnEnv replaces the tag resolver: it runs once per request and</span>
+<span class="c1">// its result becomes ctx.Env() for that request only.</span>
+<span class="nx">app</span><span class="p">.</span><span class="nf">OnEnv</span><span class="p">(</span><span class="kd">func</span><span class="p">(</span><span class="nx">r</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span> <span class="o">*</span><span class="nx">Bindings</span> <span class="p">&#123;</span>
+	<span class="k">return</span> <span class="o">&amp;</span><span class="nx">Bindings</span><span class="p">&#123;</span>
+		<span class="nx">ApiKey</span><span class="p">:</span>    <span class="nx">os</span><span class="p">.</span><span class="nf">Getenv</span><span class="p">(</span><span class="s">&#34;API_KEY&#34;</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">RequestID</span><span class="p">:</span> <span class="nx">r</span><span class="p">.</span><span class="nx">Header</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s">&#34;X-Request-Id&#34;</span><span class="p">)</span><span class="p">,</span>
+	<span class="p">&#125;</span>
+<span class="p">&#125;</span><span class="p">)</span></code></pre>
+		`,
+	)
+}
