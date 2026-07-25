@@ -35,6 +35,37 @@ func main() {
 }
 ```
 
+## Request-Scoped Bindings
+
+Tag your `Bindings` fields and takibi fills them for every request — you never assemble the env yourself. `env` reads an environment variable (`cloudflare.Getenv` on Workers, `os.Getenv` on a native build), and `cfbinding` reads a Cloudflare binding on Workers while staying at its zero value on a native build, so the same `main()` builds for both targets.
+
+```go
+type Bindings struct {
+	ApiKey string        `env:"API_KEY"`
+	Store  *kv.Namespace `cfbinding:"MY_KV"`
+}
+
+// no resolver to register: takibi.New detects the tags
+app := takibi.New(&Bindings{})
+
+app.Get("/secret", func(ctx MyContext) error {
+	return ctx.Text(ctx.Env().ApiKey) // resolved for this request
+})
+```
+
+For values derived from the request itself, register your own resolver with `OnEnv`. It replaces the tag resolver entirely.
+
+```go
+app.OnEnv(func(r *http.Request) *Bindings {
+	return &Bindings{
+		ApiKey:    os.Getenv("API_KEY"),
+		RequestID: r.Header.Get("X-Request-Id"),
+	}
+})
+```
+
+Without any tag and without `OnEnv`, every request shares the single `Bindings` pointer passed to `takibi.New`, so writing to `ctx.Env()` from a handler is a data race across concurrent requests.
+
 ## Safe Redirect
 
 `ctx.Redirect()` only accepts relative paths. For redirecting to external hosts, use `ctx.RedirectExternal()` with an explicit allowlist.

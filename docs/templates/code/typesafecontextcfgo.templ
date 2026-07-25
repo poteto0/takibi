@@ -4,11 +4,11 @@ templ Typesafecontextcfgo() {
 	@templ.Raw(
 		`
 			<pre class="chroma"><code><span class="kd">type</span> <span class="nx">Bindings</span> <span class="kd">struct</span> <span class="p">&#123;</span>
-	<span class="nx">MyKV</span>   <span class="nx">workers</span><span class="p">.</span><span class="nx">KVNamespace</span>
-	<span class="nx">Secret</span> <span class="kt">string</span>
+	<span class="nx">Store</span>  <span class="o">*</span><span class="nx">kv</span><span class="p">.</span><span class="nx">Namespace</span> <span class="s">&#96;</span><span class="s">cfbinding:&#34;MY_KV&#34;</span><span class="s">&#96;</span>
+	<span class="nx">ApiKey</span> <span class="kt">string</span>        <span class="s">&#96;</span><span class="s">env:&#34;API_KEY&#34;</span><span class="s">&#96;</span>
 <span class="p">&#125;</span>
 
-<span class="c1">// ctx.Env().MyKV is the Workers KV binding — typed, always.</span></code></pre>
+<span class="c1">// takibi resolves both fields per request — typed, always.</span></code></pre>
 		`,
 	)
 }

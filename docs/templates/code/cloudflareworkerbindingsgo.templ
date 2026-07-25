@@ -4,12 +4,17 @@ templ Cloudflareworkerbindingsgo() {
 	@templ.Raw(
 		`
 			<pre class="chroma"><code><span class="kd">type</span> <span class="nx">Bindings</span> <span class="kd">struct</span> <span class="p">&#123;</span>
-	<span class="nx">MyKV</span>   <span class="nx">workers</span><span class="p">.</span><span class="nx">KVNamespace</span>
-	<span class="nx">Secret</span> <span class="kt">string</span>
+	<span class="c1">// wasm: cloudflare.Getenv(&#34;API_KEY&#34;) / native: os.Getenv(&#34;API_KEY&#34;)</span>
+	<span class="nx">ApiKey</span> <span class="kt">string</span> <span class="s">&#96;</span><span class="s">env:&#34;API_KEY&#34;</span><span class="s">&#96;</span>
+	<span class="c1">// wasm: the MY_KV binding / native: left nil</span>
+	<span class="nx">Store</span> <span class="o">*</span><span class="nx">kv</span><span class="p">.</span><span class="nx">Namespace</span> <span class="s">&#96;</span><span class="s">cfbinding:&#34;MY_KV&#34;</span><span class="s">&#96;</span>
 <span class="p">&#125;</span>
 
+<span class="c1">// no resolver to register: takibi.New detects the tags</span>
+<span class="nx">app</span> <span class="o">:=</span> <span class="nx">takibi</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">Bindings</span><span class="p">&#123;</span><span class="p">&#125;</span><span class="p">)</span>
+
 <span class="nx">app</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="s">&#34;/secret&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">MyContext</span><span class="p">)</span> <span class="kt">error</span> <span class="p">&#123;</span>
-	<span class="k">return</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Text</span><span class="p">(</span><span class="nx">ctx</span><span class="p">.</span><span class="nf">Env</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nx">Secret</span><span class="p">)</span> <span class="c1">// 100% type-safe</span>
+	<span class="k">return</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Text</span><span class="p">(</span><span class="nx">ctx</span><span class="p">.</span><span class="nf">Env</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nx">ApiKey</span><span class="p">)</span> <span class="c1">// 100% type-safe, resolved per request</span>
 <span class="p">&#125;</span><span class="p">)</span></code></pre>
 		`,
 	)

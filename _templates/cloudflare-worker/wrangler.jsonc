@@ -12,11 +12,13 @@
 	},
 	"compatibility_flags": [
 		"nodejs_compat"
-	]
+	],
+	"vars": {
+		"GREETING": "hello from takibi"
+	}
 	/**
 	 * Bindings
 	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
 	 */
-	// "vars": { "MY_VARIABLE": "production_value" }
 	// "kv_namespaces": [{ "binding": "MY_KV", "id": "<KV_NAMESPACE_ID>" }]
 }

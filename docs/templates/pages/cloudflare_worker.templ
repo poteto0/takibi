@@ -50,8 +50,35 @@ templ CloudflareWorker() {
 	<h2>Application Code</h2>
 	@code.Cloudflareworkergo()
 	<h2>Workers Bindings Like Hono</h2>
-	<p>Add Cloudflare environment bindings (KV, secrets, etc.) to your <code>Bindings</code> struct for type-safe access:</p>
+	<p>
+		Tag the fields of your <code>Bindings</code> struct and takibi fills them for every request &#8212; you never assemble the env yourself.
+		<code>env</code> reads an environment variable (<code>cloudflare.Getenv</code> on Workers, <code>os.Getenv</code> on a native build) and
+		<code>cfbinding</code> reads a Cloudflare binding such as a KV namespace or an R2 bucket.
+	</p>
 	@code.Cloudflareworkerbindingsgo()
 	<p>Declare the same bindings in <code>wrangler.jsonc</code>:</p>
 	@code.Cloudflareworkerwranglerjsonc()
+	<div class={ styles.Callout() }>
+		A <code>cfbinding</code> field is left at its zero value on a native build, so the same <code>main()</code> compiles and runs for both targets.
+		Supported field types on Workers are <code>*kv.Namespace</code>, <code>*r2.Bucket</code> and <code>js.Value</code>.
+	</div>
+	<h2>Custom Resolvers</h2>
+	<p>
+		When a tag is not enough &#8212; per-request values derived from the request itself, for instance &#8212; register your own resolver with <code>OnEnv</code>.
+		It replaces the tag resolver entirely.
+	</p>
+	@code.Cloudflareenvonenvgo()
+	<h2>Current Limitations</h2>
+	<ul style="padding-left:20px;margin-top:8px;display:flex;flex-direction:column;gap:6px;">
+		<li>
+			Without any tag and without <code>OnEnv</code>, every request shares the single <code>Bindings</code> pointer passed to
+			<code>takibi.New</code>. Writing to <code>ctx.Env()</code> from a handler is then a data race across concurrent requests.
+		</li>
+		<li>
+			<code>takibi.New[Bindings](nil)</code> allocates a zero-valued <code>Bindings</code>; untagged fields stay zero rather than being resolved.
+		</li>
+		<li>
+			A sub app registered with <code>app.Route</code> discards its own <code>Bindings</code>: <code>ctx.Env()</code> always returns the parent&#39;s.
+		</li>
+	</ul>
 }

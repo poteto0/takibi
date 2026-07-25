@@ -333,3 +333,14 @@ func TestContext_Validated(t *testing.T) {
 		assert.False(t, ok)
 	})
 }
+
+func TestContext_SetEnv(t *testing.T) {
+	type Bindings struct{ Foo string }
+
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	ctx := NewContext(httptest.NewRecorder(), r, &Bindings{Foo: "first"}, nil)
+
+	ctx.SetEnv(&Bindings{Foo: "second"})
+
+	assert.Equal(t, "second", ctx.Env().Foo)
+}
