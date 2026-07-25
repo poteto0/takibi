@@ -53,6 +53,19 @@ func TestTakibi_OnEnv(t *testing.T) {
 		assert.Equal(t, []string{"fixed", "fixed"}, seen)
 	})
 
+	t.Run("a released context drops its env", func(t *testing.T) {
+		app := New(&Bindings{Foo: "fixed"}).(*takibi[Bindings])
+		_ = app.Get("/", func(ctx interfaces.IContext[Bindings]) error {
+			return ctx.Text("ok")
+		})
+
+		app.Camp(http.MethodGet, "/")
+
+		pooled, ok := app.cache.Get().(interfaces.IContext[Bindings])
+		assert.True(t, ok)
+		assert.Nil(t, pooled.Env())
+	})
+
 	t.Run("pooled context does not leak the previous env", func(t *testing.T) {
 		app := New(&Bindings{Foo: "fixed"}).(*takibi[Bindings])
 

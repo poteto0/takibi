@@ -21,17 +21,27 @@ type ITakibi[Bindings any] interface {
 	ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	/* getter */
+	// Env returns the app-wide Bindings passed to New, untouched.
+	//
+	//	- ! this is the template, not what a handler sees: once a resolver is
+	//	  in play (an `env` / `cfbinding` tag, or OnEnv), ctx.Env() returns
+	//	  the Bindings resolved for that request instead.
 	Env() *Bindings
 
 	OnError(handler ErrorHandlerFunc[Bindings])
 
 	// OnEnv registers a resolver invoked once per request to build the
-	// Bindings returned by ctx.Env(). Without it, every request shares the
-	// Bindings passed to New.
+	// Bindings returned by ctx.Env(). It replaces the resolver that `env` /
+	// `cfbinding` struct tags install by default. Without either, every
+	// request shares the Bindings passed to New.
 	//
 	//  app.OnEnv(func(r *http.Request) *Bindings {
 	//   return &Bindings{ApiKey: os.Getenv("API_KEY")}
 	//  })
+	//
+	//	- ! the resolver also runs for each Blow task, where r is a synthetic
+	//	  "GET /" with no headers. Derive task-visible values from the process
+	//	  or runtime env, not from r.
 	OnEnv(resolver EnvResolverFunc[Bindings])
 
 	// OnBlowError sets the handler invoked when a Blow task returns an error.

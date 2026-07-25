@@ -7,5 +7,6 @@ type MiddlewareFunc[Bindings any] func(c IContext[Bindings], next HandlerFunc[Bi
 type ErrorHandlerFunc[Bindings any] func(ctx IContext[Bindings], err error) error
 type BlowErrorHandlerFunc[Bindings any] func(c IContext[Bindings], err error)
 
-// EnvResolverFunc builds the Bindings exposed to ctx.Env() for a single request.
+// EnvResolverFunc builds the Bindings exposed to ctx.Env() for a single
+// request, or for a single Blow task — where r is a synthetic "GET /".
 type EnvResolverFunc[Bindings any] func(r *http.Request) *Bindings

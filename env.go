@@ -61,6 +61,19 @@ func (
 	return ctx
 }
 
+// releaseContext returns ctx to the pool, dropping its env first. The env is a
+// per-request value now, so an idle pooled context holding on to it would keep
+// that request's Bindings — and on wasm the JS objects a `cfbinding` field
+// wraps — alive until the context is picked up again.
+func (
+	t *takibi[Bindings],
+) releaseContext(
+	ctx interfaces.IContext[Bindings],
+) {
+	ctx.SetEnv(nil)
+	t.cache.Put(ctx)
+}
+
 // newTaskContext builds the context handed to a Blow task. Like a request, a
 // task gets its env from the resolver, so tagged Bindings are populated there
 // too.

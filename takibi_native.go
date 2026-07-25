@@ -202,7 +202,7 @@ func (
 ) {
 	// get from cache & reset context
 	ctx := t.initializeContext(w, r)
-	defer t.cache.Put(ctx)
+	defer t.releaseContext(ctx)
 
 	n, middlewares, params := t.router.Find(r.Method, r.URL.Path)
 	if len(params) > 0 {
