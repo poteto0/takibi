@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/poteto0/takibi/cfextensions"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -130,6 +131,25 @@ func TestResolver(t *testing.T) {
 		got := resolver(httptest.NewRequest(http.MethodGet, "/", nil))
 
 		assert.Nil(t, got.Store.Ptr)
+	})
+
+	t.Run("a WorkersAi binding stays nil on native and still answers Request", func(t *testing.T) {
+		type Bindings struct {
+			AI *cfextensions.WorkersAi `cfbinding:"AI"`
+		}
+
+		resolver, err := Resolver(&Bindings{})
+		assert.NoError(t, err)
+
+		got := resolver(httptest.NewRequest(http.MethodGet, "/", nil))
+
+		assert.Nil(t, got.AI)
+
+		_, err = got.AI.Request(cfextensions.RequestOption{
+			Model:    "@cf/openai/gpt-oss-120b",
+			Messages: []cfextensions.Message{{Role: "user", Content: "hi"}},
+		})
+		assert.ErrorIs(t, err, cfextensions.ErrAiUnavailable)
 	})
 
 	t.Run("accepts a nil base", func(t *testing.T) {

@@ -60,7 +60,16 @@ templ CloudflareWorker() {
 	@code.Cloudflareworkerwranglerjsonc()
 	<div class={ styles.Callout() }>
 		A <code>cfbinding</code> field is left at its zero value on a native build, so the same <code>main()</code> compiles and runs for both targets.
-		Supported field types on Workers are <code>*kv.Namespace</code>, <code>*r2.Bucket</code> and <code>js.Value</code>.
+		Supported field types on Workers are <code>*kv.Namespace</code>, <code>*r2.Bucket</code>, <code>*cfextensions.WorkersAi</code> and <code>js.Value</code>.
+	</div>
+	<h2>Workers AI</h2>
+	<p>
+		<code>*cfextensions.WorkersAi</code> wraps the <code>AI</code> binding, so an inference is one call from a handler.
+	</p>
+	@code.Cloudflareworkeraigo()
+	<div class={ styles.Callout() }>
+		On a native build the binding stays <code>nil</code> and <code>Request</code> returns <code>cfextensions.ErrAiUnavailable</code>,
+		so the handler above still compiles and runs locally &#8212; it just cannot reach the model.
 	</div>
 	<h2>Custom Resolvers</h2>
 	<p>
