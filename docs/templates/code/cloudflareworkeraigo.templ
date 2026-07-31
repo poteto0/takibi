@@ -1,0 +1,29 @@
+package code
+
+templ Cloudflareworkeraigo() {
+	@templ.Raw(
+		`
+			<pre class="chroma"><code><span class="kd">type</span> <span class="nx">Bindings</span> <span class="kd">struct</span> <span class="p">&#123;</span>
+	<span class="c1">// wasm: the AI binding / native: left nil</span>
+	<span class="nx">AI</span> <span class="o">*</span><span class="nx">cfextensions</span><span class="p">.</span><span class="nx">WorkersAi</span> <span class="s">&#96;</span><span class="s">cfbinding:&#34;AI&#34;</span><span class="s">&#96;</span>
+<span class="p">&#125;</span>
+
+<span class="nx">app</span><span class="p">.</span><span class="nf">Post</span><span class="p">(</span><span class="s">&#34;/ask&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">MyContext</span><span class="p">)</span> <span class="kt">error</span> <span class="p">&#123;</span>
+	<span class="nx">res</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Env</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="nx">AI</span><span class="p">.</span><span class="nf">Request</span><span class="p">(</span><span class="nx">cfextensions</span><span class="p">.</span><span class="nx">RequestOption</span><span class="p">&#123;</span>
+		<span class="nx">Model</span><span class="p">:</span> <span class="s">&#34;@cf/openai/gpt-oss-120b&#34;</span><span class="p">,</span> <span class="c1">// falls back to WorkersAi.Model when empty</span>
+		<span class="nx">Messages</span><span class="p">:</span> <span class="p">[</span><span class="p">]</span><span class="nx">cfextensions</span><span class="p">.</span><span class="nx">Message</span><span class="p">&#123;</span>
+			<span class="p">&#123;</span><span class="nx">Role</span><span class="p">:</span> <span class="s">&#34;system&#34;</span><span class="p">,</span> <span class="nx">Content</span><span class="p">:</span> <span class="s">&#34;You are a helpful assistant.&#34;</span><span class="p">&#125;</span><span class="p">,</span>
+			<span class="p">&#123;</span><span class="nx">Role</span><span class="p">:</span> <span class="s">&#34;user&#34;</span><span class="p">,</span> <span class="nx">Content</span><span class="p">:</span> <span class="s">&#34;Why is the sky blue?&#34;</span><span class="p">&#125;</span><span class="p">,</span>
+		<span class="p">&#125;</span><span class="p">,</span>
+		<span class="nx">MaxTokens</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span> <span class="c1">// optional, defaults to 1024</span>
+	<span class="p">&#125;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">&#123;</span>
+		<span class="k">return</span> <span class="nx">err</span>
+	<span class="p">&#125;</span>
+
+	<span class="c1">// Text() picks the completion out of whichever shape the model answered in</span>
+	<span class="k">return</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Text</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nf">Text</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
+<span class="p">&#125;</span><span class="p">)</span></code></pre>
+		`,
+	)
+}
