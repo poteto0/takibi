@@ -3,6 +3,7 @@
 package cloudflareenv
 
 import (
+	"database/sql"
 	"reflect"
 	"syscall/js"
 
@@ -10,6 +11,8 @@ import (
 	"github.com/syumai/workers/cloudflare"
 	"github.com/syumai/workers/cloudflare/kv"
 	"github.com/syumai/workers/cloudflare/r2"
+
+	_ "github.com/syumai/workers/cloudflare/d1" // register driver
 )
 
 func lookupEnv(name string) string {
@@ -17,6 +20,7 @@ func lookupEnv(name string) string {
 }
 
 var (
+	d1Type          = reflect.TypeFor[*sql.DB]()
 	kvNamespaceType = reflect.TypeFor[*kv.Namespace]()
 	r2BucketType    = reflect.TypeFor[*r2.Bucket]()
 	workersAiType   = reflect.TypeFor[*cfextensions.WorkersAi]()
@@ -32,6 +36,10 @@ func assignBinding(field reflect.Value, name string) {
 	case kvNamespaceType:
 		if namespace, err := kv.NewNamespace(name); err == nil {
 			field.Set(reflect.ValueOf(namespace))
+		}
+	case d1Type:
+		if db, err := sql.Open("d1", name); err == nil {
+			field.Set(reflect.ValueOf(db))
 		}
 	case r2BucketType:
 		if bucket, err := r2.NewBucket(name); err == nil {
