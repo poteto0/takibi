@@ -9,6 +9,7 @@ require (
 
 require (
 	github.com/robfig/cron/v3 v3.0.1 // indirect
+	github.com/syumai/go-jsutil v0.2.0 // indirect
 	github.com/syumai/workers v0.33.0 // indirect
 )
 

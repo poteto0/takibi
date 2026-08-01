@@ -2,31 +2,29 @@
 
 ## Hono Inspired Type-Safe Context Web Framework
 
-### 🛡️ Type-Safe Context
+### 🛡️ Auto-Resolved, Type-Safe Bindings
 
-No need to worry about any type of store anymore.
+Tag the fields of your `Bindings` struct and takibi fills them for every request — no store, no casts, no env plumbing.
 
 ```go
 type Bindings struct {
-	Foo   string
-	Greet func()
+	// wasm: cloudflare.Getenv("API_KEY") / native: os.Getenv("API_KEY")
+	ApiKey string `env:"API_KEY"`
+	// wasm: the MY_KV binding / native: left nil
+	Store *kv.Namespace `cfbinding:"MY_KV"`
+	// untagged: keeps the value given to takibi.New
+	Version string
 }
 
 type MyContext = interfaces.IContext[Bindings]
 
 func main() {
-	var bindings = &Bindings{
-		Foo: "Bar",
-		Greet: func() {
-			fmt.Println("hello")
-		},
-	}
+	// no resolver to register: takibi.New detects the tags
+	app := takibi.New(&Bindings{Version: "v1"})
 
-	app := takibi.New(bindings)
-	app.Get("/hello", func(ctx MyContext) error {
-		fmt.Println(ctx.Env().Foo) // 100% string
-		ctx.Env().Greet() // 100% func()
-		return nil
+	app.Get("/secret", func(ctx MyContext) error {
+		// 100% string, resolved for this request only
+		return ctx.Text(ctx.Env().ApiKey)
 	})
 
 	if err := app.Fire(":8000"); err != nil {
@@ -35,25 +33,40 @@ func main() {
 }
 ```
 
-## Request-Scoped Bindings
+| Tag | Field type | Workers (wasm) | Native |
+| --- | --- | --- | --- |
+| `env:"NAME"` | `string` only | `cloudflare.Getenv("NAME")` | `os.Getenv("NAME")` |
+| `cfbinding:"NAME"` | `*kv.Namespace`, `*r2.Bucket`, `*sql.DB` (D1), `*cfextensions.WorkersAi`, `js.Value` | the Cloudflare binding `NAME` | zero value |
 
-Tag your `Bindings` fields and takibi fills them for every request — you never assemble the env yourself. `env` reads an environment variable (`cloudflare.Getenv` on Workers, `os.Getenv` on a native build), and `cfbinding` reads a Cloudflare binding on Workers while staying at its zero value on a native build, so the same `main()` builds for both targets.
+Both tags on one field, an unexported tagged field, or `env` on a non-string field panics at `takibi.New` instead of failing on the first request. A `cfbinding` field is simply zero on a native build, so the same `main()` builds for both targets.
+
+### 🧩 Plain Bindings
+
+Nothing forces you to use tags — any typed value works, and `ctx.Env()` returns it as is.
 
 ```go
 type Bindings struct {
-	ApiKey string        `env:"API_KEY"`
-	Store  *kv.Namespace `cfbinding:"MY_KV"`
+	Foo   string
+	Greet func()
 }
 
-// no resolver to register: takibi.New detects the tags
-app := takibi.New(&Bindings{})
+app := takibi.New(&Bindings{
+	Foo:   "Bar",
+	Greet: func() { fmt.Println("hello") },
+})
 
-app.Get("/secret", func(ctx MyContext) error {
-	return ctx.Text(ctx.Env().ApiKey) // resolved for this request
+app.Get("/hello", func(ctx MyContext) error {
+	fmt.Println(ctx.Env().Foo) // 100% string
+	ctx.Env().Greet()          // 100% func()
+	return nil
 })
 ```
 
-For values derived from the request itself, register your own resolver with `OnEnv`. It replaces the tag resolver entirely.
+Without any tag and without `OnEnv`, every request shares the single `Bindings` pointer passed to `takibi.New`, so writing to `ctx.Env()` from a handler is a data race across concurrent requests.
+
+### 🔧 Custom Resolvers
+
+For values derived from the request itself, register your own resolver with `OnEnv`. It runs once per request and replaces the tag resolver entirely.
 
 ```go
 app.OnEnv(func(r *http.Request) *Bindings {
@@ -63,8 +76,6 @@ app.OnEnv(func(r *http.Request) *Bindings {
 	}
 })
 ```
-
-Without any tag and without `OnEnv`, every request shares the single `Bindings` pointer passed to `takibi.New`, so writing to `ctx.Env()` from a handler is a data race across concurrent requests.
 
 ## Safe Redirect
 

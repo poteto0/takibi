@@ -16,6 +16,12 @@ templ TypeSafeContext() {
 		The <code>Env()</code> method returns your <code>Bindings</code> value directly. No casts, no panics.
 	</div>
 	<h2>Cloudflare Workers Bindings</h2>
-	<p>When deploying to Cloudflare Workers, bindings map directly to Workers environment variables and KV namespaces:</p>
+	<p>
+		Tagged fields map directly to Workers environment variables and bindings, and takibi resolves them for every request:
+	</p>
 	@code.Typesafecontextcfgo()
+	<div class={ styles.Callout() }>
+		The <a href="/docs/bindings" style="color:var(--primary);">Bindings</a> page covers the full tag reference, the supported
+		<code>cfbinding</code> field types, and custom resolvers.
+	</div>
 }

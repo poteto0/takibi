@@ -1,0 +1,88 @@
+package pages
+
+import "github.com/poteto0/takibi-docs/templates/styles"
+import "github.com/poteto0/takibi-docs/templates/code"
+
+templ Bindings() {
+	<h1>Bindings</h1>
+	<p class={ styles.Lead() }>Tag a field of your <code>Bindings</code> struct and takibi fills it before every request &#8212; environment variables, secrets, KV namespaces, R2 buckets, D1 databases, Workers AI. You never assemble the env yourself.</p>
+	<h2>Auto-Resolved Fields</h2>
+	<p>
+		<code>takibi.New</code> inspects <code>Bindings</code> at startup. If any field carries an
+		<code>env</code> or <code>cfbinding</code> tag, a resolver is wired automatically and runs once per request,
+		so <code>ctx.Env()</code> is a fresh value owned by that request.
+	</p>
+	@code.Bindingstaggedgo()
+	<div class={ styles.Callout() }>
+		No <code>OnEnv</code>, no init function, no globals. The tags are the whole configuration.
+	</div>
+	<h2>The Two Tags</h2>
+	<table>
+		<thead>
+			<tr>
+				<th>Tag</th>
+				<th>Field type</th>
+				<th>Workers (wasm)</th>
+				<th>Native</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><code>env:"NAME"</code></td>
+				<td><code>string</code> only</td>
+				<td><code>cloudflare.Getenv("NAME")</code></td>
+				<td><code>os.Getenv("NAME")</code></td>
+			</tr>
+			<tr>
+				<td><code>cfbinding:"NAME"</code></td>
+				<td>see below</td>
+				<td>the Cloudflare binding <code>NAME</code></td>
+				<td>zero value</td>
+			</tr>
+		</tbody>
+	</table>
+	<p>
+		The two tags are mutually exclusive on one field, and a tagged field must be exported. Breaking either rule &#8212; or
+		putting <code>env</code> on a non-string field &#8212; panics at <code>takibi.New</code>, not on the first request.
+	</p>
+	<h2>Supported cfbinding Types</h2>
+	@code.Bindingstypesgo()
+	<p>
+		Any other field type, or a binding missing from <code>wrangler.jsonc</code>, is left at its zero value instead of failing the request.
+	</p>
+	<h2>Declaring the Bindings</h2>
+	<p>The names in the tags are the names Cloudflare knows. Declare them in <code>wrangler.jsonc</code>:</p>
+	@code.Cloudflareworkerwranglerjsonc()
+	<div class={ styles.Callout() }>
+		A <code>cfbinding</code> field stays at its zero value on a native build, so the same <code>main()</code> compiles and runs for both
+		targets &#8212; guard the field with a <code>nil</code> check when the handler must also work locally.
+	</div>
+	<h2>Custom Resolvers</h2>
+	<p>
+		When a tag is not enough &#8212; a value derived from the request itself, for instance &#8212; register your own resolver with
+		<code>OnEnv</code>. It runs once per request and <b>replaces</b> the tag resolver entirely, so a resolver you write is
+		responsible for every field it cares about.
+	</p>
+	@code.Cloudflareenvonenvgo()
+	<h2>Untagged Bindings</h2>
+	<ul style="padding-left:20px;margin-top:8px;display:flex;flex-direction:column;gap:6px;">
+		<li>
+			Without any tag and without <code>OnEnv</code>, every request shares the single <code>Bindings</code> pointer passed to
+			<code>takibi.New</code>. Writing to <code>ctx.Env()</code> from a handler is then a data race across concurrent requests.
+		</li>
+		<li>
+			With tags, untagged fields are copied from that pointer into each request&#39;s value &#8212; a shallow copy, so pointers and
+			maps inside it are still shared.
+		</li>
+		<li>
+			<code>takibi.New[Bindings](nil)</code> allocates a zero-valued <code>Bindings</code>; untagged fields stay zero.
+		</li>
+		<li>
+			A sub app registered with <code>app.Route</code> discards its own <code>Bindings</code>: <code>ctx.Env()</code> always returns the parent&#39;s.
+		</li>
+	</ul>
+	<p>
+		Background tasks registered with <code>app.Blow</code> go through the same resolver, so a scheduled handler sees the same
+		tagged fields as an HTTP handler.
+	</p>
+}

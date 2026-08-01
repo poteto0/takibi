@@ -8,8 +8,11 @@ import (
 	"github.com/poteto0/takibi/interfaces"
 )
 
+// Bindings is resolved per request: takibi fills the tagged fields for you.
+// `env` reads os.Getenv on a native build (cloudflare.Getenv on Workers), and
+// untagged fields keep the value passed to takibi.New.
 type Bindings struct {
-	Foo   string
+	Foo   string `env:"FOO"`
 	Greet func()
 }
 
@@ -18,8 +21,8 @@ type MyContext = interfaces.IContext[Bindings]
 var BadRequest = errors.New("bad request")
 
 func main() {
+	// no resolver to register: takibi.New detects the `env` tag
 	var bindings = &Bindings{
-		Foo: "Bar",
 		Greet: func() {
 			fmt.Println("hello")
 		},

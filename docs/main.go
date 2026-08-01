@@ -31,6 +31,7 @@ func main() {
 	app.Get("/getting-started", docPage("Getting Started", "getting-started", pages.GettingStarted()))
 	app.Get("/getting-started/cloudflare-workers", docPage("Cloudflare Workers", "cloudflare-workers", pages.CloudflareWorker()))
 
+	app.Get("/docs/bindings", docPage("Bindings", "bindings", pages.Bindings()))
 	app.Get("/docs/type-safe-context", docPage("Type-Safe Context", "type-safe-context", pages.TypeSafeContext()))
 	app.Get("/docs/routing", docPage("Routing", "routing", pages.Routing()))
 	app.Get("/docs/sub-routing", docPage("Sub-Routing", "sub-routing", pages.SubRouting()))
