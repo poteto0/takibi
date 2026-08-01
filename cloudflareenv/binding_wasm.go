@@ -28,9 +28,9 @@ var (
 )
 
 // assignBinding fills field with the Cloudflare binding named name.
-// Supported field types are *kv.Namespace, *r2.Bucket, *cfextensions.WorkersAi
-// and js.Value; any other type — or a binding missing from wrangler.jsonc —
-// leaves the zero value.
+// Supported field types are *kv.Namespace, *r2.Bucket, *sql.DB (D1),
+// *cfextensions.WorkersAi and js.Value; any other type — or a binding missing
+// from wrangler.jsonc — leaves the zero value.
 func assignBinding(field reflect.Value, name string) {
 	switch field.Type() {
 	case kvNamespaceType:

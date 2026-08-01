@@ -60,7 +60,9 @@ templ CloudflareWorker() {
 	@code.Cloudflareworkerwranglerjsonc()
 	<div class={ styles.Callout() }>
 		A <code>cfbinding</code> field is left at its zero value on a native build, so the same <code>main()</code> compiles and runs for both targets.
-		Supported field types on Workers are <code>*kv.Namespace</code>, <code>*r2.Bucket</code>, <code>*cfextensions.WorkersAi</code> and <code>js.Value</code>.
+		Supported field types on Workers are <code>*kv.Namespace</code>, <code>*r2.Bucket</code>, <code>*sql.DB</code> (D1),
+		<code>*cfextensions.WorkersAi</code> and <code>js.Value</code>. The
+		<a href="/docs/bindings" style="color:var(--primary);">Bindings</a> page has the full reference.
 	</div>
 	<h2>Workers AI</h2>
 	<p>

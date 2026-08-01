@@ -7,16 +7,20 @@ import (
 	"github.com/poteto0/takibi/interfaces"
 )
 
+// Bindings is resolved per request: takibi fills the tagged fields for you.
+// `env` reads a wrangler.jsonc var / secret on Workers and os.Getenv on a
+// native build, so the same main() works for both targets. Use `cfbinding`
+// for KV, R2, D1 or Workers AI — those stay nil on a native build.
 type Bindings struct {
-	Foo   string
+	Foo   string `env:"FOO"`
 	Greet func()
 }
 
 type MyContext = interfaces.IContext[Bindings]
 
 func main() {
+	// no resolver to register: takibi.New detects the `env` tag
 	var bindings = &Bindings{
-		Foo: "Bar",
 		Greet: func() {
 			fmt.Println("hello")
 		},

@@ -33,8 +33,9 @@ templ Layout(title string, active string, content templ.Component) {
 							<a href="/getting-started/cloudflare-workers" class={ "sidebar-link", templ.KV("active", active == "cloudflare-workers") }>Cloudflare Workers</a>
 							<a href="/getting-started" class={ "sidebar-link", templ.KV("active", active == "getting-started") }>Native Go</a>
 						</details>
-						<details class="sidebar-details" open?={ inSection(active, "type-safe-context", "routing", "sub-routing") }>
+						<details class="sidebar-details" open?={ inSection(active, "bindings", "type-safe-context", "routing", "sub-routing") }>
 							<summary class={ styles.SidebarSectionTitle(), "sidebar-section-summary" }>Core Concepts</summary>
+							<a href="/docs/bindings" class={ "sidebar-link", templ.KV("active", active == "bindings") }>Bindings</a>
 							<a href="/docs/type-safe-context" class={ "sidebar-link", templ.KV("active", active == "type-safe-context") }>Type-Safe Context</a>
 							<a href="/docs/routing" class={ "sidebar-link", templ.KV("active", active == "routing") }>Routing</a>
 							<a href="/docs/sub-routing" class={ "sidebar-link", templ.KV("active", active == "sub-routing") }>Sub-Routing</a>

@@ -3,11 +3,13 @@
 This is Web-Framework for golang,
 which can be hosted on cloudflare-workers w/ syumai-worker when wasm built.
 
-- Type-safe context.
+- Type-safe context. Fields tagged `env:"NAME"` / `cfbinding:"NAME"` are resolved
+  per request by takibi itself (see `cloudflareenv`); untagged fields keep the
+  value passed to `takibi.New`.
 
 ```go
 type Bindings struct {
-	Foo   string
+	Foo   string `env:"FOO"`
 	Greet func()
 }
 
@@ -15,7 +17,7 @@ type MyContext = interfaces.IContext[Bindings]
 
 func main() {
 	var bindings = &Bindings{
-		Foo: "Bar",
+		// Foo is filled from the FOO env var on every request
 		Greet: func() {
 			fmt.Println("hello")
 		},

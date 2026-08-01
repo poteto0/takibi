@@ -26,6 +26,12 @@
 		"crons": [
 			"*/5 * * * *"
 		]
+	},
+	/**
+	 * Read by the `env:"FOO"` field of Bindings in main.go.
+	 */
+	"vars": {
+		"FOO": "Bar"
 	}
 	/**
 	 * Smart Placement
